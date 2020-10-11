@@ -19,5 +19,5 @@ wsServer.on('connection', onConnection);
 //#endregion
 
 function onConnection(connection){
-    console.log(connection);
+    console.log((new Date()) + JSON.stringify(connection));
 }
