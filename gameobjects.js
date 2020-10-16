@@ -56,11 +56,11 @@ exports.Vector = Vector;
 function ShipType() {
     this.name = "ShipTypeName";
     this.speed = 5;
-    this.accel = 1;
-    this.revAccel = 0.5;
-    this.rotSpeed = 1;
-    this.afterBonus = 3;
-    this.afterCapacity = 60;
+    this.acceleration = 1;
+    this.reverseAccelreation = 0.5;
+    this.rotationSpeed = 1;
+    this.afterBurnerBonus = 3;
+    this.afterBurnerCapacity = 60;
 }
 
 ShipType.init = function () {
@@ -68,11 +68,11 @@ ShipType.init = function () {
     let debugShip = new ShipType();
     debugShip.name = "Debug";
     debugShip.speed = 150;
-    debugShip.accel = 5;
-    debugShip.revAccel = 3;
-    debugShip.rotSpeed = 1;
-    debugShip.afterBonus = 3;
-    debugShip.afterCapacity = 60;
+    debugShip.acceleration = 5;
+    debugShip.reverseAccelreation = 3;
+    debugShip.rotationSpeed = 1;
+    debugShip.afterBurnerBonus = 3;
+    debugShip.afterBurnerCapacity = 60;
     ShipType.types["Debug"] = debugShip;
 };
 ShipType.init();
@@ -81,9 +81,9 @@ exports.ShipType = ShipType;
 
 function Ship() {
     this.stats;
-    this.pos = new Vector(0, 0);
+    this.position = new Vector(0, 0);
     this.velocity = new Vector(0, 0);
-    this.rot = 0;
+    this.rotation = 0;
     this.control = new Vector(0, 0);
 
     this.setup = function (type) {
@@ -94,13 +94,13 @@ function Ship() {
         let stats = this.stats;
 
         if (this.control.x != 0) {
-            // rotace
-            this.rot += stats.rotSpeed * this.control.x * dt;
+            // rotationace
+            this.rotation += stats.rotationSpeed * this.control.x * dt;
         }
 
         if (this.control.y != 0) {
             // zrychlení / brždění
-            let pointing = Vector.fromAngle(this.rot).mult(this.control.y);
+            let pointing = Vector.fromAngle(this.rotation).mult(this.control.y);
             pointing.mult(dt);
             if (this.control.y > 0) {
                 pointing.normalize(stats.accel);
@@ -114,7 +114,7 @@ function Ship() {
             this.velocity.normalize(stats.speed);
         }
 
-        this.pos.add(this.velocity.result().mult(dt));
+        this.position.add(this.velocity.result().mult(dt));
     };
 }
 
