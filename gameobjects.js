@@ -2,11 +2,11 @@
 function Vector(x, y) {
     this.x = x;
     this.y = y;
-  
+
     this.length = function () {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     };
-  
+
     this.distance = function (vector) {
         let v = new Vector(
             Math.abs(this.x - vector.x),
@@ -14,25 +14,25 @@ function Vector(x, y) {
         );
         return v.length();
     };
-  
+
     this.add = function (vector) {
         this.x = this.x + vector.x;
         this.y = this.y + vector.y;
         return this;
     };
-  
+
     this.sub = function (vector) {
         this.x = this.x - vector.x;
         this.y = this.y - vector.y;
         return this;
     };
-  
+
     this.mult = function (magnitude) {
         this.x = this.x * magnitude;
         this.y = this.y * magnitude;
         return this;
     };
-  
+
     this.normalize = function (length) {
         length = length || 1;
         let total = this.length();
@@ -43,15 +43,17 @@ function Vector(x, y) {
     this.result = function () {
         return new Vector(this.x, this.y);
     };
-  }
-  Vector.zero = function () {
+}
+Vector.zero = function () {
     return new Vector(0, 0);
-  };
-  Vector.fromAngle = function (r) {
+};
+Vector.fromAngle = function (r) {
     return new Vector(Math.cos(r), Math.sin(r));
-  };
-  
-  function ShipType() {
+};
+
+exports.Vector = Vector;
+
+function ShipType() {
     this.name = "ShipTypeName";
     this.speed = 5;
     this.accel = 1;
@@ -59,9 +61,9 @@ function Vector(x, y) {
     this.rotSpeed = 1;
     this.afterBonus = 3;
     this.afterCapacity = 60;
-  }
-  
-  ShipType.init = function () {
+}
+
+ShipType.init = function () {
     ShipType.types = [];
     let debugShip = new ShipType();
     debugShip.name = "Debug";
@@ -72,27 +74,32 @@ function Vector(x, y) {
     debugShip.afterBonus = 3;
     debugShip.afterCapacity = 60;
     ShipType.types["Debug"] = debugShip;
-  };
-  
-  function Ship() {
+};
+ShipType.init();
+
+exports.ShipType = ShipType;
+
+function Ship() {
     this.stats;
     this.pos = new Vector(0, 0);
     this.velocity = new Vector(0, 0);
     this.rot = 0;
     this.control = new Vector(0, 0);
-  
+
     this.setup = function (type) {
         this.stats = type;
     };
-  
+
     this.update = function (dt) {
         let stats = this.stats;
-  
-        if (this.control.x != 0) { // rotace
+
+        if (this.control.x != 0) {
+            // rotace
             this.rot += stats.rotSpeed * this.control.x * dt;
         }
-  
-        if (this.control.y != 0) { // zrychlení / brždění
+
+        if (this.control.y != 0) {
+            // zrychlení / brždění
             let pointing = Vector.fromAngle(this.rot).mult(this.control.y);
             pointing.mult(dt);
             if (this.control.y > 0) {
@@ -102,27 +109,32 @@ function Vector(x, y) {
             }
             this.velocity.add(pointing);
         }
-  
+
         if (this.velocity.length() >= stats.speed) {
             this.velocity.normalize(stats.speed);
         }
-  
+
         this.pos.add(this.velocity.result().mult(dt));
     };
-  }
-  
-  function Player(connection) {
+}
+
+exports.Ship = Ship;
+
+function Player(connection) {
     this.nick = "nick";
     this.ship;
     this.connection = connection;
     this.id = Player.players.length;
-    this.send = function(data){
+    this.send = function (data) {
         this.connection.send(data);
-    }
-    Player.players[id] = this;
-  }
-  Player.players = [];
-  
-  //#endregion
+    };
+    this.init = function () {
+        this.ship = new Ship(ShipType.types["Debug"]);
+    };
+    Player.players[this.id] = this;
+}
+Player.players = [];
 
-  console.log("f");
+exports.Player = Player;
+
+//#endregion
