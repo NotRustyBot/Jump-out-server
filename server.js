@@ -73,6 +73,8 @@ ShipType.init = function () {
   debugShip.afterCapacity = 60;
   ShipType.types["Debug"] = debugShip;
 };
+ShipType.init();
+
 
 function Ship() {
   this.stats;
@@ -118,6 +120,9 @@ function Player(connection) {
   this.id = Player.players.length;
   this.send = function(data){
       this.connection.send(data);
+  }
+  this.init = function () {
+    this.ship = new Ship(ShipType.types["Debug"]);
   }
   Player.players[this.id] = this;
 }
