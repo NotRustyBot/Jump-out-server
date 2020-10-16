@@ -119,7 +119,7 @@ function Player(connection) {
   this.send = function(data){
       this.connection.send(data);
   }
-  Player.players[id] = this;
+  Player.players[this.id] = this;
 }
 Player.players = [];
 
