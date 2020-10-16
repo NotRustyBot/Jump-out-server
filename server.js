@@ -36,7 +36,7 @@ function update(){
 }
 
 function sendAll(data){
-  connection.forEach(c => {
+  connections.forEach(c => {
     c.send(data);
   });
 }
