@@ -21,8 +21,18 @@ wsServer.on('connection', onConnection);
 var connections = [];
 
 function onConnection(connection){
-    console.log((new Date()) + connection);
-    connections.push(connection);
+  
+  var id = connections.push(connection);
+  
+  console.log((new Date()) + "New connection, ID: "+id);
+
+    connection.on('message', message => {
+      onMessage(message, id);
+    });
+    connection.on('close', e => {
+      onClose(e, id);
+    });
+
 }
 
 const fps = 1;
@@ -39,4 +49,12 @@ function sendAll(data){
   connections.forEach(c => {
     c.send(data);
   });
+}
+
+function onMessage(message, user){
+  console.log("Message from "+user+" : "+message);
+}
+
+function onClose(event, user){
+  console.log("Closed connection "+user+" Reason: "+event);
 }
