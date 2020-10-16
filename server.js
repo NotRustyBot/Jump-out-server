@@ -18,8 +18,11 @@ wsServer = new WebSocketServer({ server });
 wsServer.on('connection', onConnection);
 //#endregion
 
+var connections = [];
+
 function onConnection(connection){
     console.log((new Date()) + connection);
+    connections.push(connection);
 }
 
 const fps = 1;
@@ -29,5 +32,11 @@ setInterval(() => {
 }, 1000 / fps);
 
 function update(){
-  connection.send(0);
+  sendAll(0);
+}
+
+function sendAll(data){
+  connection.forEach(c => {
+    c.send(data);
+  });
 }
