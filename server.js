@@ -182,9 +182,9 @@ function cont(p) { // delete this
   const view = new DataView(buffer);
   view.setUint8(index,1);
   index+=1;
-  view.setFloat32(index,p.control.x);
+  view.setFloat32(index,p.ship.control.x);
   index+=4;
-  view.setFloat32(index,p.control.y);
+  view.setFloat32(index,p.ship.control.y);
   return buffer;
 }
 
