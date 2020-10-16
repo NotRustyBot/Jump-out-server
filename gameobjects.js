@@ -88,12 +88,13 @@ function Ship() {
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
 
-    this.setup = function (type) {
+    this.init = function (type) {
         this.stats = type;
     };
 
     this.update = function (dt) {
         let stats = this.stats;
+        console.log(stats);
 
         if (this.control.x != 0) {
             // rotationace
@@ -132,7 +133,8 @@ function Player(connection) {
         this.connection.send(data);
     };
     this.init = function () {
-        this.ship = new Ship(ShipType.types["Debug"]);
+        this.ship = new Ship();
+        this.ship.init(ShipType.types["Debug"]);
     };
     Player.players[this.id] = this;
 }

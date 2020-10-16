@@ -47,7 +47,7 @@ function update(){
   dt = 1;
   Player.players.forEach(p => {
     p.send(makeMessage(p));
-    p.update(dt);
+    p.ship.update(dt);
   });
 }
 
