@@ -63,9 +63,9 @@ function update(){
 
 function makeMessage(p) { // delete this
   let index = {i:0};
-  const buffer = new ArrayBuffer(9);
+  const buffer = new ArrayBuffer((8+8+4)+8);
   const view = new DataView(buffer);
-  
+
   addPlayerToMessage(view, index, p);
   view.setFloat32(index.i,p.ship.control.x);
   index.i+=4;
