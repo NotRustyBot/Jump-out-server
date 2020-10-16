@@ -29,15 +29,12 @@ function onConnection(connection){
 
   console.log((new Date()) + "New connection, ID: "+p.id);
 
-    connection.on('message', message => {
-      onMessage(message, p);
-    });
-    connection.on('close', e => {
-      onClose(e, p);
-    });
-
-
-
+  connection.on('message', message => {
+    onMessage(message, p);
+  });
+  connection.on('close', e => {
+    onClose(e, p);
+  });
 }
 
 const fps = 1;
@@ -48,11 +45,11 @@ setInterval(() => {
 
 function update(){
   Player.players.forEach(p => {
-    p.send(cont(p));
+    p.send(makeMessage(p));
   });
 }
 
-function cont(p) { // delete this
+/*function cont(p) { // delete this
   var index = 0;
   const buffer = new ArrayBuffer(9);
   const view = new DataView(buffer);
@@ -62,6 +59,33 @@ function cont(p) { // delete this
   index+=4;
   view.setFloat32(index,p.ship.control.y);
   return buffer;
+}*/
+
+function makeMessage(p) { // delete this
+  let index = {i:0};
+  const buffer = new ArrayBuffer(9);
+  const view = new DataView(buffer);
+  
+  addPlayerToMessage(view, index, p);
+  view.setFloat32(index.i,p.ship.control.x);
+  index.i+=4;
+  view.setFloat32(index.i,p.ship.control.y);
+  index.i+=4;
+  
+  return buffer;
+}
+
+function addPlayerToMessage(view, index, p){
+  view.setFloat32(index.i,p.ship.position.x);
+  index.i+=4;
+  view.setFloat32(index.i,p.ship.position.y);
+  index.i+=4;
+  view.setFloat32(index.i,p.ship.velocity.x);
+  index.i+=4;
+  view.setFloat32(index.i,p.ship.velocity.y);
+  index.i+=4;
+  view.setFloat32(index.i,p.ship.rotation);
+  index.i+=4;
 }
 
 function sendAll(data){
