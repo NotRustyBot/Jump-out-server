@@ -21,3 +21,10 @@ wsServer.on('connection', onConnection);
 function onConnection(connection){
     console.log((new Date()) + JSON.stringify(connection));
 }
+setInterval(() => {
+  update();
+}, 1000 / 30);
+
+function update(){
+  
+}
