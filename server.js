@@ -19,12 +19,15 @@ wsServer.on('connection', onConnection);
 //#endregion
 
 function onConnection(connection){
-    console.log((new Date()) + JSON.stringify(connection));
+    console.log((new Date()) + connection);
 }
+
+const fps = 1;
+
 setInterval(() => {
   update();
-}, 1000 / 30);
+}, 1000 / fps);
 
 function update(){
-  
+  connection.send(0);
 }
