@@ -235,6 +235,7 @@ function parseInput(view, index) {
   index+=4;
   controlVector.y = view.setFloat32(index);
   index+=4;
+  console.log("Parsing to: ",controlVector);
 
   return controlVector;
 }
