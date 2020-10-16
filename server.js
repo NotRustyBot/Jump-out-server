@@ -201,11 +201,8 @@ function sendAll(data){
 }
 
 function onMessage(message, player){
-  console.log(message);
+  console.log("Message from "+player.id+" : ",message);
   let receiveBuffer = message.buffer.slice(message.byteOffset,message.byteOffset+message.byteLength);
-  console.log("Message from "+player+" : ",receiveBuffer);
-  console.log(new Int8Array(receiveBuffer));
-  console.log(receiveBuffer);
   parseMessage(receiveBuffer, player);
 }
 
