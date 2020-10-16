@@ -71,7 +71,8 @@ ShipType.init = function () {
     debugShip.acceleration = 5;
     debugShip.reverseAccelreation = 3;
     debugShip.rotationSpeed = 1;
-    debugShip.afterBurnerBonus = 3;
+    debugShip.afterBurnerSpeedBonus = 1.5;
+    debugShip.afterBurnerAgilityBonus = 1.5;
     debugShip.afterBurnerCapacity = 60;
     ShipType.types["Debug"] = debugShip;
 };
@@ -85,6 +86,7 @@ function Ship() {
     this.velocity = new Vector(0, 0);
     this.rotation = 0;
     this.control = new Vector(0, 0);
+    this.afterBurnerActive = 0;
 
     this.setup = function (type) {
         this.stats = type;
@@ -95,7 +97,7 @@ function Ship() {
 
         if (this.control.x != 0) {
             // rotationace
-            this.rotation += stats.rotationSpeed * this.control.x * dt;
+            this.rotation += (stats.rotationSpeed + this.afterBurnerActive * stats.afterBurnerAgilityBonus) * this.control.x * dt;
         }
 
         if (this.control.y != 0) {
@@ -103,15 +105,16 @@ function Ship() {
             let pointing = Vector.fromAngle(this.rotation).mult(this.control.y);
             pointing.mult(dt);
             if (this.control.y > 0) {
-                pointing.normalize(stats.accel);
+                pointing.normalize(stats.accel + this.afterBurnerActive * stats.afterBurnerAgilityBonus);
             } else {
-                pointing.normalize(stats.revAccel);
+                pointing.normalize(stats.revAccel + this.afterBurnerActive * stats.afterBurnerAgilityBonus);
             }
             this.velocity.add(pointing);
         }
 
-        if (this.velocity.length() >= stats.speed) {
-            this.velocity.normalize(stats.speed);
+        if (this.velocity.length() >= stats.speed + this.afterBurnerActive * stats.afterBurnerSpeedBonus) {
+            
+            this.velocity.normalize(stats.speed + this.afterBurnerActive * stats.afterBurnerSpeedBonus);
         }
 
         this.position.add(this.velocity.result().mult(dt));
