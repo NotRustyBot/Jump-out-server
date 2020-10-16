@@ -149,15 +149,15 @@ let connections = [];
 
 function onConnection(connection){
   
-  let id = connections.push(connection);
+  let p = new Player(connection);
 
-  console.log((new Date()) + "New connection, ID: "+id);
+  console.log((new Date()) + "New connection, ID: "+p.id);
 
     connection.on('message', message => {
-      onMessage(message, id);
+      onMessage(message, p);
     });
     connection.on('close', e => {
-      onClose(e, id);
+      onClose(e, p);
     });
 
 
@@ -176,15 +176,15 @@ function update(){
   });
 }
 
-function cont(ply) {
-  var ptr = 0;
+function cont(p) { // delete this
+  var index = 0;
   const buffer = new ArrayBuffer(9);
   const view = new DataView(buffer);
-  view.setUint8(ptr,1);
-  ptr+=1;
-  view.setFloat32(ptr,ply.control.x);
-  ptr+=4;
-  view.setFloat32(ptr,ply.control.y);
+  view.setUint8(index,1);
+  index+=1;
+  view.setFloat32(index,p.control.x);
+  index+=4;
+  view.setFloat32(index,p.control.y);
   return buffer;
 }
 
@@ -194,26 +194,26 @@ function sendAll(data){
   });
 }
 
-function onMessage(message, user){
+function onMessage(message, player){
   let receiveBuffer = message.buffer.slice(message.byteOffset,message.byteOffset+message.byteLength);
-  console.log("Message from "+user+" : "+receiveBuffer);
-  parseMessage(receiveBuffer, user);
+  console.log("Message from "+player+" : "+receiveBuffer);
+  parseMessage(receiveBuffer, player);
 }
 
-function onClose(event, user){
-  console.log("Closed connection "+user+" Reason: "+event);
+function onClose(event, player){
+  console.log("Closed connection "+player+" Reason: "+event);
 }
 
 function parseMessage(buffer, player) {
   const view = new DataView(buffer);
-  let ptr = 0;
+  let index = 0;
   
-  while (ptr < view.byteLength) {
-    let head = view.getUint8(ptr);
-    ptr+=1;
+  while (index < view.byteLength) {
+    let head = view.getUint8(index);
+    index+=1;
     switch (head) {
       case 1:
-        Player.players[player].ship.control = parseInput(view,ptr);
+        player.ship.control = parseInput(view,index);
         break;
     
       default:
@@ -223,12 +223,12 @@ function parseMessage(buffer, player) {
 
 }
 
-function parseInput(view, ptr) {
+function parseInput(view, index) {
   let controlVector = new Vector(0,0);
-  controlVector.x = view.setFloat32(ptr);
-  ptr+=4;
-  controlVector.y = view.setFloat32(ptr);
-  ptr+=4;
+  controlVector.x = view.setFloat32(index);
+  index+=4;
+  controlVector.y = view.setFloat32(index);
+  index+=4;
 
   return controlVector;
 }
