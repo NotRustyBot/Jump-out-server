@@ -155,6 +155,7 @@ let connections = [];
 function onConnection(connection){
   
   let p = new Player(connection);
+  p.init();
 
   console.log((new Date()) + "New connection, ID: "+p.id);
 
