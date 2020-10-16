@@ -135,7 +135,7 @@ let http = require('http');
 let server = http.createServer(function (request, response) {
 });
 let WebSocketServer = require('ws').Server;
-let port = process.env.PORT;
+let port = process.env.PORT; //20003
 server.listen(port, function () {
   console.log((new Date()) + " WS Server is listening on port " + port);
 });
@@ -201,11 +201,8 @@ function sendAll(data){
 }
 
 function onMessage(message, player){
-  console.log(message);
   let receiveBuffer = message.buffer.slice(message.byteOffset,message.byteOffset+message.byteLength);
-  console.log("Message from "+player+" : ",receiveBuffer);
-  console.log(new Int8Array(receiveBuffer));
-  console.log(receiveBuffer);
+  console.log("Message from "+player+" : "+receiveBuffer);
   parseMessage(receiveBuffer, player);
 }
 
