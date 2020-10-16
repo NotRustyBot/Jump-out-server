@@ -116,8 +116,13 @@ function Vector(x, y) {
     this.ship;
     this.connection = connection;
     this.id = Player.players.length;
+    this.send = function(data){
+        this.connection.send(data);
+    }
     Player.players[id] = this;
   }
   Player.players = [];
   
   //#endregion
+
+  console.log("f");
