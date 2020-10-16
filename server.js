@@ -101,10 +101,11 @@ function parseMessage(buffer, player) {
 
 function parseInput(view, index) {
   let controlVector = new Vector(0,0);
-  controlVector.x = view.setFloat32(index);
+  controlVector.x = view.getFloat32(index);
   index+=4;
-  controlVector.y = view.setFloat32(index);
+  controlVector.y = view.getFloat32(index);
   index+=4;
+  console.log("Parsing to: ",controlVector);
 
   return controlVector;
 }
