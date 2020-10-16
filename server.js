@@ -23,7 +23,7 @@ var connections = [];
 function onConnection(connection){
   
   var id = connections.push(connection);
-  
+
   console.log((new Date()) + "New connection, ID: "+id);
 
     connection.on('message', message => {
@@ -52,7 +52,8 @@ function sendAll(data){
 }
 
 function onMessage(message, user){
-  console.log("Message from "+user+" : "+message);
+  var receiveBuffer = message.buffer.slice(message.byteOffset,message.byteOffset+message.byteLength);
+  console.log("Message from "+user+" : "+receiveBuffer);
 }
 
 function onClose(event, user){
