@@ -216,7 +216,7 @@ function Player(connection) {
     this.id = Player.players.length;
     this.open = false;
     this.send = function (data) {
-        if(this.open)this.connection.send(data);
+        if(this.connection.readyState == 1)this.connection.send(data);
     };
     this.init = function () {
         this.ship = new Ship();
