@@ -84,6 +84,13 @@ for (let x = 0; x < Universe.size; x++) {
     }
 }
 
+function CollisionResult(result, x, y){
+    this.result = result;
+    if(!(x === undefined || y === undefined)){
+        this.position = new Vector(x,y);
+    }
+}
+
 function Shape(){
     this.circle = function(x,y,r){
         this.type = Shape.types.circle;
@@ -94,7 +101,11 @@ function Shape(){
         this.checkCollision = function(shape){
             if (shape.type == Shape.types.circle) {
                 let distance = new Vector(this.x-shape.x,this.y-shape.y).length();
-                return distance < shape.r + this.r
+                if(distance < shape.r + this.r){
+                    return new CollisionResult(true,distance.x/2,distance.y/2);
+                }else{
+                    return new CollisionResult(false);
+                } 
             }else if(shape.type == Shape.types.line){
                 let dx = shape.x2 - shape.x1;
                 let dy = shape.y2 - shape.y1;
@@ -106,9 +117,10 @@ function Shape(){
                 let det = B*B - 4 * A * C;
 
                 if ((A <= 0.0001) || (det <= 0)) {
-                    return false;
+                    return new CollisionResult(false);
                 }else{
-                    return true;
+                    let t = -B / (2 * A);
+                    return new CollisionResult(true,shape.x1 + t * dx,shape.y1 + t * dy)
                 }
             }
         }
@@ -134,9 +146,10 @@ function Shape(){
                 let det = B*B - 4 * A * C;
 
                 if ((A <= 0.0001) || (det <= 0)) {
-                    return {result: false};
+                    return new CollisionResult(false);
                 }else{
-                    return {result: true};
+                    let t = -B / (2 * A);
+                    return new CollisionResult(true,this.x1 + t * dx,this.y1 + t * dy);
                 }
             }else if(shape.type == Shape.types.line){
                 let x1 = this.x1;
@@ -149,15 +162,13 @@ function Shape(){
                 let u2 = shape.x2;
                 let v2 = shape.y2;
 
-
                 let x = -1 * ((x1 - x2) * (u1 * v2 - u2 * v1) - (u2 - u1) * (x2 * y1 - x1 * y2)) / ((v1 - v2) * (x1 - x2) - (u2 - u1) * (y2 - y1));
                 let y = -1 * (u1 * v2 * y1 - u1 * v2 * y2 - u2 * v1 * y1 + u2 * v1 * y2 - v1 * x1 * y2 + v1 * x2 * y1 + v2 * x1 * y2 - v2 * x2 * y1) / (-1 * u1 * y1 + u1 * y2 + u2 * y1 - u2 * y2 + v1 * x1 - v1 * x2 - v2 * x1 + v2 * x2);
                 if(isNaN(x) || isNaN(y)){
-                    return {result:false};
+                    return new CollisionResult(false);
                 }else{
-                    return {result:true,x,y};
+                    return new CollisionResult(false,x,y);
                 }
-                
             }
         }
 
@@ -165,10 +176,6 @@ function Shape(){
     }
 }
 Shape.types = {circle: 1, line: 2};
-
-let l1 = new Shape().line(10,0,10,0);
-let l2 = new Shape().line(10,1,10,1);
-console.log(l1.checkCollision(l2));
 
 
 function Entity(x,y){
