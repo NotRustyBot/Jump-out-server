@@ -184,12 +184,12 @@ function Ship() {
         if (this.control.y != 0) {
             // zrychlení / brždění
             let pointing = Vector.fromAngle(this.rotation).mult(this.control.y);
-            pointing.mult(dt);
             if (this.control.y > 0) {
                 pointing.normalize(stats.accel + this.afterBurnerActive * stats.afterBurnerAgilityBonus);
             } else {
                 pointing.normalize(stats.revAccel + this.afterBurnerActive * stats.afterBurnerAgilityBonus);
             }
+            pointing.mult(dt);
             this.velocity.add(pointing);
         }else{
             this.velocity.mult(stats.drag * dt); // odpor
@@ -198,15 +198,15 @@ function Ship() {
             }
         }
 
-        if (this.velocity.length() >= stats.speed + this.afterBurnerActive * stats.afterBurnerSpeedBonus) {
-            
-            this.velocity.normalize(stats.speed + this.afterBurnerActive * stats.afterBurnerSpeedBonus);
+        let topSpeed = stats.speed + this.afterBurnerActive * stats.afterBurnerSpeedBonus;
+        if (this.velocity.length() >= topSpeed) {
+            this.velocity.normalize(topSpeed);
         }
 
         this.position.add(this.velocity.result().mult(dt));
     };
 }
-Ship.minSpeed = 0.5;
+Ship.minSpeed = 0.02;
 exports.Ship = Ship;
 
 function Player(connection) {
