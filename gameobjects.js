@@ -94,7 +94,7 @@ function Ship() {
 
     this.update = function (dt) {
         let stats = this.stats;
-        console.log(stats);
+        //console.log(stats);
 
         if (this.control.x != 0) {
             // rotationace

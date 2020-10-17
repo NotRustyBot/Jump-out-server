@@ -101,7 +101,7 @@ function sendAll(data){
 
 function onMessage(message, player){
   let receiveBuffer = message.buffer.slice(message.byteOffset,message.byteOffset+message.byteLength);
-  console.log("Message from "+player+" : "+receiveBuffer);
+  //console.log("Message from "+player+" : "+receiveBuffer);
   parseMessage(receiveBuffer, player);
 }
 
@@ -135,7 +135,7 @@ function parseInput(view, index) {
   index+=4;
   controlVector.y = view.getFloat32(index);
   index+=4;
-  console.log("Parsing to: ",controlVector);
+  //console.log("Parsing to: ",controlVector);
 
   return controlVector;
 }
