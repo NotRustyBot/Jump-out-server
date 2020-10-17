@@ -37,7 +37,7 @@ function onConnection(connection){
   });
 }
 
-const fps = 10;
+const fps = 30;
 
 setInterval(() => {
   update();
