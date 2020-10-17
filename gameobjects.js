@@ -91,7 +91,7 @@ ShipType.init = function () {
     debugShip.speed = 150;
     debugShip.acceleration = 5;
     debugShip.reverseAccelreation = 3;
-    debugShip.rotationSpeed = 1;
+    debugShip.rotationSpeed = 0.2;
     debugShip.afterBurnerSpeedBonus = 1.5;
     debugShip.afterBurnerAgilityBonus = 1.5;
     debugShip.afterBurnerCapacity = 60;
@@ -115,7 +115,7 @@ function Ship() {
 
     this.update = function (dt) {
         let stats = this.stats;
-        console.log(stats);
+        //console.log(stats);
 
         if (this.control.x != 0) {
             // rotationace
@@ -150,8 +150,9 @@ function Player(connection) {
     this.ship;
     this.connection = connection;
     this.id = Player.players.length;
+    this.open = false;
     this.send = function (data) {
-        this.connection.send(data);
+        if(this.open)this.connection.send(data);
     };
     this.init = function () {
         this.ship = new Ship();

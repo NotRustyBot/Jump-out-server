@@ -26,6 +26,7 @@ function onConnection(connection){
   
   let p = new Player(connection);
   p.init();
+  p.open = true;
 
   console.log((new Date()) + "New connection, ID: "+p.id);
 
@@ -37,7 +38,7 @@ function onConnection(connection){
   });
 }
 
-const fps = 1;
+const fps = 30;
 
 setInterval(() => {
   update();
@@ -92,18 +93,21 @@ function addPlayerToMessage(view, index, p){
 
 function sendAll(data){
   connections.forEach(c => {
+    if(c.readyState == 1){
     c.send(data);
+    }
   });
 }
 
 function onMessage(message, player){
   let receiveBuffer = message.buffer.slice(message.byteOffset,message.byteOffset+message.byteLength);
-  console.log("Message from "+player+" : "+receiveBuffer);
+  //console.log("Message from "+player+" : "+receiveBuffer);
   parseMessage(receiveBuffer, player);
 }
 
 function onClose(event, player){
   console.log("Closed connection "+player+" Reason: "+event);
+  player.open = false;
 }
 
 function parseMessage(buffer, player) {
@@ -131,7 +135,7 @@ function parseInput(view, index) {
   index+=4;
   controlVector.y = view.getFloat32(index);
   index+=4;
-  console.log("Parsing to: ",controlVector);
+  //console.log("Parsing to: ",controlVector);
 
   return controlVector;
 }
