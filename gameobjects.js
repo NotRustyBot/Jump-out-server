@@ -146,16 +146,16 @@ ShipType.init = function () {
     ShipType.types = [];
     let debugShip = new ShipType();
     debugShip.name = "Debug";
-    debugShip.speed = 500;
-    debugShip.acceleration = 250;
-    debugShip.reverseAccelreation = 120;
+    debugShip.speed = 5000;
+    debugShip.acceleration = 2500;
+    debugShip.reverseAccelreation = 1200;
     debugShip.rotationSpeed = 5;
     debugShip.afterBurnerSpeedBonus = 1.5;
     debugShip.afterBurnerAgilityBonus = 1.5;
     debugShip.afterBurnerCapacity = 60;
     debugShip.drag = 1;
 
-    debugShip.drag = (10000 - debugShip.drag)/10000;
+    debugShip.drag = (100000 - debugShip.drag)/100000;
     ShipType.types["Debug"] = debugShip;
 };
 ShipType.init();
