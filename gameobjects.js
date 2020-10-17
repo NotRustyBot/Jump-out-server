@@ -40,6 +40,11 @@ function Vector(x, y) {
         this.y = (this.y / total) * length;
         return this;
     };
+
+    this.toAngle = function(){
+        return Math.atan2(this.y, this.x);
+    }
+
     this.result = function () {
         return new Vector(this.x, this.y);
     };
@@ -116,10 +121,54 @@ function Shape(){
         this.y1 = y1;
         this.x2 = x2;
         this.y2 = y2;
+
+        this.checkCollision = function(shape){
+            if (shape.type == Shape.types.circle) {
+                let dx = this.x2 - this.x1;
+                let dy = this.y2 - this.y1;
+
+                let A = dx * dx + dy * dy;
+                let B = 2*(dx*(this.x1 - shape.x) + dy * (this.y1 - shape.y));
+                let C = (this.x1 - shape.x) * (this.x1 - shape.x) +
+                    (this.y1 - this.y) * (this.y1 - this.y) - shape.r * shape.r;
+                let det = B*B - 4 * A * C;
+
+                if ((A <= 0.0001) || (det <= 0)) {
+                    return {result: false};
+                }else{
+                    return {result: true};
+                }
+            }else if(shape.type == Shape.types.line){
+                let x1 = this.x1;
+                let y1 = this.y1;
+                let x2 = this.x2;
+                let y2 = this.y2;
+
+                let u1 = shape.x1;
+                let v1 = shape.y1;
+                let u2 = shape.x2;
+                let v2 = shape.y2;
+
+
+                let x = -1 * ((x1 - x2) * (u1 * v2 - u2 * v1) - (u2 - u1) * (x2 * y1 - x1 * y2)) / ((v1 - v2) * (x1 - x2) - (u2 - u1) * (y2 - y1));
+                let y = -1 * (u1 * v2 * y1 - u1 * v2 * y2 - u2 * v1 * y1 + u2 * v1 * y2 - v1 * x1 * y2 + v1 * x2 * y1 + v2 * x1 * y2 - v2 * x2 * y1) / (-1 * u1 * y1 + u1 * y2 + u2 * y1 - u2 * y2 + v1 * x1 - v1 * x2 - v2 * x1 + v2 * x2);
+                if(isNaN(x) || isNaN(y)){
+                    return {result:false};
+                }else{
+                    return {result:true,x,y};
+                }
+                
+            }
+        }
+
         return this;
     }
 }
 Shape.types = {circle: 1, line: 2};
+
+let l1 = new Shape().line(10,0,10,0);
+let l2 = new Shape().line(10,1,10,1);
+console.log(l1.checkCollision(l2));
 
 
 function Entity(x,y){
@@ -133,7 +182,7 @@ Entity.list = [];
 
 function ShipType() {
     this.name;
-    this.speed;
+    this.speed; 
     this.acceleration;
     this.reverseAccelreation;
     this.rotationSpeed;
@@ -176,7 +225,6 @@ function Ship() {
 
     this.update = function (dt) {
         let stats = this.stats;
-        //console.log(stats);
 
         if (this.control.x != 0) {
             // rotationace
