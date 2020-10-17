@@ -53,6 +53,27 @@ Vector.fromAngle = function (r) {
 
 exports.Vector = Vector;
 
+let Universe = {
+    size: 30, // area v jedné ose
+}
+
+function Area(x,y) {
+    this.coordinates = new Vector(x,y);
+    this.position = new Vector(Area.size*x,Area.size*y);
+    this.objects = [];
+}
+Area.size = 2500;
+Area.list = [];
+
+for (let x = 0; x < Universe.size; x++) {
+    Area.list[x] = []; 
+    for (let y = 0; y < Universe.size; y++) {
+        Area.list[x][y] = new Area(x,y);
+    }
+}
+
+
+
 function ShipType() {
     this.name = "ShipTypeName";
     this.speed = 5;
