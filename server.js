@@ -67,16 +67,17 @@ function update() {
   return buffer;
 }*/
 
-function makeMessage(p) { // delete this
+function makeMessage(p) {
   let index = { i: 0 };
   const buffer = new ArrayBuffer((8 + 8 + 4) + 8);
   const view = new DataView(buffer);
 
+
+  //MESSAGE TYPE 1 (PLAYER POSITIONS)
+  view.view.setUInt8(index.i, 1);
+  index.i += 1;
   addPlayerToMessage(view, index, p);
-  view.setFloat32(index.i, p.ship.control.x);
-  index.i += 4;
-  view.setFloat32(index.i, p.ship.control.y);
-  index.i += 4;
+
 
   return buffer;
 }
@@ -93,6 +94,10 @@ function addPlayerToMessage(view, index, p) {
   view.setFloat32(index.i, p.ship.velocity.y);
   index.i += 4;
   view.setFloat32(index.i, p.ship.rotation);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.control.x);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.control.y);
   index.i += 4;
 }
 
