@@ -74,7 +74,7 @@ function makeMessage(p) {
 
 
   //MESSAGE TYPE 1 (PLAYER POSITIONS)
-  view.setUInt8(index.i, 1);
+  view.setUint8(index.i, 1);
   index.i += 1;
   addPlayerToMessage(view, index, p);
 
@@ -83,7 +83,7 @@ function makeMessage(p) {
 }
 
 function addPlayerToMessage(view, index, p) {
-  view.setUInt8(index.i, p.id);
+  view.setUint8(index.i, p.id);
   index.i += 1;
   view.setFloat32(index.i, p.ship.position.x);
   index.i += 4;
