@@ -155,7 +155,7 @@ ShipType.init = function () {
     debugShip.afterBurnerCapacity = 60;
     debugShip.drag = 1;
 
-    debugShip.drag = (10000 - debugShip.drag)*10000;
+    debugShip.drag = (10000 - debugShip.drag)/10000;
     ShipType.types["Debug"] = debugShip;
 };
 ShipType.init();
