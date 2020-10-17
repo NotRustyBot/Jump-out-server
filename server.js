@@ -92,7 +92,9 @@ function addPlayerToMessage(view, index, p){
 
 function sendAll(data){
   connections.forEach(c => {
+    if(c.readyState == 1){
     c.send(data);
+    }
   });
 }
 
