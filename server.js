@@ -44,8 +44,11 @@ setInterval(() => {
   update();
 }, 1000 / fps);
 
+let last = Date.now();
+
 function update(){
-  dt = 1;
+  dt = (Date.now() - last)/1000;
+  last = Date.now();
   Player.players.forEach(p => {
     p.send(makeMessage(p));
     p.ship.update(dt);
