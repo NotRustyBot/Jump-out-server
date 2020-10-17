@@ -192,7 +192,7 @@ function Ship() {
             }
             this.velocity.add(pointing);
         }else{
-            this.velocity.mult(stats.drag); // odpor
+            this.velocity.mult(stats.drag.result().mult(dt)); // odpor
             if (this.velocity.length() < Ship.minSpeed) {
                 this.velocity = Vector.zero();
             }
