@@ -129,7 +129,7 @@ function Player(connection) {
     this.ship;
     this.connection = connection;
     this.id = Player.players.length;
-    this.open = true;
+    this.open = false;
     this.send = function (data) {
         if(this.open)this.connection.send(data);
     };

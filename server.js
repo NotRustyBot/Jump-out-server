@@ -26,6 +26,7 @@ function onConnection(connection){
   
   let p = new Player(connection);
   p.init();
+  p.open = true;
 
   console.log((new Date()) + "New connection, ID: "+p.id);
 
