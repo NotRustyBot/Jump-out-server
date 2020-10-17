@@ -60,10 +60,17 @@ let Universe = {
 function Area(x,y) {
     this.coordinates = new Vector(x,y);
     this.position = new Vector(Area.size*x,Area.size*y);
-    this.objects = [];
+    this.entities = [];
 }
 Area.size = 2500;
 Area.list = [];
+Area.checkIn = function(entity){
+    let position = entity.position;
+    let x = Math.floor(position.x/Area.size);
+    let y = Math.floor(position.y/Area.size);
+    let area = Area.list[x][y];
+    area.entity.push(entity);
+}
 
 for (let x = 0; x < Universe.size; x++) {
     Area.list[x] = []; 
@@ -72,10 +79,60 @@ for (let x = 0; x < Universe.size; x++) {
     }
 }
 
+function Shape(){
+    this.circle = function(x,y,r){
+        this.type = Shape.types.circle;
+        this.x = x;
+        this.y = y;
+        this.r = r;
 
+        this.checkCollision = function(shape){
+            if (shape.type == Shape.types.circle) {
+                let distance = new Vector(this.x-shape.x,this.y-shape.y).length();
+                return distance < shape.r + this.r
+            }else if(shape.type == Shape.types.line){
+                let dx = shape.x2 - shape.x1;
+                let dy = shape.y2 - shape.y1;
+
+                let A = dx * dx + dy * dy;
+                let B = 2*(dx*(shape.x1 - this.x) + dy * (shape.y1 - this.y));
+                let C = (shape.x1 - this.x) * (shape.x1 - this.x) +
+                    (shape.y1 - this.y) * (shape.y1 - this.y) - this.r * this.r;
+                let det = B*B - 4 * A * C;
+
+                if ((A <= 0.0001) || (det <= 0)) {
+                    return false;
+                }else{
+                    return true;
+                }
+            }
+        }
+        return this;
+    }
+
+    this.line = function(x1,y1,x2,y2){
+        this.type = Shape.types.line;
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        return this;
+    }
+}
+Shape.types = {circle: 1, line: 2};
+
+
+function Entity(x,y){
+    this.position = new Vector(x,y);
+    this.rotation = 0;
+    this.id = Entity.list.length;
+    Entity.list.push(this);
+    Area.checkIn(this);
+}
+Entity.list = [];
 
 function ShipType() {
-    this.name = "ShipTypeName";
+    this.name;
     this.speed;
     this.acceleration;
     this.reverseAccelreation;
