@@ -1,4 +1,4 @@
-const {Vector, ShipType, Ship, Player} = require("./gameobjects.js");
+const { Vector, ShipType, Ship, Player } = require("./gameobjects.js");
 
 //#region INIT
 let http = require('http');
@@ -22,13 +22,13 @@ wsServer.on('connection', onConnection);
 
 let connections = [];
 
-function onConnection(connection){
-  
+function onConnection(connection) {
+
   let p = new Player(connection);
   p.init();
   p.open = true;
 
-  console.log((new Date()) + "New connection, ID: "+p.id);
+  console.log((new Date()) + "New connection, ID: " + p.id);
 
   connection.on('message', message => {
     onMessage(message, p);
@@ -46,8 +46,8 @@ setInterval(() => {
 
 let last = Date.now();
 
-function update(){
-  dt = (Date.now() - last)/1000;
+function update() {
+  dt = (Date.now() - last) / 1000;
   last = Date.now();
   Player.players.forEach(p => {
     p.send(makeMessage(p));
@@ -67,64 +67,71 @@ function update(){
   return buffer;
 }*/
 
-function makeMessage(p) { // delete this
-  let index = {i:0};
-  const buffer = new ArrayBuffer((8+8+4)+8);
+function makeMessage(p) {
+  let index = { i: 0 };
+  const buffer = new ArrayBuffer(1 + (1 + 8 + 8 + 4 + 8));
   const view = new DataView(buffer);
 
+
+  //MESSAGE TYPE 1 (PLAYER POSITIONS)
+  view.setUint8(index.i, 1);
+  index.i += 1;
   addPlayerToMessage(view, index, p);
-  view.setFloat32(index.i,p.ship.control.x);
-  index.i+=4;
-  view.setFloat32(index.i,p.ship.control.y);
-  index.i+=4;
-  
+
+
   return buffer;
 }
 
-function addPlayerToMessage(view, index, p){
-  view.setFloat32(index.i,p.ship.position.x);
-  index.i+=4;
-  view.setFloat32(index.i,p.ship.position.y);
-  index.i+=4;
-  view.setFloat32(index.i,p.ship.velocity.x);
-  index.i+=4;
-  view.setFloat32(index.i,p.ship.velocity.y);
-  index.i+=4;
-  view.setFloat32(index.i,p.ship.rotation);
-  index.i+=4;
+function addPlayerToMessage(view, index, p) {
+  view.setUint8(index.i, p.id);
+  index.i += 1;
+  view.setFloat32(index.i, p.ship.position.x);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.position.y);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.velocity.x);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.velocity.y);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.rotation);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.control.x);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.control.y);
+  index.i += 4;
 }
 
-function sendAll(data){
+function sendAll(data) {
   connections.forEach(c => {
-    if(c.readyState == 1){
-    c.send(data);
+    if (c.readyState == 1) {
+      c.send(data);
     }
   });
 }
 
-function onMessage(message, player){
-  let receiveBuffer = message.buffer.slice(message.byteOffset,message.byteOffset+message.byteLength);
+function onMessage(message, player) {
+  let receiveBuffer = message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength);
   //console.log("Message from "+player+" : "+receiveBuffer);
   parseMessage(receiveBuffer, player);
 }
 
-function onClose(event, player){
-  console.log("Closed connection "+player+" Reason: "+event);
+function onClose(event, player) {
+  console.log("Closed connection " + player + " Reason: " + event);
   player.open = false;
 }
 
 function parseMessage(buffer, player) {
   const view = new DataView(buffer);
   let index = 0;
-  
+
   while (index < view.byteLength) {
     let head = view.getUint8(index);
-    index+=1;
+    index += 1;
     switch (head) {
       case 1:
-        player.ship.control = parseInput(view,index);
+        player.ship.control = parseInput(view, index);
         break;
-    
+
       default:
         break;
     }
@@ -133,11 +140,11 @@ function parseMessage(buffer, player) {
 }
 
 function parseInput(view, index) {
-  let controlVector = new Vector(0,0);
+  let controlVector = new Vector(0, 0);
   controlVector.x = view.getFloat32(index);
-  index+=4;
+  index += 4;
   controlVector.y = view.getFloat32(index);
-  index+=4;
+  index += 4;
   //console.log("Parsing to: ",controlVector);
 
   return controlVector;
