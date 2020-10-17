@@ -76,12 +76,13 @@ for (let x = 0; x < Universe.size; x++) {
 
 function ShipType() {
     this.name = "ShipTypeName";
-    this.speed = 5;
-    this.acceleration = 1;
-    this.reverseAccelreation = 0.5;
-    this.rotationSpeed = 1;
-    this.afterBurnerBonus = 3;
-    this.afterBurnerCapacity = 60;
+    this.speed;
+    this.acceleration;
+    this.reverseAccelreation;
+    this.rotationSpeed;
+    this.afterBurnerBonus;
+    this.afterBurnerCapacity;
+    this.drag;
 }
 
 ShipType.init = function () {
@@ -95,6 +96,7 @@ ShipType.init = function () {
     debugShip.afterBurnerSpeedBonus = 1.5;
     debugShip.afterBurnerAgilityBonus = 1.5;
     debugShip.afterBurnerCapacity = 60;
+    debugShip.drag = 0.9;
     ShipType.types["Debug"] = debugShip;
 };
 ShipType.init();
@@ -132,6 +134,11 @@ function Ship() {
                 pointing.normalize(stats.revAccel + this.afterBurnerActive * stats.afterBurnerAgilityBonus);
             }
             this.velocity.add(pointing);
+        }else{
+            this.velocity.mult(stats.drag); // odpor
+            if (this.velocity.length() < Ship.minSpeed) {
+                this.velocity = Vector.zero();
+            }
         }
 
         if (this.velocity.length() >= stats.speed + this.afterBurnerActive * stats.afterBurnerSpeedBonus) {
@@ -142,7 +149,7 @@ function Ship() {
         this.position.add(this.velocity.result().mult(dt));
     };
 }
-
+Ship.minSpeed = 0.5;
 exports.Ship = Ship;
 
 function Player(connection) {
