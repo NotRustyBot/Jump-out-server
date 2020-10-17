@@ -106,6 +106,7 @@ function onMessage(message, player){
 
 function onClose(event, player){
   console.log("Closed connection "+player+" Reason: "+event);
+  player.open = false;
 }
 
 function parseMessage(buffer, player) {

@@ -129,8 +129,9 @@ function Player(connection) {
     this.ship;
     this.connection = connection;
     this.id = Player.players.length;
+    this.open = true;
     this.send = function (data) {
-        this.connection.send(data);
+        if(this.open)this.connection.send(data);
     };
     this.init = function () {
         this.ship = new Ship();
