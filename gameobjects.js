@@ -147,13 +147,13 @@ ShipType.init = function () {
     let debugShip = new ShipType();
     debugShip.name = "Debug";
     debugShip.speed = 150;
-    debugShip.acceleration = 5;
-    debugShip.reverseAccelreation = 3;
-    debugShip.rotationSpeed = 0.2;
+    debugShip.acceleration = 50;
+    debugShip.reverseAccelreation = 30;
+    debugShip.rotationSpeed = 2;
     debugShip.afterBurnerSpeedBonus = 1.5;
     debugShip.afterBurnerAgilityBonus = 1.5;
     debugShip.afterBurnerCapacity = 60;
-    debugShip.drag = 0.9;
+    debugShip.drag = 0.99;
     ShipType.types["Debug"] = debugShip;
 };
 ShipType.init();
@@ -178,27 +178,27 @@ function Ship() {
 
         if (this.control.x != 0) {
             // rotationace
-            this.rotation += (stats.rotationSpeed + this.afterBurnerActive * stats.afterBurnerAgilityBonus) * this.control.x * dt;
+            this.rotation += (stats.rotationSpeed + (this.afterBurnerActive * stats.afterBurnerAgilityBonus)) * this.control.x * dt;
         }
 
         if (this.control.y != 0) {
             // zrychlení / brždění
             let pointing = Vector.fromAngle(this.rotation).mult(this.control.y);
             if (this.control.y > 0) {
-                pointing.normalize(stats.accel + this.afterBurnerActive * stats.afterBurnerAgilityBonus);
+                pointing.normalize(stats.acceleration + (this.afterBurnerActive * stats.afterBurnerAgilityBonus));
             } else {
-                pointing.normalize(stats.revAccel + this.afterBurnerActive * stats.afterBurnerAgilityBonus);
+                pointing.normalize(stats.reverseAccelreation + (this.afterBurnerActive * stats.afterBurnerAgilityBonus));
             }
             pointing.mult(dt);
             this.velocity.add(pointing);
         }else{
-            this.velocity.mult(stats.drag * dt); // odpor
+            this.velocity.mult(1 - (stats.drag * dt)); // odpor
             if (this.velocity.length() < Ship.minSpeed) {
                 this.velocity = Vector.zero();
             }
         }
 
-        let topSpeed = stats.speed + this.afterBurnerActive * stats.afterBurnerSpeedBonus;
+        let topSpeed = stats.speed + (this.afterBurnerActive * stats.afterBurnerSpeedBonus);
         if (this.velocity.length() >= topSpeed) {
             this.velocity.normalize(topSpeed);
         }
