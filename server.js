@@ -56,27 +56,18 @@ function update() {
   dt = (Date.now() - last) / 1000;
   last = Date.now();
   Player.players.forEach(p => {
-    p.send(makeMessagePositions(p));
-    p.ship.update(dt);
+    if(p.open){
+      p.send(makeMessagePositions(p));
+      p.ship.update(dt);
+    }
   });
 }
 
-/*function cont(p) { // delete this
-  var index = 0;
-  const buffer = new ArrayBuffer(9);
-  const view = new DataView(buffer);
-  view.setUint8(index,1);
-  index+=1;
-  view.setFloat32(index,p.ship.control.x);
-  index+=4;
-  view.setFloat32(index,p.ship.control.y);
-  return buffer;
-}*/
 
 const MESSAGE_TYPE = {position: 1, allStats: 2, stats: 3};
 function makeMessagePositions(p){ //MESSAGE TYPE 1 (PLAYER POSITIONS)
   let index = { i: 0 };
-  let buffer = new ArrayBuffer(1 + 2 + (4+ (2 + 8 + 8 + 4 + 8 + 1 + 4)) * Player.players.length);
+  let buffer = new ArrayBuffer(1 + 2 + (4+ (8 + 8 + 4 + 8 + 1 + 4)) * Player.players.length);
   let view = new DataView(buffer);
   view.setUint8(0, MESSAGE_TYPE.position);
   index.i += 1;  
@@ -108,7 +99,7 @@ function makeMessageInicialization(p){ //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER 
   view.setUint16(index.i, Player.players.length - 1);
   index.i += 2;
   Player.players.forEach(pl => {
-    if(p != pl && p.open){
+    if(p != pl){
       view.setUint32(index.i, pl.id);
       index.i += 4;
       addShipStatsToMessage(view, index, pl);
@@ -132,45 +123,7 @@ function makeMessageNewPlayer(p, newP){ //MESSAGE TYPE 3 (NEW PLAYER CONNECTED -
   return buffer;
 }
 
-/* // OBSOLETE
-function makeMessage(p, type) {
-  let index = { i: 0 };
-  let buffer;
-  let view;
-  index.i += 1;
-
-  switch(type){
-    case 1:   //MESSAGE TYPE 1 (PLAYER POSITIONS)
-      buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
-      view = new DataView(buffer);
-      addPlayerToMessage(view, index, p);
-      break;
-    case 2:   //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER PLAYERS STATS)
-      buffer = new ArrayBuffer(1 + (1+4*9) * Player.players.lenght());
-      view = new DataView(buffer);
-      addShipStatsToMessage(view, index, p);
-      Player.players.forEach(pl => {
-        if(p != pl){
-          addShipStatsToMessage(view, index, pl);
-        }
-      });
-      break;
-    case 3:   //MESSAGE TYPE 3 (NEW PLAYER CONNECTED - SEND HIS STATS)
-      buffer = new ArrayBuffer(1 + (1+4*9));
-      view = new DataView(buffer);
-      addShipStatsToMessage(view, index, p); 
-      break;
-  }
-
-  view.setUint8(0, type);
-  
-  return buffer;
-}
-*/
-
 function addPlayerToMessage(view, index, p) {
-  view.setInt16(index.i, p.id);
-  index.i += 2;
   view.setFloat32(index.i, p.ship.position.x);
   index.i += 4;
   view.setFloat32(index.i, p.ship.position.y);
@@ -231,6 +184,7 @@ function onMessage(message, player) {
 function onClose(event, player) {
   console.log("Closed connection " + player.id + " Reason: " + event);
   player.open = false;
+  Player.players.splice(Player.players.indexOf(player),1);
 }
 
 function parseMessage(buffer, player) {
