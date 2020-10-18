@@ -181,14 +181,19 @@ Shape.types = {circle: 1, line: 2};
 function Entity(x,y){
     this.position = new Vector(x,y);
     this.rotation = 0;
+    this.collision = [];
     this.id = Entity.list.length;
     Entity.list.push(this);
     Area.checkIn(this);
 }
 Entity.list = [];
 
+let enty = new Entity(300,0);
+enty.collision[0] = new Shape().circle(300,0);
+
 function ShipType() {
     this.name;
+    this.size;
     this.speed; 
     this.acceleration;
     this.reverseAcceleration;
@@ -204,6 +209,7 @@ ShipType.init = function () {
     ShipType.types = [];
     let debugShip = new ShipType();
     debugShip.name = 1; // "Debug"
+    debugShip.size = 20;
     debugShip.speed = 1000;
     debugShip.acceleration = 600;
     debugShip.reverseAcceleration = 300;
@@ -233,6 +239,21 @@ function Ship() {
     this.init = function (type) {
         this.stats = type;
     };
+
+    this._checkCollision = function(collider){
+        let shape = new Shape().circle(this.position.x, this.position.y, this.stats.size);
+        let collisionResult;
+        for (let i = 0; i < collider.length; i++) {
+            const s = collider[i];
+            collisionResult = shape.checkCollision(s);
+            if(collisionResult.result){
+                break;
+            }
+        }
+        if(collisionResult.result){
+            console.log(collisionResult.position);
+        }
+    }
 
     this.update = function (dt) {
         let stats = this.stats;
@@ -275,6 +296,11 @@ function Ship() {
         if(this.afterBurnerActive == 1 && ( afterBurnerUsed || this.velocity.length() > stats.speed)){
             this.afterBurnerFuel -= dt; 
             this.afterBurnerFuel = Math.max(0,this.afterBurnerFuel);
+        }
+
+        for (let e = 0; e < Entity.list.length; e++) {
+            const ent = Entity.list[e];
+            this._checkCollision(ent.collision);
         }
     };
 }
