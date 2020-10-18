@@ -311,7 +311,8 @@ function Player(connection) {
     this.nick = "nick";
     this.ship;
     this.connection = connection;
-    this.id = Player.players.length;
+    this.id = Player.accumulatedID;
+    Player.accumulatedID++;
     this.open = false;
     this.send = function (data) {
         if(this.connection.readyState == 1)this.connection.send(data);
@@ -322,7 +323,9 @@ function Player(connection) {
     };
     Player.players[this.id] = this;
 }
+
 Player.players = [];
+Player.accumulatedID = 0;
 
 exports.Player = Player;
 
