@@ -297,11 +297,11 @@ function Ship() {
             this.afterBurnerFuel -= dt; 
             this.afterBurnerFuel = Math.max(0,this.afterBurnerFuel);
         }
-
+        /*
         for (let e = 0; e < Entity.list.length; e++) {
             const ent = Entity.list[e];
             this._checkCollision(ent.collision);
-        }
+        }*/
     };
 }
 Ship.minSpeed = 0.2;
