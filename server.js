@@ -38,8 +38,8 @@ function onConnection(connection) {
   });
   p.send(makeMessageInicialization(p)); // send stats
   Player.players.forEach(player => {
-    if(p != player){
-      makeMessageNewPlayer(player,p);
+    if(p != player && p.open){
+      player.send(makeMessageNewPlayer(player,p));
     }
   });
 }
@@ -99,7 +99,7 @@ function makeMessageInicialization(p){ //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER 
   let index = { i: 0 };
   let buffer = new ArrayBuffer(1 + 4 + 2 + (4+(1+4*9)) * Player.players.length);
   let view = new DataView(buffer);
-  view.setUint8(0, MESSAGE_TYPE.stats);
+  view.setUint8(0, MESSAGE_TYPE.allStats);
   index.i += 1;
 
   view.setUint32(index.i, p.id);
@@ -108,7 +108,7 @@ function makeMessageInicialization(p){ //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER 
   view.setUint16(index.i, Player.players.length - 1);
   index.i += 2;
   Player.players.forEach(pl => {
-    if(p != pl){
+    if(p != pl && p.open){
       view.setUint32(index.i, pl.id);
       index.i += 4;
       addShipStatsToMessage(view, index, pl);
@@ -120,7 +120,7 @@ function makeMessageInicialization(p){ //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER 
 
 function makeMessageNewPlayer(p, newP){ //MESSAGE TYPE 3 (NEW PLAYER CONNECTED - SEND HIS STATS)
   let index = { i: 0 };
-  let buffer = new ArrayBuffer(1 + (1+4*9));
+  let buffer = new ArrayBuffer(1 + (4+(1+4*9)));
   let view = new DataView(buffer);
   view.setUint8(0, MESSAGE_TYPE.stats);
   index.i += 1;
