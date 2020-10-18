@@ -245,27 +245,37 @@ function Ship() {
             afterBurnerUsed = true;
         }
 
-        if (this.control.y != 0) {
-            // zrychlení / brždění
-            let pointing = Vector.fromAngle(this.rotation).mult(this.control.y);
-            if (this.control.y > 0) {
-                pointing.normalize(stats.acceleration + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
-            } else {
-                pointing.normalize(stats.reverseAccelreation + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
-            }
-            afterBurnerUsed = true;
-            pointing.mult(dt);
-            this.velocity.add(pointing);
-        }else{
-            this.velocity.mult(1 - (stats.drag * dt)); // odpor
-            if (this.velocity.length() < Ship.minSpeed) {
-                this.velocity = Vector.zero();
-            }
-        }
-
         let topSpeed = stats.speed + (this.afterBurnerActive * stats.afterBurnerSpeedBonus);
         if (this.velocity.length() >= topSpeed) {
-            this.velocity.normalize(topSpeed);
+            if(this.control.y != 0){
+                this.velocity.mult(1 - (stats.drag * dt)); // odpor
+                if (this.velocity.length() < Ship.minSpeed) {
+                    this.velocity = Vector.zero();
+                }
+            }else if(this.control.y < 0){
+                pointing.normalize(stats.reverseAccelreation + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
+                afterBurnerUsed = true;
+                pointing.mult(dt);
+                this.velocity.add(pointing);
+            }
+        }else{
+            if (this.control.y != 0) {
+                // zrychlení / brždění
+                let pointing = Vector.fromAngle(this.rotation).mult(this.control.y);
+                if (this.control.y > 0) {
+                    pointing.normalize(stats.acceleration + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
+                } else {
+                    pointing.normalize(stats.reverseAccelreation + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
+                }
+                afterBurnerUsed = true;
+                pointing.mult(dt);
+                this.velocity.add(pointing);
+            }else{
+                this.velocity.mult(1 - (stats.drag * dt)); // odpor
+                if (this.velocity.length() < Ship.minSpeed) {
+                    this.velocity = Vector.zero();
+                }
+            }
         }
 
         this.position.add(this.velocity.result().mult(dt));
