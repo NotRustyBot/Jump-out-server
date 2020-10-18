@@ -36,6 +36,7 @@ function onConnection(connection) {
   connection.on('close', e => {
     onClose(e, p);
   });
+  p.send(makeMessage(p,2)); // send stats
 }
 
 const fps = 30;
