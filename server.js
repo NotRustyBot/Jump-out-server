@@ -37,6 +37,11 @@ function onConnection(connection) {
     onClose(e, p);
   });
   p.send(makeMessageInicialization(p)); // send stats
+  Player.players.forEach(player => {
+    if(p != player){
+      makeMessageNewPlayer(player,p);
+    }
+  });
 }
 
 const fps = 30;
@@ -71,12 +76,21 @@ function update() {
 const MESSAGE_TYPE = {position: 1, allStats: 2, stats: 3};
 function makeMessagePositions(p){ //MESSAGE TYPE 1 (PLAYER POSITIONS)
   let index = { i: 0 };
-  let buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
+  let buffer = new ArrayBuffer(1 + 2 + (2+ (2 + 8 + 8 + 4 + 8 + 1 + 4)) * Player.players.length);
   let view = new DataView(buffer);
   view.setUint8(0, MESSAGE_TYPE.position);
   index.i += 1;  
 
   addPlayerToMessage(view, index, p);
+  view.setUint16(index.i, Player.players.length - 1);
+  index.i += 2;
+  Player.players.forEach(pl => {
+    if(p != pl){
+      view.setUint16(index.i, pl.id);
+      index.i += 2;
+      addPlayerToMessage(view, index, pl);
+    }
+  });
 
   return buffer;
 }
@@ -100,14 +114,14 @@ function makeMessageInicialization(p){ //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER 
   return buffer;
 }
 
-function makeMessageNewPlayer(p){ //MESSAGE TYPE 3 (NEW PLAYER CONNECTED - SEND HIS STATS)
+function makeMessageNewPlayer(p, newP){ //MESSAGE TYPE 3 (NEW PLAYER CONNECTED - SEND HIS STATS)
   let index = { i: 0 };
   let buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
   let view = new DataView(buffer);
   view.setUint8(0, MESSAGE_TYPE.stats);
   index.i += 1;
 
-  //addPlayerToMessage(view, index, p);
+  addShipStatsToMessage(view, index, newP);
   
   return buffer;
 }
