@@ -69,7 +69,7 @@ function update() {
 
 function makeMessage(p) {
   let index = { i: 0 };
-  const buffer = new ArrayBuffer(1 + (1 + 8 + 8 + 4 + 8));
+  const buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8));
   const view = new DataView(buffer);
 
 
