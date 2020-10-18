@@ -129,7 +129,7 @@ function parseMessage(buffer, player) {
     index += 1;
     switch (head) {
       case 1:
-        player.ship.control = parseInput(view, index);
+        parseInput(view, index, player);
         break;
 
       default:
@@ -139,14 +139,15 @@ function parseMessage(buffer, player) {
 
 }
 
-function parseInput(view, index) {
-  let controlVector = new Vector(0, 0);
-  controlVector.x = view.getFloat32(index);
+function parseInput(view, index, player) {
+  let ship = player.ship;
+  ship.control.x = view.getFloat32(index);
   index += 4;
-  controlVector.y = view.getFloat32(index);
+  ship.control.y = view.getFloat32(index);
   index += 4;
-  //console.log("Parsing to: ",controlVector);
+  ship.afterBurnerActive = view.getUint8(index);
+  index += 1;
 
-  return controlVector;
+  //console.log("Parsing to: ",controlVector);
 }
 

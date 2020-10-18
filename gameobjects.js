@@ -74,7 +74,7 @@ Area.checkIn = function(entity){
     let x = Math.floor(position.x/Area.size);
     let y = Math.floor(position.y/Area.size);
     let area = Area.list[x][y];
-    area.entity.push(entity);
+    area.entities.push(entity);
 }
 
 for (let x = 0; x < Universe.size; x++) {
