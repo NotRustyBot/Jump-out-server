@@ -36,7 +36,7 @@ function onConnection(connection) {
   connection.on('close', e => {
     onClose(e, p);
   });
-  p.send(makeMessage(p,2)); // send stats
+  p.send(makeMessageInicialization(p)); // send stats
 }
 
 const fps = 30;
@@ -51,7 +51,7 @@ function update() {
   dt = (Date.now() - last) / 1000;
   last = Date.now();
   Player.players.forEach(p => {
-    p.send(makeMessage(p,1));
+    p.send(makeMessagePositions(p));
     p.ship.update(dt);
   });
 }
@@ -68,6 +68,50 @@ function update() {
   return buffer;
 }*/
 
+function makeMessagePositions(p){ //MESSAGE TYPE 1 (PLAYER POSITIONS)
+  let index = { i: 0 };
+  let buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
+  let view = new DataView(buffer);
+  view.setUint8(0, 1);
+  index.i += 1;  
+
+  addPlayerToMessage(view, index, p);
+
+  return buffer;
+}
+
+function makeMessageInicialization(p){ //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER PLAYERS STATS)
+  let index = { i: 0 };
+  let buffer = new ArrayBuffer(1 + (1+4*9) * Player.players.lenght());
+  let view = new DataView(buffer);
+  view.setUint8(0, 2);
+  index.i += 1;
+
+  addShipStatsToMessage(view, index, p);
+  view.setUint16(indes.i, Player.players.lenght() - 1);
+  index.i += 2;
+  Player.players.forEach(pl => {
+    if(p != pl){
+      addShipStatsToMessage(view, index, pl);
+    }
+  });
+  
+  return buffer;
+}
+
+function makeMessageNewPlayer(p){ //MESSAGE TYPE 3 (NEW PLAYER CONNECTED - SEND HIS STATS)
+  let index = { i: 0 };
+  let buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
+  let view = new DataView(buffer);
+  view.setUint8(0, 2);
+  index.i += 1;
+
+  //addPlayerToMessage(view, index, p);
+  
+  return buffer;
+}
+
+/* // OBSOLETE
 function makeMessage(p, type) {
   let index = { i: 0 };
   let buffer;
@@ -80,10 +124,20 @@ function makeMessage(p, type) {
       view = new DataView(buffer);
       addPlayerToMessage(view, index, p);
       break;
-    case 2:
-      buffer = new ArrayBuffer(1 + (1+4*7));
+    case 2:   //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER PLAYERS STATS)
+      buffer = new ArrayBuffer(1 + (1+4*9) * Player.players.lenght());
       view = new DataView(buffer);
-      addShipStatsToMessage(view, index, p); //MESSAGE TYPE 2 (PLAYER STATS)
+      addShipStatsToMessage(view, index, p);
+      Player.players.forEach(pl => {
+        if(p != pl){
+          addShipStatsToMessage(view, index, pl);
+        }
+      });
+      break;
+    case 3:   //MESSAGE TYPE 3 (NEW PLAYER CONNECTED - SEND HIS STATS)
+      buffer = new ArrayBuffer(1 + (1+4*9));
+      view = new DataView(buffer);
+      addShipStatsToMessage(view, index, p); 
       break;
   }
 
@@ -91,6 +145,7 @@ function makeMessage(p, type) {
   
   return buffer;
 }
+*/
 
 function addPlayerToMessage(view, index, p) {
   view.setInt16(index.i, p.id);
