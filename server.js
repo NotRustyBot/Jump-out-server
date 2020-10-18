@@ -68,11 +68,12 @@ function update() {
   return buffer;
 }*/
 
+const MESSAGE_TYPE = {position: 1, allStats: 2, stats: 3};
 function makeMessagePositions(p){ //MESSAGE TYPE 1 (PLAYER POSITIONS)
   let index = { i: 0 };
   let buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
   let view = new DataView(buffer);
-  view.setUint8(0, 1);
+  view.setUint8(0, MESSAGE_TYPE.position);
   index.i += 1;  
 
   addPlayerToMessage(view, index, p);
@@ -82,13 +83,13 @@ function makeMessagePositions(p){ //MESSAGE TYPE 1 (PLAYER POSITIONS)
 
 function makeMessageInicialization(p){ //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER PLAYERS STATS)
   let index = { i: 0 };
-  let buffer = new ArrayBuffer(1 + (1+4*9) * Player.players.lenght());
+  let buffer = new ArrayBuffer(1 + 2 + (1+4*9) * Player.players.length);
   let view = new DataView(buffer);
-  view.setUint8(0, 2);
+  view.setUint8(0, MESSAGE_TYPE.stats);
   index.i += 1;
 
   addShipStatsToMessage(view, index, p);
-  view.setUint16(indes.i, Player.players.lenght() - 1);
+  view.setUint16(index.i, Player.players.length - 1);
   index.i += 2;
   Player.players.forEach(pl => {
     if(p != pl){
@@ -103,7 +104,7 @@ function makeMessageNewPlayer(p){ //MESSAGE TYPE 3 (NEW PLAYER CONNECTED - SEND 
   let index = { i: 0 };
   let buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
   let view = new DataView(buffer);
-  view.setUint8(0, 2);
+  view.setUint8(0, MESSAGE_TYPE.stats);
   index.i += 1;
 
   //addPlayerToMessage(view, index, p);
