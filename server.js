@@ -116,7 +116,7 @@ function makeMessageInicialization(p){ //MESSAGE TYPE 2 (PLAYER STATS + ANOTHER 
 
 function makeMessageNewPlayer(p, newP){ //MESSAGE TYPE 3 (NEW PLAYER CONNECTED - SEND HIS STATS)
   let index = { i: 0 };
-  let buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
+  let buffer = new ArrayBuffer(1 + (1+4*9));
   let view = new DataView(buffer);
   view.setUint8(0, MESSAGE_TYPE.stats);
   index.i += 1;
