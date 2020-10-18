@@ -69,7 +69,7 @@ function update() {
 
 function makeMessage(p) {
   let index = { i: 0 };
-  const buffer = new ArrayBuffer(1 + (1 + 8 + 8 + 4 + 8));
+  const buffer = new ArrayBuffer(1 + (1 + 8 + 8 + 4 + 8 + 1 + 4));
   const view = new DataView(buffer);
 
 
@@ -99,6 +99,12 @@ function addPlayerToMessage(view, index, p) {
   index.i += 4;
   view.setFloat32(index.i, p.ship.control.y);
   index.i += 4;
+  view.setUint8(index.i, p.ship.afterBurnerActive);
+  index.i += 1;
+  view.setFloat32(index.i, p.ship.afterBurnerFuel);
+  index.i += 4;
+
+
 }
 
 function sendAll(data) {
@@ -122,11 +128,10 @@ function onClose(event, player) {
 
 function parseMessage(buffer, player) {
   const view = new DataView(buffer);
-  let index = 0;
-
-  while (index < view.byteLength) {
+  let index = {i:0};
+  while (index.i < view.byteLength) {
     let head = view.getUint8(index);
-    index += 1;
+    index.i += 1;
     switch (head) {
       case 1:
         parseInput(view, index, player);
@@ -141,13 +146,12 @@ function parseMessage(buffer, player) {
 
 function parseInput(view, index, player) {
   let ship = player.ship;
-  ship.control.x = view.getFloat32(index);
-  index += 4;
-  ship.control.y = view.getFloat32(index);
-  index += 4;
-  ship.afterBurnerActive = view.getUint8(index);
-  index += 1;
-
+  ship.control.x = view.getFloat32(index.i);
+  index.i += 4;
+  ship.control.y = view.getFloat32(index.i);
+  index.i += 4;
+  ship.afterBurnerActive = view.getUint8(index.i);
+  index.i += 1;
   //console.log("Parsing to: ",controlVector);
 }
 

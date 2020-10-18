@@ -203,11 +203,12 @@ ShipType.init = function () {
     let debugShip = new ShipType();
     debugShip.name = "Debug";
     debugShip.speed = 1000;
-    debugShip.acceleration = 1500;
-    debugShip.reverseAccelreation = 1200;
-    debugShip.rotationSpeed = 5;
-    debugShip.afterBurnerSpeedBonus = 1.5;
-    debugShip.afterBurnerAgilityBonus = 1.5;
+    debugShip.acceleration = 600;
+    debugShip.reverseAccelreation = 300;
+    debugShip.rotationSpeed = 3;
+    debugShip.afterBurnerSpeedBonus = 200;
+    debugShip.afterBurnerRotationBonus = 3;
+    debugShip.afterBurnerAccelerationBonus = 300;
     debugShip.afterBurnerCapacity = 60;
     debugShip.drag = 1;
 
@@ -225,6 +226,7 @@ function Ship() {
     this.rotation = 0;
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
+    this.afterBurnerFuel = 60;
 
     this.init = function (type) {
         this.stats = type;
@@ -232,20 +234,26 @@ function Ship() {
 
     this.update = function (dt) {
         let stats = this.stats;
+        let afterBurnerUsed = false;
+        if(this.afterBurnerFuel <= 0){
+            this.afterBurnerActive = 0;
+        }
 
         if (this.control.x != 0) {
             // rotationace
-            this.rotation += (stats.rotationSpeed + (this.afterBurnerActive * stats.afterBurnerAgilityBonus)) * this.control.x * dt;
+            this.rotation += (stats.rotationSpeed + (this.afterBurnerActive * stats.afterBurnerRotationBonus)) * this.control.x * dt;
+            afterBurnerUsed = true;
         }
 
         if (this.control.y != 0) {
             // zrychlení / brždění
             let pointing = Vector.fromAngle(this.rotation).mult(this.control.y);
             if (this.control.y > 0) {
-                pointing.normalize(stats.acceleration + (this.afterBurnerActive * stats.afterBurnerAgilityBonus));
+                pointing.normalize(stats.acceleration + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
             } else {
-                pointing.normalize(stats.reverseAccelreation + (this.afterBurnerActive * stats.afterBurnerAgilityBonus));
+                pointing.normalize(stats.reverseAccelreation + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
             }
+            afterBurnerUsed = true;
             pointing.mult(dt);
             this.velocity.add(pointing);
         }else{
@@ -261,6 +269,11 @@ function Ship() {
         }
 
         this.position.add(this.velocity.result().mult(dt));
+
+        if(this.afterBurnerActive == 1 && ( afterBurnerUsed || this.velocity.length() > stats.speed)){
+            this.afterBurnerFuel -= dt; 
+            this.afterBurnerFuel = Math.max(0,this.afterBurnerFuel);
+        }
     };
 }
 Ship.minSpeed = 0.2;
