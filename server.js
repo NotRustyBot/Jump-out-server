@@ -83,8 +83,8 @@ function makeMessage(p) {
 }
 
 function addPlayerToMessage(view, index, p) {
-  view.setUint8(index.i, p.id);
-  index.i += 1;
+  view.setInt16(index.i, p.id);
+  index.i += 2;
   view.setFloat32(index.i, p.ship.position.x);
   index.i += 4;
   view.setFloat32(index.i, p.ship.position.y);
@@ -116,7 +116,7 @@ function onMessage(message, player) {
 }
 
 function onClose(event, player) {
-  console.log("Closed connection " + player + " Reason: " + event);
+  console.log("Closed connection " + player.id + " Reason: " + event);
   player.open = false;
 }
 
