@@ -191,7 +191,7 @@ function ShipType() {
     this.name;
     this.speed; 
     this.acceleration;
-    this.reverseAccelreation;
+    this.reverseAcceleration;
     this.rotationSpeed;
     this.afterBurnerBonus;
     this.afterBurnerCapacity;
@@ -201,10 +201,10 @@ function ShipType() {
 ShipType.init = function () {
     ShipType.types = [];
     let debugShip = new ShipType();
-    debugShip.name = "Debug";
+    debugShip.name = 1; // "Debug"
     debugShip.speed = 1000;
     debugShip.acceleration = 600;
-    debugShip.reverseAccelreation = 300;
+    debugShip.reverseAcceleration = 300;
     debugShip.rotationSpeed = 3;
     debugShip.afterBurnerSpeedBonus = 200;
     debugShip.afterBurnerRotationBonus = 3;

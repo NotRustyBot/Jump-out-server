@@ -50,7 +50,7 @@ function update() {
   dt = (Date.now() - last) / 1000;
   last = Date.now();
   Player.players.forEach(p => {
-    p.send(makeMessage(p));
+    p.send(makeMessage(p,1));
     p.ship.update(dt);
   });
 }
@@ -67,18 +67,24 @@ function update() {
   return buffer;
 }*/
 
-function makeMessage(p) {
+function makeMessage(p, type) {
   let index = { i: 0 };
-  const buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
-  const view = new DataView(buffer);
-
-
-  //MESSAGE TYPE 1 (PLAYER POSITIONS)
-  view.setUint8(index.i, 1);
+  buffer;
+  view;
+  view.setUint8(index.i, type);
   index.i += 1;
-  addPlayerToMessage(view, index, p);
 
-
+  switch(type){
+    case 1:   //MESSAGE TYPE 1 (PLAYER POSITIONS)
+      buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
+      view = new DataView(buffer);
+      addPlayerToMessage(view, index, p);
+    case 2:
+      buffer = new ArrayBuffer(1 + (1+4*7));
+      view = new DataView(buffer);
+      addShipStatsToMessage(view, index, p); //MESSAGE TYPE 2 (PLAYER STATS)
+  }
+  
   return buffer;
 }
 
@@ -103,8 +109,25 @@ function addPlayerToMessage(view, index, p) {
   index.i += 1;
   view.setFloat32(index.i, p.ship.afterBurnerFuel);
   index.i += 4;
+}
 
-
+function addShipStatsToMessage(view, index, p) {
+  view.setUInt8(index.i, p.ship.type.name);
+  index.i += 1;
+  view.setFloat32(index.i, p.ship.type.speed);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.type.acceleration);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.type.reverseAcceleration);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.type.rotationSpeed);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.type.afterBurnerBonus);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.type.afterBurnerCapacity);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.type.drag);
+  index.i += 4;
 }
 
 function sendAll(data) {
