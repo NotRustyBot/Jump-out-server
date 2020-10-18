@@ -79,10 +79,12 @@ function makeMessage(p, type) {
       buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
       view = new DataView(buffer);
       addPlayerToMessage(view, index, p);
+      break;
     case 2:
       buffer = new ArrayBuffer(1 + (1+4*7));
       view = new DataView(buffer);
       addShipStatsToMessage(view, index, p); //MESSAGE TYPE 2 (PLAYER STATS)
+      break;
   }
   
   return buffer;
