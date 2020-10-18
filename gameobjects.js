@@ -189,13 +189,14 @@ Entity.list = [];
 
 function ShipType() {
     this.name;
-    this.speed; 
+    this.speed;
     this.acceleration;
     this.reverseAcceleration;
     this.rotationSpeed;
-    this.afterBurnerBonus;
+    this.afterBurnerSpeedBonus;
+    this.afterBurnerRotationBonus;
+    this.afterBurnerAccelerationBonus;
     this.afterBurnerCapacity;
-    this.drag;
 }
 
 ShipType.init = function () {

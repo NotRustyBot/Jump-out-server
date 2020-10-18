@@ -70,9 +70,8 @@ function update() {
 
 function makeMessage(p, type) {
   let index = { i: 0 };
-  buffer;
-  view;
-  view.setUint8(index.i, type);
+  let buffer;
+  let view;
   index.i += 1;
 
   switch(type){
@@ -87,6 +86,8 @@ function makeMessage(p, type) {
       addShipStatsToMessage(view, index, p); //MESSAGE TYPE 2 (PLAYER STATS)
       break;
   }
+
+  view.setUint8(0, type);
   
   return buffer;
 }
@@ -115,21 +116,25 @@ function addPlayerToMessage(view, index, p) {
 }
 
 function addShipStatsToMessage(view, index, p) {
-  view.setUInt8(index.i, p.ship.type.name);
+  view.setUint8(index.i, p.ship.stats.name);
   index.i += 1;
-  view.setFloat32(index.i, p.ship.type.speed);
+  view.setFloat32(index.i, p.ship.stats.speed);
   index.i += 4;
-  view.setFloat32(index.i, p.ship.type.acceleration);
+  view.setFloat32(index.i, p.ship.stats.acceleration);
   index.i += 4;
-  view.setFloat32(index.i, p.ship.type.reverseAcceleration);
+  view.setFloat32(index.i, p.ship.stats.reverseAcceleration);
   index.i += 4;
-  view.setFloat32(index.i, p.ship.type.rotationSpeed);
+  view.setFloat32(index.i, p.ship.stats.rotationSpeed);
   index.i += 4;
-  view.setFloat32(index.i, p.ship.type.afterBurnerBonus);
+  view.setFloat32(index.i, p.ship.stats.afterBurnerSpeedBonus);
   index.i += 4;
-  view.setFloat32(index.i, p.ship.type.afterBurnerCapacity);
+  view.setFloat32(index.i, p.ship.stats.afterBurnerRotationBonus);
   index.i += 4;
-  view.setFloat32(index.i, p.ship.type.drag);
+  view.setFloat32(index.i, p.ship.stats.afterBurnerAccelerationBonus);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.stats.afterBurnerCapacity);
+  index.i += 4;
+  view.setFloat32(index.i, p.ship.stats.drag);
   index.i += 4;
 }
 
