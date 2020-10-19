@@ -1,123 +1,195 @@
-//#region věci
-function Vector(x, y) {
-    this.x = x;
-    this.y = y;
-  
-    this.length = function () {
-        return Math.sqrt(this.x * this.x + this.y * this.y);
+function Datagram() {
+    this.structure = [];
+
+    this.size = 0;
+    this.add = function (type, name) {
+        this.structure.push({ type: type, name: name });
+        this.size += Datagram._sizes[type];
     };
-  
-    this.distance = function (vector) {
-        let v = new Vector(
-            Math.abs(this.x - vector.x),
-            Math.abs(this.y - vector.y)
-        );
-        return v.length();
-    };
-  
-    this.add = function (vector) {
-        this.x = this.x + vector.x;
-        this.y = this.y + vector.y;
-        return this;
-    };
-  
-    this.sub = function (vector) {
-        this.x = this.x - vector.x;
-        this.y = this.y - vector.y;
-        return this;
-    };
-  
-    this.mult = function (magnitude) {
-        this.x = this.x * magnitude;
-        this.y = this.y * magnitude;
-        return this;
-    };
-  
-    this.normalize = function (length) {
-        length = length || 1;
-        let total = this.length();
-        this.x = (this.x / total) * length;
-        this.y = (this.y / total) * length;
-        return this;
-    };
-    this.result = function () {
-        return new Vector(this.x, this.y);
-    };
-  }
-  Vector.zero = function () {
-    return new Vector(0, 0);
-  };
-  Vector.fromAngle = function (r) {
-    return new Vector(Math.cos(r), Math.sin(r));
-  };
-  
-  function ShipType() {
-    this.name = "ShipTypeName";
-    this.speed = 5;
-    this.accel = 1;
-    this.revAccel = 0.5;
-    this.rotSpeed = 1;
-    this.afterBonus = 3;
-    this.afterCapacity = 60;
-  }
-  
-  ShipType.init = function () {
-    ShipType.types = [];
-    let debugShip = new ShipType();
-    debugShip.name = "Debug";
-    debugShip.speed = 150;
-    debugShip.accel = 5;
-    debugShip.revAccel = 3;
-    debugShip.rotSpeed = 1;
-    debugShip.afterBonus = 3;
-    debugShip.afterCapacity = 60;
-    ShipType.types["Debug"] = debugShip;
-  };
-  
-  function Ship() {
-    this.stats;
-    this.pos = new Vector(0, 0);
-    this.velocity = new Vector(0, 0);
-    this.rot = 0;
-    this.control = new Vector(0, 0);
-  
-    this.setup = function (type) {
-        this.stats = type;
-    };
-  
-    this.update = function (dt) {
-        let stats = this.stats;
-  
-        if (this.control.x != 0) { // rotace
-            this.rot += stats.rotSpeed * this.control.x * dt;
-        }
-  
-        if (this.control.y != 0) { // zrychlení / brždění
-            let pointing = Vector.fromAngle(this.rot).mult(this.control.y);
-            pointing.mult(dt);
-            if (this.control.y > 0) {
-                pointing.normalize(stats.accel);
-            } else {
-                pointing.normalize(stats.revAccel);
+
+    this.sizeOf = function (obj) {
+        let size = this.size;
+        for (let i = 0; i < this.structure.length; i++) {
+            const data = this.structure[i];
+            if (data.type == Datagram.types.string) {
+                size += obj[data.name].length * 2;
             }
-            this.velocity.add(pointing);
         }
-  
-        if (this.velocity.length() >= stats.speed) {
-            this.velocity.normalize(stats.speed);
-        }
-  
-        this.pos.add(this.velocity.result().mult(dt));
+        return size;
     };
-  }
-  
-  function Player(connection) {
-    this.nick = "nick";
-    this.ship;
-    this.connection = connection;
-    this.id = Player.players.length;
-    Player.players[id] = this;
-  }
-  Player.players = [];
-  
-  //#endregion
+}
+
+Datagram.types = {
+    int8: 0,
+    uint8: 1,
+    int16: 2,
+    uint16: 3,
+    int32: 4,
+    uint32: 5,
+    int64: 6,
+    uint64: 7,
+    float32: 8,
+    float64: 9,
+    string: 10,
+};
+Datagram._sizes = [1, 1, 2, 2, 4, 4, 8, 8, 4, 8, 2];
+
+Datagram._Get = [
+    (auto) => {
+        auto.index += 1;
+        return auto.view.getInt8(auto.index - 1);
+    },
+    (auto) => {
+        auto.index += 1;
+        return auto.view.getUint8(auto.index - 1);
+    },
+    (auto) => {
+        auto.index += 2;
+        return auto.view.getInt16(auto.index - 2);
+    },
+    (auto) => {
+        auto.index += 2;
+        return auto.view.getUint16(auto.index - 2);
+    },
+    (auto) => {
+        auto.index += 4;
+        return auto.view.getInt32(auto.index - 4);
+    },
+    (auto) => {
+        auto.index += 4;
+        return auto.view.getUint32(auto.index - 4);
+    },
+    (auto) => {
+        auto.index += 8;
+        return auto.view.getInt64(auto.index - 8);
+    },
+    (auto) => {
+        auto.index += 8;
+        return auto.view.getUint64(auto.index - 8);
+    },
+    (auto) => {
+        auto.index += 4;
+        return auto.view.getFloat32(auto.index - 4);
+    },
+    (auto) => {
+        auto.index += 8;
+        return auto.view.getFloat64(auto.index - 8);
+    },
+    (auto) => {
+        let length = auto.view.getInt16(auto.index);
+        auto.index += 2;
+        let array = [];
+        for (let i = 0; i < length; i++) {
+            array[i] = String.fromCharCode(auto.view.getUint16(auto.index));
+            auto.index += 2;
+        }
+        return array.join("");
+    },
+];
+Datagram._Set = [
+    (auto, data) => {
+        auto.view.setInt8(auto.index, data);
+        auto.index += 1;
+    },
+    (auto, data) => {
+        auto.view.setUint8(auto.index, data);
+        auto.index += 1;
+    },
+    (auto, data) => {
+        auto.view.setInt16(auto.index, data);
+        auto.index += 2;
+    },
+    (auto, data) => {
+        auto.view.setUint16(auto.index, data);
+        auto.index += 2;
+    },
+    (auto, data) => {
+        auto.view.setInt32(auto.index, data);
+        auto.index += 4;
+    },
+    (auto, data) => {
+        auto.view.setUint32(auto.index, data);
+        auto.index += 4;
+    },
+    (auto, data) => {
+        auto.view.setInt64(auto.index, data);
+        auto.index += 8;
+    },
+    (auto, data) => {
+        auto.view.setUint64(auto.index, data);
+        auto.index += 8;
+    },
+    (auto, data) => {
+        auto.view.setFloat32(auto.index, data);
+        auto.index += 4;
+    },
+    (auto, data) => {
+        auto.view.setFloat64(auto.index, data);
+        auto.index += 8;
+    },
+    (auto, data) => {
+        auto.view.setInt16(auto.index, data.length);
+        auto.index += 2;
+        for (let i = 0; i < data.length; i++) {
+            auto.view.setUint16(auto.index, data.charCodeAt(i));
+            auto.index += 2;
+        }
+    },
+];
+
+function AutoView(buffer, index) {
+    this.view = new DataView(buffer);
+    this.index = index || 0;
+    this.deserealize = function (obj, datagram) {
+        let dg = datagram.structure;
+        for (let i = 0; i < dg.length; i++) {
+            const data = dg[i];
+            obj[data.name] = Datagram._Get[data.type](this);
+        }
+    };
+
+    this.serialize = function (obj, datagram) {
+        let dg = datagram.structure;
+        for (let i = 0; i < dg.length; i++) {
+            const data = dg[i];
+            Datagram._Set[data.type](
+                this,
+                obj[data.name]
+            );
+        }
+    };
+}
+
+/* RUN */
+
+var type = Datagram.types;
+
+let toSend = { x: 5.3, y: -6.6, id: 1, name: "doe" };
+let toSend2 = { x: 0, y: 0, id: 0, name: "Doe Sntmatter" };
+
+let Recvive = { id: 3, name: "Staysa Me" };
+let Recvive2 = {};
+
+let testDg = new Datagram();
+testDg.add(type.uint8, "id");
+testDg.add(type.float32, "x");
+testDg.add(type.float32, "y");
+testDg.add(type.string, "name");
+
+/* */
+
+console.log(testDg.sizeOf(toSend));
+
+let buffer = new ArrayBuffer(testDg.sizeOf(toSend) + testDg.sizeOf(toSend2));
+let sendView = new AutoView(buffer);
+
+sendView.serialize(toSend, testDg);
+sendView.serialize(toSend2, testDg);
+//.send(buffer);
+
+let recviveView = new AutoView(buffer);
+recviveView.deserealize(Recvive, testDg);
+recviveView.deserealize(Recvive2, testDg);
+
+console.log(Recvive);
+console.log(Recvive2);
