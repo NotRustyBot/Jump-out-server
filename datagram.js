@@ -218,6 +218,15 @@ shipUpdate.add(types.uint8, "afterBurnerActive");
 shipUpdate.add(types.float32, "afterBurnerFuel");
 Datagrams.shipUpdate = shipUpdate;
 
+let initPlayer = new Datagram();
+initPlayer.add(types.uint16, "id");
+initPlayer.add(types.string,"nick");
+Datagrams.initPlayer = initPlayer;
+
+let playerSettings = new Datagram();
+playerSettings.add(types.string,"nick");
+Datagrams.playerSettings = playerSettings;
+
 exports.Datagrams = Datagrams;
 
 //#endregion

@@ -1,5 +1,5 @@
 const { Vector, ShipType, Ship, Player } = require("./gameobjects.js");
-const { Datagram, Datagrams, AutoView} = require("./datagram.js");
+const { Datagram, Datagrams, AutoView } = require("./datagram.js");
 
 //#region INIT
 let http = require('http');
@@ -39,61 +39,6 @@ function onConnection(connection) {
   });
 }
 
-const fps = 30;
-
-setInterval(() => {
-  update();
-}, 1000 / fps);
-
-let last = Date.now();
-
-function update() {
-  dt = (Date.now() - last) / 1000;
-  last = Date.now();
-  Player.players.forEach(p => {
-    p.send(makeMessage(p));
-    p.ship.update(dt);
-  });
-}
-
-/*function cont(p) { // delete this
-  var index = 0;
-  const buffer = new ArrayBuffer(9);
-  const view = new DataView(buffer);
-  view.setUint8(index,1);
-  index+=1;
-  view.setFloat32(index,p.ship.control.x);
-  index+=4;
-  view.setFloat32(index,p.ship.control.y);
-  return buffer;
-}*/
-
-function makeMessage(p) {
-  const buffer = new ArrayBuffer(1 + 2 + Datagrams.shipUpdate.size);
-  const view = new AutoView(buffer);
-
-  //MESSAGE TYPE 1 (PLAYER POSITIONS)
-  view.view.setUint8(view.index, 1);
-  view.index += 1;
-  addPlayerToMessage(view, p);
-
-
-  return buffer;
-}
-
-function addPlayerToMessage(view, p) {
-  view.view.setUint16(view.index, p.id);
-  view.index += 2;
-  view.serialize(p.ship, Datagrams.shipUpdate);
-}
-
-function sendAll(data) {
-  connections.forEach(c => {
-    if (c.readyState == 1) {
-      c.send(data);
-    }
-  });
-}
 
 function onMessage(message, player) {
   let receiveBuffer = message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength);
@@ -106,12 +51,93 @@ function onClose(event, player) {
   player.open = false;
 }
 
+
+const fps = 30;
+
+setInterval(() => {
+  update();
+}, 1000 / fps);
+
+let last = Date.now();
+
+function update() {
+  dt = (Date.now() - last) / 1000;
+  last = Date.now();
+  Player.players.forEach(p => {
+    if (p.initialised) {
+      p.send(updateMessage(p));
+      p.ship.update(dt);
+    }
+  });
+}
+
+
+var buffer = new ArrayBuffer(1000);
+
+function updateMessage(p) {
+  const view = new AutoView(buffer);
+
+  //MESSAGE TYPE 1 (SHIP UPDATE)
+  view.view.setUint8(view.index, 1);
+  view.index += 1;
+
+  view.view.setUint16(view.index, p.id);
+  view.index += 2;
+  view.serialize(p.ship, Datagrams.shipUpdate);
+
+  //MESSAGE TYPE 2 (NEW PLAYER)
+
+  if (Player.newPlayers.length > 0) {
+    view.view.setUint8(view.index, 2);
+    view.index += 1;
+    view.view.setUint8(view.index, Player.newPlayers.length);
+    view.index += 1;
+    Player.newPlayers.forEach(player => {
+      view.serialize(player, Datagrams.initPlayer);
+    });
+    Player.newPlayers = [];
+  }
+
+  return buffer.slice(0, view.index);
+}
+
+function initMessage(p) {
+  const view = new AutoView(buffer);
+
+  view.view.setUint8(view.index, 0);
+  view.index += 1;
+  view.view.setUint16(view.index, p.id);
+  view.index += 2;
+  view.view.setUint8(view.index, Player.newPlayers.length);
+  view.index += 1;
+  Player.players.forEach(player => {
+    if (player.id != p.id && p.initialised) {
+      view.serialize(player, Datagrams.initPlayer);
+    }
+  });
+  return buffer.slice(0, view.index);
+}
+
+
+function sendAll(data) {
+  connections.forEach(c => {
+    if (c.readyState == 1) {
+      c.send(data);
+    }
+  });
+}
+
+
 function parseMessage(buffer, player) {
   const view = new AutoView(buffer);
   while (view.index < view.view.byteLength) {
     let head = view.view.getUint8(view.index);
     view.index += 1;
     switch (head) {
+      case 0:
+        parseInit(view,player);
+        
+        break;
       case 1:
         parseInput(view, player);
         break;
@@ -125,7 +151,14 @@ function parseMessage(buffer, player) {
 
 function parseInput(view, player) {
   let ship = player.ship;
-  view.deserealize(ship, Datagrams.input)
+  view.deserealize(ship, Datagrams.input);
   //console.log("Parsing to: ",controlVector);
 }
 
+function parseInit(view, player){
+  view.deserealize(player,Datagrams.initPlayer);
+
+  p.initialised = true;
+  p.send(initMessage(p));
+  Player.newPlayers.push(p);
+}

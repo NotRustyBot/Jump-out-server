@@ -293,8 +293,10 @@ function Player(connection) {
     this.nick = "nick";
     this.ship;
     this.connection = connection;
-    this.id = Player.players.length;
+    this.id = Player.nextId;
+    Player.nextId++;
     this.open = false;
+    this.initialised = false;
     this.send = function (data) {
         if(this.connection.readyState == 1)this.connection.send(data);
     };
@@ -302,9 +304,11 @@ function Player(connection) {
         this.ship = new Ship();
         this.ship.init(ShipType.types["Debug"]);
     };
-    Player.players[this.id] = this;
+    Player.players.set(this.id,this);
 }
-Player.players = [];
+Player.players = new Map();
+Player.nextId = 0;
+Player.newPlayers = [];
 
 exports.Player = Player;
 
