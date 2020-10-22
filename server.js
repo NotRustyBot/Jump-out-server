@@ -80,11 +80,11 @@ function updateMessage() {
   const view = new AutoView(buffer);
 
   //MESSAGE TYPE 1 (SHIP UPDATE)
-  view.view.setUint8(view.index, 1);
-  view.index += 1;
 
   Player.players.forEach(p => {
     if (p.initialised) {
+      view.view.setUint8(view.index, 1);
+      view.index += 1;
       view.view.setUint16(view.index, p.id);
       view.index += 2;
       view.serialize(p.ship, Datagrams.shipUpdate);
@@ -114,13 +114,17 @@ function initMessage(p) {
   view.index += 1;
   view.view.setUint16(view.index, p.id);
   view.index += 2;
-  view.view.setUint8(view.index, Player.players.size);
+  let sizeGoesHere = view.index;
+  
   view.index += 1;
+  let count = 0;
   Player.players.forEach(player => {
     if (player.id != p.id && p.initialised) {
       view.serialize(player, Datagrams.initPlayer);
+      count++;
     }
   });
+  view.view.setUint8(sizeGoesHere, count);
   return buffer.slice(0, view.index);
 }
 
