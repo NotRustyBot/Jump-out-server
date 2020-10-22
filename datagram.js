@@ -223,9 +223,9 @@ initPlayer.add(types.uint16, "id");
 initPlayer.add(types.string,"nick");
 Datagrams.initPlayer = initPlayer;
 
-let playerSettings = new Datagram();
-playerSettings.add(types.string,"nick");
-Datagrams.playerSettings = playerSettings;
+let playerSettingsDatagram = new Datagram();
+playerSettingsDatagram.add(types.string,"nick");
+Datagrams.playerSettings = playerSettingsDatagram;
 
 exports.Datagrams = Datagrams;
 
