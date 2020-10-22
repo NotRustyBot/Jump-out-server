@@ -82,7 +82,7 @@ function updateMessage() {
   view.view.setUint8(view.index, 1);
   view.index += 1;
 
-  Player.player.forEach(p => {
+  Player.players.forEach(p => {
     view.view.setUint16(view.index, p.id);
     view.index += 2;
     view.serialize(p.ship, Datagrams.shipUpdate);
