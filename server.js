@@ -69,8 +69,8 @@ function update() {
 }*/
 
 function makeMessage(p) {
-  const buffer = new ArrayBuffer(1 + Datagrams.shipUpdate.size);
-  const view = new AutoView();
+  const buffer = new ArrayBuffer(1 + 2 + Datagrams.shipUpdate.size);
+  const view = new AutoView(buffer);
 
   //MESSAGE TYPE 1 (PLAYER POSITIONS)
   view.view.setUint8(view.index, 1);
@@ -84,7 +84,7 @@ function makeMessage(p) {
 function addPlayerToMessage(view, p) {
   view.view.setUint16(view.index, p.id);
   view.index += 2;
-  view.serialize(p, Datagrams.shipUpdate);
+  view.serialize(p.ship, Datagrams.shipUpdate);
 }
 
 function sendAll(data) {
@@ -109,7 +109,7 @@ function onClose(event, player) {
 function parseMessage(buffer, player) {
   const view = new AutoView(buffer);
   while (view.index < view.view.byteLength) {
-    let head = view.view.getUint8(index);
+    let head = view.view.getUint8(view.index);
     view.index += 1;
     switch (head) {
       case 1:

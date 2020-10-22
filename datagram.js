@@ -1,3 +1,5 @@
+const { Vector, ShipType, Ship, Player } = require("./gameobjects.js");
+
 function Datagram() {
     this.structure = [];
 
@@ -96,11 +98,11 @@ Datagram._Get = [
     },
     (auto) => {
         auto.index += 8;
-        return {x: auto.view.getFloat32(auto.index - 8), y: auto.view.getFloat32(auto.index - 4)};
+        return new Vector(auto.view.getFloat32(auto.index - 8), auto.view.getFloat32(auto.index - 4));
     },
     (auto) => {
         auto.index += 16;
-        return {x: auto.view.getFloat64(auto.index - 16), y: auto.view.getFloat64(auto.index - 8)};
+        return new Vector(auto.view.getFloat64(auto.index - 16), auto.view.getFloat64(auto.index - 8));
     },
 ];
 Datagram._Set = [
