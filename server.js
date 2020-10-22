@@ -113,7 +113,7 @@ function initMessage(p) {
   view.index += 1;
   view.view.setUint16(view.index, p.id);
   view.index += 2;
-  view.view.setUint8(view.index, Player.players.length);
+  view.view.setUint8(view.index, Player.players.size);
   view.index += 1;
   Player.players.forEach(player => {
     if (player.id != p.id && p.initialised) {
