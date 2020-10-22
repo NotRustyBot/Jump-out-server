@@ -1,4 +1,5 @@
 const { Vector, ShipType, Ship, Player } = require("./gameobjects.js");
+const { Datagram, Datagrams, AutoView} = require("./datagram.js");
 
 //#region INIT
 let http = require('http');
@@ -68,14 +69,12 @@ function update() {
 }*/
 
 function makeMessage(p) {
-  let index = { i: 0 };
-  const buffer = new ArrayBuffer(1 + (2 + 8 + 8 + 4 + 8 + 1 + 4));
-  const view = new DataView(buffer);
-
+  const buffer = new ArrayBuffer( );
+  const view = new AutoView();
 
   //MESSAGE TYPE 1 (PLAYER POSITIONS)
-  view.setUint8(index.i, 1);
-  index.i += 1;
+  view.view.setUint8(index.i, 1);
+  view.index += 1;
   addPlayerToMessage(view, index, p);
 
 
@@ -127,14 +126,13 @@ function onClose(event, player) {
 }
 
 function parseMessage(buffer, player) {
-  const view = new DataView(buffer);
-  let index = {i:0};
-  while (index.i < view.byteLength) {
-    let head = view.getUint8(index);
-    index.i += 1;
+  const view = new AutoView(buffer);
+  while (view.index < view.view.byteLength) {
+    let head = view.view.getUint8(index);
+    view.index += 1;
     switch (head) {
       case 1:
-        parseInput(view, index, player);
+        parseInput(view, player);
         break;
 
       default:
@@ -144,14 +142,9 @@ function parseMessage(buffer, player) {
 
 }
 
-function parseInput(view, index, player) {
+function parseInput(view, player) {
   let ship = player.ship;
-  ship.control.x = view.getFloat32(index.i);
-  index.i += 4;
-  ship.control.y = view.getFloat32(index.i);
-  index.i += 4;
-  ship.afterBurnerActive = view.getUint8(index.i);
-  index.i += 1;
+  view.deserealize(ship, Datagrams.input)
   //console.log("Parsing to: ",controlVector);
 }
 
