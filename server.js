@@ -83,9 +83,11 @@ function updateMessage() {
   view.index += 1;
 
   Player.players.forEach(p => {
-    view.view.setUint16(view.index, p.id);
-    view.index += 2;
-    view.serialize(p.ship, Datagrams.shipUpdate);
+    if (p.initialised) {
+      view.view.setUint16(view.index, p.id);
+      view.index += 2;
+      view.serialize(p.ship, Datagrams.shipUpdate);
+    }
   });
 
   //MESSAGE TYPE 2 (NEW PLAYER)
