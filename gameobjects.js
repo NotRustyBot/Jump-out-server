@@ -247,12 +247,12 @@ function Ship() {
 
         let topSpeed = stats.speed + (this.afterBurnerActive * stats.afterBurnerSpeedBonus);
         if (this.velocity.length() >= topSpeed) {
-            if(this.control.y != 0){
+            if(this.control.y >= 0){
                 this.velocity.mult(1 - (stats.drag * dt)); // odpor
                 if (this.velocity.length() < Ship.minSpeed) {
                     this.velocity = Vector.zero();
                 }
-            }else if(this.control.y < 0){
+            }else(this.control.y < 0){
                 pointing.normalize(stats.reverseAccelreation + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
                 afterBurnerUsed = true;
                 pointing.mult(dt);
