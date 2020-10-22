@@ -108,7 +108,7 @@ function initMessage(p) {
   view.index += 1;
   view.view.setUint16(view.index, p.id);
   view.index += 2;
-  view.view.setUint8(view.index, Player.newPlayers.length);
+  view.view.setUint8(view.index, Player.players.length);
   view.index += 1;
   Player.players.forEach(player => {
     if (player.id != p.id && p.initialised) {
@@ -156,9 +156,9 @@ function parseInput(view, player) {
 }
 
 function parseInit(view, player){
-  view.deserealize(player,Datagrams.initPlayer);
+  view.deserealize(player,Datagrams.playerSettings);
 
-  p.initialised = true;
-  p.send(initMessage(p));
-  Player.newPlayers.push(p);
+  player.initialised = true;
+  player.send(initMessage(player));
+  Player.newPlayers.push(player);
 }
