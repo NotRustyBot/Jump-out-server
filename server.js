@@ -69,41 +69,22 @@ function update() {
 }*/
 
 function makeMessage(p) {
-  const buffer = new ArrayBuffer( );
+  const buffer = new ArrayBuffer(1 + Datagrams.shipUpdate.size);
   const view = new AutoView();
 
   //MESSAGE TYPE 1 (PLAYER POSITIONS)
-  view.view.setUint8(index.i, 1);
+  view.view.setUint8(view.index, 1);
   view.index += 1;
-  addPlayerToMessage(view, index, p);
+  addPlayerToMessage(view, p);
 
 
   return buffer;
 }
 
-function addPlayerToMessage(view, index, p) {
-  view.setInt16(index.i, p.id);
-  index.i += 2;
-  view.setFloat32(index.i, p.ship.position.x);
-  index.i += 4;
-  view.setFloat32(index.i, p.ship.position.y);
-  index.i += 4;
-  view.setFloat32(index.i, p.ship.velocity.x);
-  index.i += 4;
-  view.setFloat32(index.i, p.ship.velocity.y);
-  index.i += 4;
-  view.setFloat32(index.i, p.ship.rotation);
-  index.i += 4;
-  view.setFloat32(index.i, p.ship.control.x);
-  index.i += 4;
-  view.setFloat32(index.i, p.ship.control.y);
-  index.i += 4;
-  view.setUint8(index.i, p.ship.afterBurnerActive);
-  index.i += 1;
-  view.setFloat32(index.i, p.ship.afterBurnerFuel);
-  index.i += 4;
-
-
+function addPlayerToMessage(view, p) {
+  view.view.setUint16(view.index, p.id);
+  view.index += 2;
+  view.serialize(p, Datagrams.shipUpdate);
 }
 
 function sendAll(data) {

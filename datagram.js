@@ -17,6 +17,13 @@ function Datagram() {
         }
         return size;
     };
+
+    this.transferData = function(target, data){
+        for (let i = 0; i < this.structure.length; i++) {
+            const info = this.structure[i];
+            target[info.name] = data[info.name];
+        }
+    }
 }
 
 Datagram.types = {
@@ -196,10 +203,18 @@ let input = new Datagram();
 
 input.add(types.vector32, "control");
 input.add(types.int8, "afterBurnerActive");
-
-
-
 Datagrams.input = input;
+
+
+let shipUpdate = new Datagram();
+
+shipUpdate.add(types.vector32, "position");
+shipUpdate.add(types.vector32, "velocity");
+shipUpdate.add(types.float32, "rotation");
+shipUpdate.add(types.vector32, "control");
+shipUpdate.add(types.uint8, "afterBurnerActive");
+shipUpdate.add(types.float32, "afterBurnerFuel");
+Datagrams.shipUpdate = shipUpdate;
 
 exports.Datagrams = Datagrams;
 
