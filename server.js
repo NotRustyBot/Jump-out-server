@@ -49,6 +49,7 @@ function onMessage(message, player) {
 function onClose(event, player) {
   console.log("Closed connection " + player.id + " Reason: " + event);
   player.open = false;
+  Player.players.delete(player.id);
 }
 
 
