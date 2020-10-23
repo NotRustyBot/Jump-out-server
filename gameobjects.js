@@ -86,13 +86,14 @@ for (let x = 0; x < Universe.size; x++) {
 
 function CollisionResult(result, x, y) {
     this.result = result;
-    if (!(x === undefined || y === undefined)) {
+    if (result) {
         this.position = new Vector(x, y);
     }
 }
 
 function Shape() {
     this.circle = function (x, y, r) {
+        this.line = undefined;
         this.type = Shape.types.circle;
         this.x = x;
         this.y = y;
@@ -138,10 +139,20 @@ function Shape() {
                 }
             }
         };
+        this.rotate = function(angle){
+            let sin = Math.sin(angle);
+            let cos = Math.cos(angle);
+            this.x  = this.x * cos - this.y * sin;
+            this.y  = this.x * sin + this.y * cos;
+        }
+        this.copy = function(){
+            return new Shape().line(this.x,this.y,this.r);
+        }
         return this;
     };
 
     this.line = function (x1, y1, x2, y2) {
+        this.circle = undefined;
         this.type = Shape.types.line;
         this.x1 = x1;
         this.y1 = y1;
@@ -209,10 +220,22 @@ function Shape() {
                 if (isNaN(x) || isNaN(y)) {
                     return new CollisionResult(false);
                 } else {
-                    return new CollisionResult(false, x, y);
+                    return new CollisionResult(true, x, y);
                 }
             }
         };
+        this.rotate = function(angle){
+            let sin = Math.sin(angle);
+            let cos = Math.cos(angle);
+            this.x1  = this.x1 * cos - this.y1 * sin;
+            this.y1  = this.x1 * sin + this.y1 * cos;
+            this.x2  = this.x2 * cos - this.y2 * sin;
+            this.y2  = this.x2 * sin + this.y2 * cos;
+        }
+
+        this.copy = function(){
+            return new Shape().line(this.x1,this.y1,this.x2,this.y2);
+        }
 
         return this;
     };
@@ -224,17 +247,31 @@ function Entity(x, y, type) {
     this.rotation = 0;
     this.rotationSpeed = 0;
     this.type = type;
+    this.rotatedCollider = [];
+    this.rotatedColliderValid = false;
     this.collider = [];
     this.id = Entity.list.length;
     Entity.list.push(this);
     Area.checkIn(this);
     this.update = function (dt) {
+        this.rotatedColliderValid = false;
         this.rotation += this.rotationSpeed * dt;
     };
+    this.rotateCollider = function(){
+        rotatedCollider = [];
+        this.collider.forEach(s => {
+            let r = s.copy();
+            r.rotate(this.rotation);
+            this.rotatedCollider.push(r);
+        });
+        this.rotatedColliderValid = true;
+    }
 }
 Entity.list = [];
 
-Entity(100,100, 1);
+let e1 = new Entity(300, 0, 1);
+e1.collider.push(new Shape().circle(100, 100, 50));
+e1.rotationSpeed = 0.5;
 
 exports.Entity = Entity;
 
@@ -360,7 +397,33 @@ function Ship() {
             this.afterBurnerFuel -= dt;
             this.afterBurnerFuel = Math.max(0, this.afterBurnerFuel);
         }
+
+        this.checkCollision();
     };
+
+    this.checkCollision = function(){
+        for (let i = 0; i < Entity.list.length; i++) {
+            const e = Entity.list[i];
+            let relativePos = this.position.result();
+            relativePos.x -= e.position.x;
+            relativePos.y -= e.position.y;
+            let collisionShape = new Shape().circle(relativePos.x,relativePos.y, 30); //size ??
+            let res;
+            if(!e.rotatedColliderValid){
+                e.rotateCollider();
+            }
+            e.rotatedCollider.forEach(s => {
+                res = collisionShape.checkCollision(s);
+                if(res.result) return;
+            });
+            if(res.result){
+                let shift = relativePos;
+                shift.add(res.position.mult(-1));
+                this.position.add(shift);
+                this.velocity.mult(-1);
+            }
+        }
+    }
 }
 Ship.minSpeed = 0.2;
 exports.Ship = Ship;
