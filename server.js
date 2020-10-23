@@ -81,9 +81,16 @@ function update() {
 
 var buffer = new ArrayBuffer(1000);
 
+let NetworkTimer = 0;
+
 
 function updateMessage() {
   const view = new AutoView(buffer);
+  NetworkTimer++;
+  if(NetworkTimer > 12000){
+    NetworkTimer = 0;
+  }
+
 
   //MESSAGE TYPE 1 (SHIP UPDATE)
 
@@ -124,6 +131,10 @@ function updateMessage() {
     Player.leftPlayers = [];
   }
 
+  if(NetworkTimer%300 == 0){
+    EntitySetupMessage(view);
+  }
+
   return buffer.slice(0, view.index);
 }
 
@@ -145,11 +156,12 @@ function initMessage(p) {
     }
   });
   view.view.setUint8(sizeGoesHere, count);
+
   return buffer.slice(0, view.index);
 }
 
-function EntitySetupMessage(){
-  const view = new AutoView(buffer);
+function EntitySetupMessage(inView){
+  const view = inView || new AutoView(buffer);
   view.view.setUint8(view.index, serverHeaders.entitySetup);
   view.index += 1;
   let sizeGoesHere = view.index;
