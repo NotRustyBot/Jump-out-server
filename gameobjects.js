@@ -270,8 +270,8 @@ function Entity(x, y, type) {
 Entity.list = [];
 
 let e1 = new Entity(300, 0, 1);
-e1.collider.push(new Shape().circle(0, 0, 100));
-e1.rotationSpeed = 0.5;
+e1.collider.push(new Shape().circle(0, 0, 150));
+e1.rotationSpeed = 0.5/3;
 
 exports.Entity = Entity;
 
@@ -407,7 +407,7 @@ function Ship() {
             let relativePos = this.position.result();
             relativePos.x -= e.position.x;
             relativePos.y -= e.position.y;
-            let collisionShape = new Shape().circle(relativePos.x,relativePos.y, 30); //size ??
+            let collisionShape = new Shape().circle(relativePos.x,relativePos.y, 10); //size ??
             let res;
             if(!e.rotatedColliderValid){
                 e.rotateCollider();
