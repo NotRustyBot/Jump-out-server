@@ -425,6 +425,19 @@ function Ship() {
                 this.position.add(this.velocity.result().mult(dt));
             }
         }
+
+        Player.players.forEach(p => {
+            let other = p.ship;
+            if(this != other){
+                let collisionShape = new Shape().circle(this.position.x,this.position.y, 30);
+                let otherShape = new Shape().circle(other.position.x,other.position.y, 30);
+                res = collisionShape.checkCollision(otherShape);
+                if(res.result){
+                    this.velocity.mult(-1);
+                    this.position.add(this.velocity.result().mult(dt));
+                }
+            }
+        })
     }
 }
 Ship.minSpeed = 0.2;
