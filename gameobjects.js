@@ -419,11 +419,11 @@ function Ship() {
             });
             
             if(res.result){
-                let shift = relativePos;
-                shift.add(res.position.mult(-1));
-                this.position.add(shift);
+                //let shift = relativePos;
+                //shift.add(res.position.mult(-1));
+                //this.position.add(shift);
                 this.velocity.mult(-1);
-                //this.position.add(this.velocity.result().mult(dt));
+                this.position.add(this.velocity.result().mult(dt));
             }
         }
 
