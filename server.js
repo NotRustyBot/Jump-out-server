@@ -113,7 +113,7 @@ function updateMessage() {
   //MESSAGE TYPE 3 (LEFT PLAYER)
 
   if (Player.leftPlayers.length > 0) {
-    view.view.setUint8(view.index, 3);
+    view.view.setUint8(view.index, serverHeaders.playerLeft);
     view.index += 1;
     view.view.setUint8(view.index, Player.leftPlayers.length);
     view.index += 1;
@@ -160,6 +160,7 @@ function EntitySetupMessage(){
     count++;
   });
   view.view.setUint16(sizeGoesHere, count);
+  return buffer.slice(0, view.index);
 }
 
 
@@ -204,5 +205,6 @@ function parseInit(view, player) {
 
   player.initialised = true;
   player.send(initMessage(player));
+  player.send(EntitySetupMessage());
   Player.newPlayers.push(player);
 }
