@@ -105,13 +105,15 @@ function updateMessage() {
     Player.newPlayers = [];
   }
 
+  //MESSAGE TYPE 3 (LEFT PLAYER)
+
   if (Player.leftPlayers.length > 0) {
     view.view.setUint8(view.index, 3);
     view.index += 1;
     view.view.setUint8(view.index, Player.leftPlayers.length);
     view.index += 1;
     Player.leftPlayers.forEach(player => {
-      view.view.setUint8(view.index, player.id);
+      view.view.setUint16(view.index, player.id);
       view.index += 2;
     });
     Player.newPlayers = [];
