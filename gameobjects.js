@@ -270,7 +270,7 @@ function Entity(x, y, type) {
 Entity.list = [];
 
 let e1 = new Entity(300, 0, 1);
-e1.collider.push(new Shape().circle(100, 100, 50));
+e1.collider.push(new Shape().circle(0, 0, 50));
 e1.rotationSpeed = 0.5;
 
 exports.Entity = Entity;
