@@ -227,7 +227,21 @@ let playerSettingsDatagram = new Datagram();
 playerSettingsDatagram.add(types.string,"nick");
 Datagrams.playerSettings = playerSettingsDatagram;
 
+let Entity = new Datagram();
+Entity.add(types.int16, "type");
+Entity.add(types.vector32, "position");
+Entity.add(types.float32, "rotation");
+Entity.add(types.float32, "rotationSpeed");
+Datagrams.EntitySetup = Entity;
+
 exports.Datagrams = Datagrams;
+
+const serverHeaders = {update: 1, newPlayers: 2, initResponse: 0, entitySetup: 3};
+exports.serverHeaders = serverHeaders;
+const clientHeaders = {init: 0, control: 1};
+exports.clientHeaders = clientHeaders;
+
+
 
 //#endregion
 

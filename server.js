@@ -1,5 +1,5 @@
-const { Vector, ShipType, Ship, Player } = require("./gameobjects.js");
-const { Datagram, Datagrams, AutoView } = require("./datagram.js");
+const { Vector, ShipType, Ship, Player, Entity } = require("./gameobjects.js");
+const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
 
 //#region INIT
 let http = require('http');
@@ -65,6 +65,10 @@ function update() {
   dt = (Date.now() - last) / 1000;
   last = Date.now();
   let msg = updateMessage();
+  Entity.list.forEach(e =>{
+    e.update(dt);
+  });
+
   Player.players.forEach(p => {
     if (p.initialised) {
       p.send(msg);
@@ -76,6 +80,7 @@ function update() {
 
 var buffer = new ArrayBuffer(1000);
 
+
 function updateMessage() {
   const view = new AutoView(buffer);
 
@@ -83,7 +88,7 @@ function updateMessage() {
 
   Player.players.forEach(p => {
     if (p.initialised) {
-      view.view.setUint8(view.index, 1);
+      view.view.setUint8(view.index, serverHeaders.update);
       view.index += 1;
       view.view.setUint16(view.index, p.id);
       view.index += 2;
@@ -94,7 +99,7 @@ function updateMessage() {
   //MESSAGE TYPE 2 (NEW PLAYER)
 
   if (Player.newPlayers.length > 0) {
-    view.view.setUint8(view.index, 2);
+    view.view.setUint8(view.index, serverHeaders.newPlayers);
     view.index += 1;
     view.view.setUint8(view.index, Player.newPlayers.length);
     view.index += 1;
@@ -110,7 +115,7 @@ function updateMessage() {
 function initMessage(p) {
   const view = new AutoView(buffer);
 
-  view.view.setUint8(view.index, 0);
+  view.view.setUint8(view.index, serverHeaders.initResponse);
   view.index += 1;
   view.view.setUint16(view.index, p.id);
   view.index += 2;
@@ -126,6 +131,20 @@ function initMessage(p) {
   });
   view.view.setUint8(sizeGoesHere, count);
   return buffer.slice(0, view.index);
+}
+
+function EntitySetupMessage(){
+  const view = new AutoView(buffer);
+  view.view.setUint8(view.index, serverHeaders.entitySetup);
+  view.index += 1;
+  let sizeGoesHere = view.index;
+  view.index += 2;
+  let count = 0;  
+  Entity.list.forEach(e => {
+    view.serialize(e, Datagrams.EntitySetup);
+    count++;
+  });
+  view.view.setUint16(sizeGoesHere, count);
 }
 
 
@@ -144,11 +163,11 @@ function parseMessage(buffer, player) {
     let head = view.view.getUint8(view.index);
     view.index += 1;
     switch (head) {
-      case 0:
+      case clientHeaders.init:
         parseInit(view, player);
 
         break;
-      case 1:
+      case clientHeaders.control:
         parseInput(view, player);
         break;
 
