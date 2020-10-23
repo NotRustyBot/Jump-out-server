@@ -407,7 +407,7 @@ function Ship() {
             let relativePos = this.position.result();
             relativePos.x -= e.position.x;
             relativePos.y -= e.position.y;
-            let collisionShape = new Shape().circle(relativePos.x,relativePos.y, 10); //size ??
+            let collisionShape = new Shape().circle(relativePos.x,relativePos.y, 80); //size ??
             let res;
             if(!e.rotatedColliderValid){
                 e.rotateCollider();
