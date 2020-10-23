@@ -116,7 +116,7 @@ function updateMessage() {
       view.view.setUint16(view.index, player.id);
       view.index += 2;
     });
-    Player.newPlayers = [];
+    Player.leftPlayers = [];
   }
 
   return buffer.slice(0, view.index);
