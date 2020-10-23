@@ -417,10 +417,11 @@ function Ship() {
                 if(res.result) return;
             });
             if(res.result){
-                let shift = relativePos;
+                /*let shift = relativePos;
                 shift.add(res.position.mult(-1));
-                this.position.add(shift);
+                this.position.add(shift);*/
                 this.velocity.mult(-1);
+                this.position.add(this.velocity.result().mult(dt));
             }
         }
     }
