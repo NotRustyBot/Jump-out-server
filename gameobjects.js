@@ -146,7 +146,7 @@ function Shape() {
             this.y  = this.x * sin + this.y * cos;
         }
         this.copy = function(){
-            return new Shape().line(this.x,this.y,this.r);
+            return new Shape().circle(this.x,this.y,this.r);
         }
         return this;
     };
@@ -270,7 +270,7 @@ function Entity(x, y, type) {
 Entity.list = [];
 
 let e1 = new Entity(300, 0, 1);
-e1.collider.push(new Shape().circle(0, 0, 50));
+e1.collider.push(new Shape().circle(0, 0, 100));
 e1.rotationSpeed = 0.5;
 
 exports.Entity = Entity;
@@ -416,6 +416,7 @@ function Ship() {
                 res = collisionShape.checkCollision(s);
                 if(res.result) return;
             });
+            
             if(res.result){
                 /*let shift = relativePos;
                 shift.add(res.position.mult(-1));
