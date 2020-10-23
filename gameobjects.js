@@ -268,14 +268,11 @@ function Entity(x, y, type) {
     }
 }
 Entity.list = [];
-/*
-let e1 = new Entity(300, 0, 1);
-e1.collider.push(new Shape().circle(0, 0, 130));
-e1.rotationSpeed = 0.5/3;*/
 
 let e1 = new Entity(300, 0, 1);
-e1.collider.push(new Shape().line(-50, 0, 50, 0));
-e1.rotationSpeed = 0.5/3
+e1.collider.push(new Shape().circle(0, 0, 130));
+e1.rotationSpeed = 0.5/3;
+
 
 exports.Entity = Entity;
 
