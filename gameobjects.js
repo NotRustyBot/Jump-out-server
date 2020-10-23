@@ -252,7 +252,7 @@ function Ship() {
                 if (this.velocity.length() < Ship.minSpeed) {
                     this.velocity = Vector.zero();
                 }
-            }else(this.control.y < 0){
+            }else{
                 pointing.normalize(stats.reverseAccelreation + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
                 afterBurnerUsed = true;
                 pointing.mult(dt);
