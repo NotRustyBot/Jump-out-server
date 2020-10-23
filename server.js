@@ -49,6 +49,7 @@ function onMessage(message, player) {
 function onClose(event, player) {
   console.log("Closed connection " + player.id + " Reason: " + event);
   player.open = false;
+  Player.leftPlayers.push(player);
   Player.players.delete(player.id);
 }
 
@@ -107,6 +108,20 @@ function updateMessage() {
       view.serialize(player, Datagrams.initPlayer);
     });
     Player.newPlayers = [];
+  }
+
+  //MESSAGE TYPE 3 (LEFT PLAYER)
+
+  if (Player.leftPlayers.length > 0) {
+    view.view.setUint8(view.index, 3);
+    view.index += 1;
+    view.view.setUint8(view.index, Player.leftPlayers.length);
+    view.index += 1;
+    Player.leftPlayers.forEach(player => {
+      view.view.setUint16(view.index, player.id);
+      view.index += 2;
+    });
+    Player.leftPlayers = [];
   }
 
   return buffer.slice(0, view.index);

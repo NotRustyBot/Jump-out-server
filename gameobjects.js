@@ -385,6 +385,7 @@ function Player(connection) {
 Player.players = new Map();
 Player.nextId = 0;
 Player.newPlayers = [];
+Player.leftPlayers = [];
 
 exports.Player = Player;
 
