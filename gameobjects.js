@@ -253,6 +253,7 @@ function Ship() {
                     this.velocity = Vector.zero();
                 }
             }else{
+                let pointing = Vector.fromAngle(this.rotation).mult(this.control.y);
                 pointing.normalize(stats.reverseAccelreation + (this.afterBurnerActive * stats.afterBurnerAccelerationBonus));
                 afterBurnerUsed = true;
                 pointing.mult(dt);
