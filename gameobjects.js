@@ -459,7 +459,6 @@ function Ship() {
                     collisionShape.x = relativePos.x;
                     collisionShape.y = relativePos.y;
                     CollisionEvent.list.push(new CollisionEvent(this,e,res));
-                    console.log(res.result);
                 }
             });
         }
