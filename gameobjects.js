@@ -102,6 +102,7 @@ function CollisionResult(result, position, overlap) {
 }
 
 function CollisionEvent(ship, entity, result){
+    console.log(ship.id);
     this.shipId = ship.id;
     this.entityId = entity.id;
     this.position = result.position.result().add(ship.position);
@@ -339,7 +340,7 @@ ShipType.init();
 
 exports.ShipType = ShipType;
 
-function Ship() {
+function Ship(id) {
     this.stats;
     this.position = new Vector(0, 0);
     this.velocity = new Vector(0, 0);
@@ -347,11 +348,11 @@ function Ship() {
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
     this.afterBurnerFuel = 60;
-    this.id;
+    this.id = id;
 
     this.init = function (type, id) {
+        console.log(id);
         this.stats = type;
-        this.id = id;
     };
 
     this.update = function (dt) {
