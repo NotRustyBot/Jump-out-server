@@ -257,7 +257,7 @@ function Entity(x, y, type) {
         this.rotation = this.rotation % Math.PI * 2;
     };
     this.rotateCollider = function () {
-        rotatedCollider = [];
+        this.rotatedCollider = [];
         this.collider.forEach(s => {
             let r = s.copy();
             r.rotate(this.rotation);
