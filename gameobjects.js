@@ -101,6 +101,12 @@ function CollisionResult(result, position, overlap) {
     }
 }
 
+function CollisionEvent(ship, entity, result){
+    this.shipId = ship.id;
+    this.entityId = entity.id;
+    this.position = result.position;
+}
+
 function Shape() {
     this.circle = function (x, y, r) {
         this.line = undefined;
