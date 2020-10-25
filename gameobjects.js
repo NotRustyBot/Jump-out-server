@@ -49,11 +49,20 @@ function Vector(x, y) {
         return new Vector(this.x, this.y);
     };
 }
-Vector.zero = function () {
-    return new Vector(0, 0);
-};
 Vector.fromAngle = function (r) {
     return new Vector(Math.cos(r), Math.sin(r));
+};
+Vector.cross = function (v1, v2) {
+    return v1.x * v2.y - v1.y * v2.x;
+};
+Vector.dot = function (v1, v2) {
+    return v1.x * v2.x + v1.y * v2.y;
+};
+Vector.sub = function (v1, v2) {
+    return new Vector(v1.x - v2.x, v1.y - v2.y);
+};
+Vector.zero = function () {
+    return new Vector(0, 0);
 };
 
 exports.Vector = Vector;
@@ -84,10 +93,11 @@ for (let x = 0; x < Universe.size; x++) {
     }
 }
 
-function CollisionResult(result, x, y) {
+function CollisionResult(result, position, overlap) {
     this.result = result;
     if (result) {
-        this.position = new Vector(x, y);
+        this.position = position;
+        this.overlap = overlap;
     }
 }
 
@@ -101,52 +111,51 @@ function Shape() {
 
         this.checkCollision = function (shape) {
             if (shape.type == Shape.types.circle) {
-                let distance = new Vector(
-                    this.x - shape.x,
-                    this.y - shape.y
-                ).length();
+                // vrátí vektor o ktery se staci posunout, aby se hrac dostal mimo prekazku
+
+                let relativ = new Vector(
+                    shape.x - this.x,
+                    shape.y - this.y
+                );
+                let distance = relativ.length();
                 if (distance < shape.r + this.r) {
-                    return new CollisionResult(
-                        true,
-                        distance.x / 2,
-                        distance.y / 2
-                    );
+                    return new CollisionResult(true, null, relativ.normalize(distance - shape.r - this.r));
                 } else {
                     return new CollisionResult(false);
                 }
             } else if (shape.type == Shape.types.line) {
-                let dx = shape.x2 - shape.x1;
-                let dy = shape.y2 - shape.y1;
+                // vrátí vektor o ktery se staci posunout, aby se hrac dostal mimo prekazku
 
-                let A = dx * dx + dy * dy;
-                let B =
-                    2 * (dx * (shape.x1 - this.x) + dy * (shape.y1 - this.y));
-                let C =
-                    (shape.x1 - this.x) * (shape.x1 - this.x) +
-                    (shape.y1 - this.y) * (shape.y1 - this.y) -
-                    this.r * this.r;
-                let det = B * B - 4 * A * C;
-
-                if (A <= 0.0001 || det <= 0) {
+                let cara = new Vector(shape.x2 - shape.x1, shape.y2 - shape.y1);
+                let v = new Vector(this.x - shape.x1, this.y - shape.y1);
+                let normCara = new Vector(cara.x, cara.y);
+                normCara.normalize(1);
+                a = Vector.dot(normCara, v);
+                let C;
+                if (a < 0) {
+                    C = new Vector(shape.x1, shape.y1);
+                } else if (a > cara.length()) {
+                    C = new Vector(shape.x2, shape.y2);
+                } else {
+                    C = (normCara.mult(a)).add(new Vector(shape.x1, shape.y1));
+                }
+                C.sub(new Vector(this.x, this.y));
+                let Clen = C.length();
+                if (Clen > this.r) {
                     return new CollisionResult(false);
                 } else {
-                    let t = -B / (2 * A);
-                    return new CollisionResult(
-                        true,
-                        shape.x1 + t * dx,
-                        shape.y1 + t * dy
-                    );
+                    return new CollisionResult(true, null, C.normalize(Clen - this.r));
                 }
             }
         };
-        this.rotate = function(angle){
+        this.rotate = function (angle) {
             let sin = Math.sin(angle);
             let cos = Math.cos(angle);
-            this.x  = this.x * cos - this.y * sin;
-            this.y  = this.x * sin + this.y * cos;
+            this.x = this.x * cos - this.y * sin;
+            this.y = this.x * sin + this.y * cos;
         }
-        this.copy = function(){
-            return new Shape().circle(this.x,this.y,this.r);
+        this.copy = function () {
+            return new Shape().circle(this.x, this.y, this.r);
         }
         return this;
     };
@@ -161,80 +170,69 @@ function Shape() {
 
         this.checkCollision = function (shape) {
             if (shape.type == Shape.types.circle) {
-                let dx = this.x2 - this.x1;
-                let dy = this.y2 - this.y1;
+                // vrátí bod lezici na kruznici nejblize pocatku primky
 
-                let A = dx * dx + dy * dy;
-                let B =
-                    2 * (dx * (this.x1 - shape.x) + dy * (this.y1 - shape.y));
-                let C =
-                    (this.x1 - shape.x) * (this.x1 - shape.x) +
-                    (this.y1 - this.y) * (this.y1 - this.y) -
-                    shape.r * shape.r;
-                let det = B * B - 4 * A * C;
+                let d = new Vector(this.x2 - this.x1, this.y2 - this.y1);
+                let f = new Vector(this.x1 - shape.x, this.y1 - shape.y);
 
-                if (A <= 0.0001 || det <= 0) {
+                let a = Vector.dot(d, d);
+                let b = 2 * Vector.dot(d, f);
+                let c = Vector.dot(f, f) - shape.r * shape.r;
+                let discriminant = b * b - 4 * a * c;
+                if (discriminant < 0) {
                     return new CollisionResult(false);
-                } else {
-                    let t = -B / (2 * A);
-                    return new CollisionResult(
-                        true,
-                        this.x1 + t * dx,
-                        this.y1 + t * dy
-                    );
                 }
-            } else if (shape.type == Shape.types.line) {
-                let x1 = this.x1;
-                let y1 = this.y1;
-                let x2 = this.x2;
-                let y2 = this.y2;
+                discriminant = Math.sqrt(discriminant);
 
-                let u1 = shape.x1;
-                let v1 = shape.y1;
-                let u2 = shape.x2;
-                let v2 = shape.y2;
+                let t1 = (-b - discriminant) / (2 * a);
+                let t2 = (-b + discriminant) / (2 * a);
 
-                let x =
-                    (-1 *
-                        ((x1 - x2) * (u1 * v2 - u2 * v1) -
-                            (u2 - u1) * (x2 * y1 - x1 * y2))) /
-                    ((v1 - v2) * (x1 - x2) - (u2 - u1) * (y2 - y1));
-                let y =
-                    (-1 *
-                        (u1 * v2 * y1 -
-                            u1 * v2 * y2 -
-                            u2 * v1 * y1 +
-                            u2 * v1 * y2 -
-                            v1 * x1 * y2 +
-                            v1 * x2 * y1 +
-                            v2 * x1 * y2 -
-                            v2 * x2 * y1)) /
-                    (-1 * u1 * y1 +
-                        u1 * y2 +
-                        u2 * y1 -
-                        u2 * y2 +
-                        v1 * x1 -
-                        v1 * x2 -
-                        v2 * x1 +
-                        v2 * x2);
-                if (isNaN(x) || isNaN(y)) {
+                if (t1 < 0) {
+                    t1 = 2;
+                }
+                if (t2 < 0) {
+                    t2 = 2;
+                }
+                t1 = Math.min(t1, t2);
+                if (t1 > 1) {
                     return new CollisionResult(false);
                 } else {
-                    return new CollisionResult(true, x, y);
+                    return new CollisionResult(true, (new Vector(this.x1, this.y1)).add(d.mult(t1)));
+                }
+
+            } else if (shape.type == Shape.types.line) {
+                // vrátí průsečík dvou úseček nebo false
+
+                a = new Vector(this.x1, this.y1);
+                a_ = new Vector(this.x2 - this.x1, this.y2 - this.y1);
+                b = new Vector(shape.x1, shape.y1);
+                b_ = new Vector(shape.x2 - shape.x1, shape.y2 - shape.y1);
+                let a_crossb_ = Vector.cross(a_, b_);
+                if (a_crossb_ == 0) { // dvě přímky jsou rovnoběžné
+                    return new CollisionResult(false);
+                }
+                t = Vector.cross(Vector.sub(b, a), b_) / a_crossb_;
+                u = Vector.cross(Vector.sub(b, a), a_) / a_crossb_;
+
+                if (t < 0 || t > 1 || u < 0 || u > 1) {
+                    return new CollisionResult(false);
+                } else {
+                    a.add(a_.mult(t));
+                    return new CollisionResult(true, a, null);
                 }
             }
         };
-        this.rotate = function(angle){
+        this.rotate = function (angle) {
             let sin = Math.sin(angle);
             let cos = Math.cos(angle);
-            this.x1  = this.x1 * cos - this.y1 * sin;
-            this.y1  = this.x1 * sin + this.y1 * cos;
-            this.x2  = this.x2 * cos - this.y2 * sin;
-            this.y2  = this.x2 * sin + this.y2 * cos;
+            this.x1 = this.x1 * cos - this.y1 * sin;
+            this.y1 = this.x1 * sin + this.y1 * cos;
+            this.x2 = this.x2 * cos - this.y2 * sin;
+            this.y2 = this.x2 * sin + this.y2 * cos;
         }
 
-        this.copy = function(){
-            return new Shape().line(this.x1,this.y1,this.x2,this.y2);
+        this.copy = function () {
+            return new Shape().line(this.x1, this.y1, this.x2, this.y2);
         }
 
         return this;
@@ -256,9 +254,9 @@ function Entity(x, y, type) {
     this.update = function (dt) {
         this.rotatedColliderValid = false;
         this.rotation += this.rotationSpeed * dt;
-        this.rotation = this.rotation%Math.PI*2;
+        this.rotation = this.rotation % Math.PI * 2;
     };
-    this.rotateCollider = function(){
+    this.rotateCollider = function () {
         rotatedCollider = [];
         this.collider.forEach(s => {
             let r = s.copy();
@@ -269,10 +267,18 @@ function Entity(x, y, type) {
     }
 }
 Entity.list = [];
-
+/*
 let e1 = new Entity(300, 0, 1);
 e1.collider.push(new Shape().circle(0, 0, 130));
-e1.rotationSpeed = 0.5/3;
+e1.rotationSpeed = 0.5 / 3;
+*/
+
+let e1 = new Entity(300, 0, 1);
+e1.collider.push(new Shape().line(-200, 0, 200, 0));
+//e1.rotationSpeed = 0.5 / 1;
+
+e1.rotation = 2;
+
 
 
 exports.Entity = Entity;
@@ -403,45 +409,43 @@ function Ship() {
         this.checkCollision();
     };
 
-    this.checkCollision = function(){
+    this.checkCollision = function () {
         for (let i = 0; i < Entity.list.length; i++) {
             const e = Entity.list[i];
             let relativePos = this.position.result();
             relativePos.x -= e.position.x;
             relativePos.y -= e.position.y;
-            let collisionShape = new Shape().circle(relativePos.x,relativePos.y, 60); //size ??
+            let collisionShape = new Shape().circle(relativePos.x, relativePos.y, 60); //size ??
             let res;
-            if(!e.rotatedColliderValid){
+            if (!e.rotatedColliderValid) {
                 e.rotateCollider();
             }
             e.rotatedCollider.forEach(s => {
                 res = collisionShape.checkCollision(s);
-                if(res.result) return;
+                if (res.result) return;
             });
-            
-            if(res.result){
-                //let shift = relativePos;
-                //shift.add(res.position.mult(-1));
-                //this.position.add(shift);
-                this.velocity.mult(-1);
-                this.position.add(this.velocity.result().mult(dt));
+
+            if (res.result) {
+                this.velocity.mult(-0.5);
+                this.position.add(res.overlap);
             }
         }
 
         Player.players.forEach(p => {
             let other = p.ship;
-            if(this != other){
-                let collisionShape = new Shape().circle(this.position.x,this.position.y, 60);
-                let otherShape = new Shape().circle(other.position.x,other.position.y, 60);
+            if (this != other) {
+                let collisionShape = new Shape().circle(this.position.x, this.position.y, 60);
+                let otherShape = new Shape().circle(other.position.x, other.position.y, 60);
                 res = collisionShape.checkCollision(otherShape);
-                if(res.result){
-                    this.velocity.mult(-1);
-                    this.position.add(this.velocity.result().mult(dt));
+                if (res.result) {
+                    this.velocity.mult(-0.5);
+                    this.position.add(res.overlap);
                 }
             }
         })
     }
 }
+
 Ship.minSpeed = 0.2;
 exports.Ship = Ship;
 

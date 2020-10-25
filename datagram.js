@@ -228,6 +228,7 @@ playerSettingsDatagram.add(types.string,"nick");
 Datagrams.playerSettings = playerSettingsDatagram;
 
 let EntitySetup = new Datagram();
+EntitySetup.add(types.uint16, "id");
 EntitySetup.add(types.int16, "type");
 EntitySetup.add(types.vector32, "position");
 EntitySetup.add(types.float32, "rotation");
