@@ -151,8 +151,10 @@ function Shape() {
         this.rotate = function (angle) {
             let sin = Math.sin(angle);
             let cos = Math.cos(angle);
-            this.x = this.x * cos - this.y * sin;
-            this.y = this.x * sin + this.y * cos;
+            let x = this.x;
+            let y = this.y;
+            this.x = x * cos - y * sin;
+            this.y = x * sin + y * cos;
         }
         this.copy = function () {
             return new Shape().circle(this.x, this.y, this.r);
@@ -225,10 +227,14 @@ function Shape() {
         this.rotate = function (angle) {
             let sin = Math.sin(angle);
             let cos = Math.cos(angle);
-            this.x1 = this.x1 * cos - this.y1 * sin;
-            this.y1 = this.x1 * sin + this.y1 * cos;
-            this.x2 = this.x2 * cos - this.y2 * sin;
-            this.y2 = this.x2 * sin + this.y2 * cos;
+            let x1 = this.x1;
+            let y1 = this.y1;
+            let x2 = this.x2;
+            let y2 = this.y2;
+            this.x1 = x1 * cos - y1 * sin;
+            this.y1 = x1 * sin + y1 * cos;
+            this.x2 = x2 * cos - y2 * sin;
+            this.y2 = x2 * sin + y2 * cos;
         }
 
         this.copy = function () {
@@ -278,9 +284,14 @@ e1.collider.push(new Shape().circle(0, 0, 130));
 e1.rotationSpeed = 0.5 / 3;
 */
 
-let e1 = new Entity(300, 0, 1);
-e1.collider.push(new Shape().line(-200, 0, 200, 0));
-e1.rotationSpeed = 0.5 / 1;
+let e1 = new Entity(600, 0, 1);
+e1.collider.push(new Shape().line(-300, 300, 300, 300));
+e1.collider.push(new Shape().line(-300, 300, -300, -300));
+e1.collider.push(new Shape().line(300, 300, 300, -300));
+e1.collider.push(new Shape().line(-300, -300, 300, -300));
+e1.rotationSpeed = 0.5 / 3;
+
+//e1.rotation = Math.PI / 4;
 
 
 exports.Entity = Entity;
@@ -412,32 +423,39 @@ function Ship() {
     };
 
     this.checkCollision = function () {
+        let size = 60; //??;
         for (let i = 0; i < Entity.list.length; i++) {
             const e = Entity.list[i];
             let relativePos = this.position.result();
             relativePos.x -= e.position.x;
             relativePos.y -= e.position.y;
-            let collisionShape = new Shape().circle(relativePos.x, relativePos.y, 60); //size ??
+            let collisionShape = new Shape().circle(relativePos.x, relativePos.y, size);
             let res;
             if (!e.rotatedColliderValid) {
                 e.rotateCollider();
             }
             e.rotatedCollider.forEach(s => {
                 res = collisionShape.checkCollision(s);
-                if (res.result) return;
+                if (res.result) {
+                    this.position.add(res.overlap);
+                    res.overlap.normalize();
+                    res.overlap.mult(Math.abs(Vector.dot(res.overlap,this.velocity))*2,0);
+                    this.velocity.add(res.overlap);
+                    this.velocity.mult(0.8);
+                    relativePos = this.position.result();
+                    relativePos.x -= e.position.x;
+                    relativePos.y -= e.position.y;
+                    collisionShape.x = relativePos.x;
+                    collisionShape.y = relativePos.y;
+                }
             });
-
-            if (res.result) {
-                this.velocity.mult(-0.5);
-                this.position.add(res.overlap);
-            }
         }
 
         Player.players.forEach(p => {
             let other = p.ship;
             if (this != other) {
-                let collisionShape = new Shape().circle(this.position.x, this.position.y, 60);
-                let otherShape = new Shape().circle(other.position.x, other.position.y, 60);
+                let collisionShape = new Shape().circle(this.position.x, this.position.y, size);
+                let otherShape = new Shape().circle(other.position.x, other.position.y, size);
                 res = collisionShape.checkCollision(otherShape);
                 if (res.result) {
                     this.velocity.mult(-0.5);
