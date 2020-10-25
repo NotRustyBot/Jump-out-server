@@ -102,7 +102,7 @@ function CollisionResult(result, position, overlap) {
 }
 
 function CollisionEvent(ship, entity, result){
-    this.shipId = ship.player.id;
+    this.shipId = ship.id;
     this.entityId = entity.id;
     this.position = result.position.result().add(ship.position);
 }
@@ -347,11 +347,11 @@ function Ship() {
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
     this.afterBurnerFuel = 60;
-    this.player;
+    this.id;
 
-    this.init = function (type, player) {
+    this.init = function (type, id) {
         this.stats = type;
-        this.player = player;
+        this.id = id;
     };
 
     this.update = function (dt) {
@@ -495,7 +495,7 @@ function Player(connection) {
         if (this.connection.readyState == 1) this.connection.send(data);
     };
     this.init = function () {
-        this.ship = new Ship(this);
+        this.ship = new Ship(this.id);
         this.ship.init(ShipType.types["Debug"]);
     };
     Player.players.set(this.id, this);
