@@ -254,7 +254,7 @@ function Entity(x, y, type) {
     this.update = function (dt) {
         this.rotatedColliderValid = false;
         this.rotation += this.rotationSpeed * dt;
-        this.rotation = this.rotation % Math.PI * 2;
+        this.rotation = this.rotation % (Math.PI * 2);
     };
     this.rotateCollider = function () {
         this.rotatedCollider = [];
