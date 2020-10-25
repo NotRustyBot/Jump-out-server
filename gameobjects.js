@@ -125,7 +125,8 @@ function Shape() {
                 );
                 let distance = relativ.length();
                 if (distance < shape.r + this.r) {
-                    return new CollisionResult(true, null, relativ.normalize(distance - shape.r - this.r));
+                    let result = relativ.normalize(distance - shape.r - this.r);
+                    return new CollisionResult(true, new Vector(this.x, this.y).sub((new Vector(result.x, result.y)).normalize(this.r)), result);
                 } else {
                     return new CollisionResult(false);
                 }
@@ -150,7 +151,8 @@ function Shape() {
                 if (Clen > this.r) {
                     return new CollisionResult(false);
                 } else {
-                    return new CollisionResult(true, null, C.normalize(Clen - this.r));
+                    let result = C.normalize(Clen - this.r);
+                    return new CollisionResult(true, new Vector(this.x, this.y).sub((new Vector(result.x, result.y)).normalize(this.r)), result);
                 }
             }
         };
