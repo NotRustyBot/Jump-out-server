@@ -104,8 +104,11 @@ function CollisionResult(result, position, overlap) {
 function CollisionEvent(ship, entity, result){
     this.shipId = ship.id;
     this.entityId = entity.id;
-    this.position = result.position;
+    this.position = result.position + ship.position;
 }
+CollisionEvent.list = [];
+
+exports.CollisionEvent = CollisionEvent;
 
 function Shape() {
     this.circle = function (x, y, r) {
@@ -455,6 +458,7 @@ function Ship() {
                     relativePos.y -= e.position.y;
                     collisionShape.x = relativePos.x;
                     collisionShape.y = relativePos.y;
+                    CollisionEvent.list.push(new CollisionEvent(this,e,res));
                 }
             });
         }

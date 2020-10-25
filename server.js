@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Entity } = require("./gameobjects.js");
+const { Vector, ShipType, Ship, Player, Entity, CollisionEvent } = require("./gameobjects.js");
 const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
 
 //#region INIT
@@ -66,7 +66,7 @@ function update() {
   dt = (Date.now() - last) / 1000;
   last = Date.now();
   let msg = updateMessage();
-  Entity.list.forEach(e =>{
+  Entity.list.forEach(e => {
     e.update(dt);
   });
 
@@ -87,7 +87,7 @@ let NetworkTimer = 0;
 function updateMessage() {
   const view = new AutoView(buffer);
   NetworkTimer++;
-  if(NetworkTimer > 12000){
+  if (NetworkTimer > 12000) {
     NetworkTimer = 0;
   }
 
@@ -131,9 +131,16 @@ function updateMessage() {
     Player.leftPlayers = [];
   }
 
-  if(NetworkTimer%300 == 0){
+  if (NetworkTimer % 300 == 0) {
     EntitySetupMessage(view);
   }
+
+  CollisionEvent.list.forEach(c => {
+    view.view.setUint8(view.index, serverHeaders.collisionEvent);
+    view.index += 1;
+    view.serialize(c, Datagrams.CollisionEvent);
+  });
+
 
   return buffer.slice(0, view.index);
 }
@@ -146,7 +153,7 @@ function initMessage(p) {
   view.view.setUint16(view.index, p.id);
   view.index += 2;
   let sizeGoesHere = view.index;
-  
+
   view.index += 1;
   let count = 0;
   Player.players.forEach(player => {
@@ -160,13 +167,13 @@ function initMessage(p) {
   return buffer.slice(0, view.index);
 }
 
-function EntitySetupMessage(inView){
+function EntitySetupMessage(inView) {
   const view = inView || new AutoView(buffer);
   view.view.setUint8(view.index, serverHeaders.entitySetup);
   view.index += 1;
   let sizeGoesHere = view.index;
   view.index += 2;
-  let count = 0;  
+  let count = 0;
   Entity.list.forEach(e => {
     view.serialize(e, Datagrams.EntitySetup);
     count++;
