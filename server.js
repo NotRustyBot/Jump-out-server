@@ -141,6 +141,8 @@ function updateMessage() {
     view.serialize(c, Datagrams.CollisionEvent);
   });
 
+  CollisionEvent.list = [];
+
 
   return buffer.slice(0, view.index);
 }
