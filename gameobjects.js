@@ -280,7 +280,7 @@ e1.rotationSpeed = 0.5 / 3;
 
 let e1 = new Entity(300, 0, 1);
 e1.collider.push(new Shape().line(-200, 0, 200, 0));
-//e1.rotationSpeed = 0.5 / 1;
+e1.rotationSpeed = 0.5 / 1;
 
 
 exports.Entity = Entity;
