@@ -495,7 +495,7 @@ function Player(connection) {
         if (this.connection.readyState == 1) this.connection.send(data);
     };
     this.init = function () {
-        this.ship = new Ship();
+        this.ship = new Ship(this);
         this.ship.init(ShipType.types["Debug"]);
     };
     Player.players.set(this.id, this);
