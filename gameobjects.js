@@ -439,7 +439,7 @@ function Ship() {
                 if (res.result) {
                     this.position.add(res.overlap);
                     res.overlap.normalize();
-                    res.overlap.mult(Math.abs(Vector.dot(res.overlap,this.velocity))*2,0);
+                    res.overlap.mult(-Math.min(Vector.dot(res.overlap,this.velocity),0)*2);
                     this.velocity.add(res.overlap);
                     this.velocity.mult(0.8);
                     relativePos = this.position.result();
