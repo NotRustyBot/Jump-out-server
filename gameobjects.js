@@ -431,6 +431,7 @@ function Ship(id) {
         ) {
             this.afterBurnerFuel -= dt;
             this.afterBurnerFuel = Math.max(0, this.afterBurnerFuel);
+            this.afterBurnerActive = true;
         }
 
         this.checkCollision();
