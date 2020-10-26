@@ -432,7 +432,7 @@ function Ship(id) {
             this.afterBurnerFuel -= dt;
             this.afterBurnerFuel = Math.max(0, this.afterBurnerFuel);
             if(this.afterBurnerFuel == 0){
-                this.afterBurnerActive == 0;
+                this.afterBurnerActive = 0;
             }
         }
 
