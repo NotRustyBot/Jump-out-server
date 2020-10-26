@@ -214,7 +214,7 @@ shipUpdate.add(types.vector32, "position");
 shipUpdate.add(types.vector32, "velocity");
 shipUpdate.add(types.float32, "rotation");
 shipUpdate.add(types.vector32, "control");
-shipUpdate.add(types.uint8, "afterBurnerActive");
+shipUpdate.add(types.uint8, "afterBurnerUsed");
 shipUpdate.add(types.float32, "afterBurnerFuel");
 Datagrams.shipUpdate = shipUpdate;
 

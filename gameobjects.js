@@ -347,6 +347,7 @@ function Ship(id) {
     this.rotation = 0;
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
+    this.afterBurnerUsed = 0;
     this.afterBurnerFuel = 60;
     this.id = id;
 
@@ -424,13 +425,14 @@ function Ship(id) {
         }
 
         this.position.add(this.velocity.result().mult(dt));
-
+        this.afterBurnerUsed = 0;
         if (
             this.afterBurnerActive == 1 &&
             (afterBurnerUsed || this.velocity.length() > stats.speed)
         ) {
             this.afterBurnerFuel -= dt;
             this.afterBurnerFuel = Math.max(0, this.afterBurnerFuel);
+            this.afterBurnerUsed = 1;
         }
 
         this.checkCollision();
