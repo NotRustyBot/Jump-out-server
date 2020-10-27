@@ -295,13 +295,31 @@ let e1 = new Entity(300, 0, 1);
 e1.collider.push(new Shape().circle(0, 0, 130));
 e1.rotationSpeed = 0.5 / 3;
 */
-
+/*
 let e1 = new Entity(600, 0, 1);
 e1.collider.push(new Shape().line(-300, 300, 300, 300));
 e1.collider.push(new Shape().line(-300, 300, -300, -300));
 e1.collider.push(new Shape().line(300, 300, 300, -300));
 e1.collider.push(new Shape().line(-300, -300, 300, -300));
 e1.rotationSpeed = 0.5 / 3;
+*/
+
+let e1 = new Entity(1000, 0, 1);
+
+let Plane = [];
+Plane.push( new Shape().line(-450,100,80,100));
+Plane.push( new Shape().line(80,100,520,0));
+Plane.push( new Shape().line(520,0,420,-50));
+Plane.push( new Shape().line(420,-50,580,-250));
+Plane.push( new Shape().line(580,-250,460,-250));
+Plane.push( new Shape().line(460,-250,290,-50));
+Plane.push( new Shape().line(290,-50,50,-50));
+Plane.push( new Shape().line(50,-50,40,-30));
+Plane.push( new Shape().line(40,-30,-460,-40));
+Plane.push( new Shape().line(-460,-40,-560,40));
+Plane.push( new Shape().line(-560,40,-450,100));
+
+e1.collider = Plane;
 
 //e1.rotation = Math.PI / 4;
 
@@ -352,7 +370,6 @@ function Ship(id) {
     this.id = id;
 
     this.init = function (type, id) {
-        console.log(id);
         this.stats = type;
     };
 
