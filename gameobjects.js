@@ -1,4 +1,9 @@
 //#region věci
+/**
+ * 
+ * @param {number} x 
+ * @param {number} y 
+ */
 function Vector(x, y) {
     this.x = x;
     this.y = y;
@@ -93,6 +98,12 @@ for (let x = 0; x < Universe.size; x++) {
     }
 }
 
+/**
+ * 
+ * @param {bool} result 
+ * @param {Vector} position 
+ * @param {Vector} overlap 
+ */
 function CollisionResult(result, position, overlap) {
     this.result = result;
     if (result) {
@@ -101,8 +112,13 @@ function CollisionResult(result, position, overlap) {
     }
 }
 
+/**
+ * 
+ * @param {Ship} ship 
+ * @param {Entity} entity 
+ * @param {CollisionResult} result 
+ */
 function CollisionEvent(ship, entity, result){
-    console.log(ship.id);
     this.shipId = ship.id;
     this.entityId = entity.id;
     this.position = result.position.result().add(ship.position);
@@ -258,6 +274,13 @@ function Shape() {
 }
 Shape.types = { circle: 1, line: 2 };
 
+
+/**
+ * 
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} type 
+ */
 function Entity(x, y, type) {
     this.position = new Vector(x, y);
     this.rotation = 0;
@@ -269,10 +292,6 @@ function Entity(x, y, type) {
     this.id = Entity.list.length;
     Entity.list.push(this);
     Area.checkIn(this);
-    /**
-     * 
-     * @param {number} dt 
-     */
     this.update = function (dt) {
         this.rotatedColliderValid = false;
         this.rotation += this.rotationSpeed * dt;
@@ -358,6 +377,10 @@ ShipType.init();
 
 exports.ShipType = ShipType;
 
+/**
+ * 
+ * @param {number} id 
+ */
 function Ship(id) {
     this.stats;
     this.position = new Vector(0, 0);
@@ -369,7 +392,11 @@ function Ship(id) {
     this.afterBurnerFuel = 60;
     this.id = id;
 
-    this.init = function (type, id) {
+    /**
+     * 
+     * @param {ShipType} type 
+     */
+    this.init = function (type) {
         this.stats = type;
     };
 

@@ -96,10 +96,8 @@ function updateMessage() {
 
   Player.players.forEach(p => {
     if (p.initialised) {
-      view.view.setUint8(view.index, serverHeaders.update);
-      view.index += 1;
-      view.view.setUint16(view.index, p.id);
-      view.index += 2;
+      view.setUint8(serverHeaders.update);
+      view.setUint16(p.id);
       view.serialize(p.ship, Datagrams.shipUpdate);
     }
   });
@@ -107,10 +105,8 @@ function updateMessage() {
   //MESSAGE TYPE 2 (NEW PLAYER)
 
   if (Player.newPlayers.length > 0) {
-    view.view.setUint8(view.index, serverHeaders.newPlayers);
-    view.index += 1;
-    view.view.setUint8(view.index, Player.newPlayers.length);
-    view.index += 1;
+    view.setUint8(serverHeaders.newPlayers);
+    view.setUint8(Player.newPlayers.length);
     Player.newPlayers.forEach(player => {
       view.serialize(player, Datagrams.initPlayer);
     });
@@ -120,13 +116,10 @@ function updateMessage() {
   //MESSAGE TYPE 3 (LEFT PLAYER)
 
   if (Player.leftPlayers.length > 0) {
-    view.view.setUint8(view.index, serverHeaders.playerLeft);
-    view.index += 1;
-    view.view.setUint8(view.index, Player.leftPlayers.length);
-    view.index += 1;
+    view.setUint8(serverHeaders.playerLeft);
+    view.setUint8(Player.leftPlayers.length);
     Player.leftPlayers.forEach(player => {
-      view.view.setUint16(view.index, player.id);
-      view.index += 2;
+      view.setUint16(player.id);
     });
     Player.leftPlayers = [];
   }
@@ -136,8 +129,7 @@ function updateMessage() {
   }
 
   CollisionEvent.list.forEach(c => {
-    view.view.setUint8(view.index, serverHeaders.collisionEvent);
-    view.index += 1;
+    view.setUint8(serverHeaders.collisionEvent);
     view.serialize(c, Datagrams.CollisionEvent);
   });
 
@@ -150,10 +142,8 @@ function updateMessage() {
 function initMessage(p) {
   const view = new AutoView(buffer);
 
-  view.view.setUint8(view.index, serverHeaders.initResponse);
-  view.index += 1;
-  view.view.setUint16(view.index, p.id);
-  view.index += 2;
+  view.setUint8(serverHeaders.initResponse);
+  view.setUint16(p.id);
   let sizeGoesHere = view.index;
 
   view.index += 1;
@@ -171,8 +161,7 @@ function initMessage(p) {
 
 function EntitySetupMessage(inView) {
   const view = inView || new AutoView(buffer);
-  view.view.setUint8(view.index, serverHeaders.entitySetup);
-  view.index += 1;
+  view.setUint8(serverHeaders.entitySetup);
   let sizeGoesHere = view.index;
   view.index += 2;
   let count = 0;
@@ -197,8 +186,7 @@ function sendAll(data) {
 function parseMessage(buffer, player) {
   const view = new AutoView(buffer);
   while (view.index < view.view.byteLength) {
-    let head = view.view.getUint8(view.index);
-    view.index += 1;
+    let head = view.getUint8();
     switch (head) {
       case clientHeaders.init:
         parseInit(view, player);

@@ -191,6 +191,88 @@ function AutoView(buffer, index) {
             );
         }
     };
+
+    this.getInt8 = function(){
+        this.index += 1;
+        return this.view.getInt8(this.index - 1);
+    }
+    this.getUint8 = function(){
+        this.index += 1;
+        return this.view.getUint8(this.index - 1);
+    }
+    this.getInt16 = function(){
+        this.index += 2;
+        return this.view.getInt16(this.index - 2);
+    }
+    this.getUint16 = function(){
+        this.index += 2;
+        return this.view.getUint16(this.index - 2);
+    }
+    this.getInt32 = function(){
+        this.index += 4;
+        return this.view.getInt32(this.index - 4);
+    }
+    this.getUint32 = function(){
+        this.index += 4;
+        return this.view.getUint32(this.index - 4);
+    }
+    this.getBigInt64 = function(){
+        this.index += 8;
+        return this.view.getBigInt64(this.index - 8);
+    }
+    this.getBigUint64 = function(){
+        this.index += 8;
+        return this.view.getBigUint64(this.index - 4);
+    }
+    this.setFloat32 = function(){
+        this.index += 4;
+        return this.view.setFloat32(this.index - 4);
+    }
+    this.setFloat64 = function(){
+        this.index += 8;
+        return this.view.setFloat64(this.index - 4);
+    }
+
+    this.setInt8 = function(value){
+        this.view.setUint8(this.index, value);
+        this.index += 1;
+    }
+    this.setUint8 = function(value){
+        this.view.setUint8(this.index, value);
+        this.index += 1;
+    }
+    this.setInt16 = function(value){
+        this.view.setInt16(this.index, value);
+        this.index += 2;
+    }
+    this.setUint16 = function(value){
+        this.view.setUint16(this.index, value);
+        this.index += 2;
+    }
+    this.setInt32 = function(value){
+        this.view.setInt32(this.index, value);
+        this.index += 4;
+    }
+    this.setUint32 = function(value){
+        this.view.setUint32(this.index, value);
+        this.index += 4;
+    }
+    this.setBigInt64 = function(value){
+        this.view.setBigInt64(this.index, value);
+        this.index += 8;
+    }
+    this.setBigUint64 = function(value){
+        this.view.setBigUint64(this.index, value);
+        this.index += 8;
+    }
+    this.setFloat32 = function(value){
+        this.view.setFloat32(this.index, value);
+        this.index += 4;
+    }
+    this.setFloat64 = function(value){
+        this.view.setFloat64(this.index, value);
+        this.index += 8;
+    }
 }
 
 exports.AutoView = AutoView;
