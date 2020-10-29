@@ -139,6 +139,11 @@ function updateMessage() {
   return buffer.slice(0, view.index);
 }
 
+
+/**
+ * 
+ * @param {Player} p 
+ */
 function initMessage(p) {
   const view = new AutoView(buffer);
 
@@ -203,6 +208,11 @@ function parseMessage(buffer, player) {
 
 }
 
+/**
+ * 
+ * @param {AutoView} view 
+ * @param {Player} player 
+ */
 function parseInput(view, player) {
   let ship = player.ship;
   view.deserealize(ship, Datagrams.input);

@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 //#region věci
 /**
  * 
@@ -118,7 +120,7 @@ function CollisionResult(result, position, overlap) {
  * @param {Entity} entity 
  * @param {CollisionResult} result 
  */
-function CollisionEvent(ship, entity, result){
+function CollisionEvent(ship, entity, result) {
     this.shipId = ship.id;
     this.entityId = entity.id;
     this.position = result.position.result().add(ship.position);
@@ -306,6 +308,21 @@ function Entity(x, y, type) {
         });
         this.rotatedColliderValid = true;
     }
+    this.colliderFromFile = function (file) {
+        this.collider = [];
+        let str = fs.readFileSync(file, "utf8");
+        let shapes = JSON.parse(str);
+        shapes.forEach(s => {
+            let shape;
+            if(s.type == 2){
+                shape = new Shape().line(s.x1,s.y2,s.x2,s.y2);
+            }else{
+                shape = new Shape().circle(s.x,s.y,s.r);
+            }
+            this.collider.push(shape);
+        });
+        
+    }
 }
 Entity.list = [];
 
@@ -324,21 +341,7 @@ e1.rotationSpeed = 0.5 / 3;
 */
 
 let e1 = new Entity(1000, 0, 1);
-
-let Plane = [];
-Plane.push( new Shape().line(-450,100,80,100));
-Plane.push( new Shape().line(80,100,520,0));
-Plane.push( new Shape().line(520,0,420,-50));
-Plane.push( new Shape().line(420,-50,580,-250));
-Plane.push( new Shape().line(580,-250,460,-250));
-Plane.push( new Shape().line(460,-250,290,-50));
-Plane.push( new Shape().line(290,-50,50,-50));
-Plane.push( new Shape().line(50,-50,40,-30));
-Plane.push( new Shape().line(40,-30,-460,-40));
-Plane.push( new Shape().line(-460,-40,-560,40));
-Plane.push( new Shape().line(-560,40,-450,100));
-
-e1.collider = Plane;
+e1.colliderFromFile("test.json");
 
 //e1.rotation = Math.PI / 4;
 
@@ -382,6 +385,9 @@ exports.ShipType = ShipType;
  * @param {number} id 
  */
 function Ship(id) {
+    /**
+     * @type {ShipType}
+     */
     this.stats;
     this.position = new Vector(0, 0);
     this.velocity = new Vector(0, 0);
@@ -390,6 +396,9 @@ function Ship(id) {
     this.afterBurnerActive = 0;
     this.afterBurnerUsed = 0;
     this.afterBurnerFuel = 60;
+     /**
+     * @type {number} id of the player who owns this ship
+     */
     this.id = id;
 
     /**
@@ -499,7 +508,7 @@ function Ship(id) {
                 if (res.result) {
                     this.position.add(res.overlap);
                     res.overlap.normalize();
-                    res.overlap.mult(-Math.min(Vector.dot(res.overlap,this.velocity),0)*2);
+                    res.overlap.mult(-Math.min(Vector.dot(res.overlap, this.velocity), 0) * 2);
                     this.velocity.add(res.overlap);
                     this.velocity.mult(0.8);
                     relativePos = this.position.result();
@@ -507,7 +516,7 @@ function Ship(id) {
                     relativePos.y -= e.position.y;
                     collisionShape.x = relativePos.x;
                     collisionShape.y = relativePos.y;
-                    CollisionEvent.list.push(new CollisionEvent(this,e,res));
+                    CollisionEvent.list.push(new CollisionEvent(this, e, res));
                 }
             });
         }
@@ -532,6 +541,9 @@ exports.Ship = Ship;
 
 function Player(connection) {
     this.nick = "nick";
+    /**
+     * @type {Ship}
+     */
     this.ship;
     this.connection = connection;
     this.id = Player.nextId;
@@ -547,9 +559,18 @@ function Player(connection) {
     };
     Player.players.set(this.id, this);
 }
+/**
+ * @type {Map<number,Player>}
+ */
 Player.players = new Map();
 Player.nextId = 0;
+/**
+ * @type {Player[]}
+ */
 Player.newPlayers = [];
+/**
+ * @type {Player[]}
+ */
 Player.leftPlayers = [];
 
 exports.Player = Player;
