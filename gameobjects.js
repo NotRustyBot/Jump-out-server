@@ -1,3 +1,4 @@
+const { gasMap } = require("./worldgen.js");
 const fs = require('fs');
 
 //#region věci
@@ -74,16 +75,12 @@ Vector.zero = function () {
 
 exports.Vector = Vector;
 
-let Universe = {
-    size: 30, // area v jedné ose
-};
-
 function Area(x, y) {
     this.coordinates = new Vector(x, y);
     this.position = new Vector(Area.size * x, Area.size * y);
     this.entities = [];
 }
-Area.size = 2500;
+Area.size = 5000;
 Area.list = [];
 Area.checkIn = function (entity) {
     let position = entity.position;
@@ -92,6 +89,20 @@ Area.checkIn = function (entity) {
     let area = Area.list[x][y];
     area.entities.push(entity);
 };
+
+let Universe = {};
+    Universe.size = 20, // area v jedné ose
+    Universe.scale = Universe.size * Area.size / gasMap.length;
+/**
+ * 
+ * @param {Vector} vector position to check
+ */
+Universe.getGas = function (vector) {
+    let x = Math.floor(vector.x / Universe.scale);
+    let y = Math.floor(vector.y / Universe.scale);
+
+    return gasMap[y][x];
+}
 
 for (let x = 0; x < Universe.size; x++) {
     Area.list[x] = [];
@@ -314,14 +325,14 @@ function Entity(x, y, type) {
         let shapes = JSON.parse(str);
         shapes.forEach(s => {
             let shape;
-            if(s.type == 2){
-                shape = new Shape().line(s.x1,s.y2,s.x2,s.y2);
-            }else{
-                shape = new Shape().circle(s.x,s.y,s.r);
+            if (s.type == 2) {
+                shape = new Shape().line(s.x1, s.y2, s.x2, s.y2);
+            } else {
+                shape = new Shape().circle(s.x, s.y, s.r);
             }
             this.collider.push(shape);
         });
-        
+
     }
 }
 Entity.list = [];
@@ -389,16 +400,17 @@ function Ship(id) {
      * @type {ShipType}
      */
     this.stats;
-    this.position = new Vector(0, 0);
+    this.position = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
     this.velocity = new Vector(0, 0);
     this.rotation = 0;
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
     this.afterBurnerUsed = 0;
     this.afterBurnerFuel = 60;
-     /**
-     * @type {number} id of the player who owns this ship
-     */
+    this.debuff = 0;
+    /**
+    * @type {number} id of the player who owns this ship
+    */
     this.id = id;
 
     /**
@@ -412,6 +424,26 @@ function Ship(id) {
     this.update = function (dt) {
         let stats = this.stats;
         let afterBurnerUsed = false;
+        let gas = Universe.getGas(this.position);
+
+        if (this.debuff != gas) {
+            if (this.debuff > gas) {
+                this.debuff -= dt * 5;
+                if (this.debuff < gas) {
+                    this.debuff = gas;
+                }
+            } else {
+                this.debuff += dt * 5;
+                if (this.debuff > gas) {
+                    this.debuff = gas;
+                }
+            }
+        }
+
+        let debuffMult = 1-this.debuff/110;
+
+        console.log(this.debuff + " / "+ gas);
+
         if (this.afterBurnerFuel <= 0) {
             this.afterBurnerActive = 0;
         }
@@ -427,7 +459,7 @@ function Ship(id) {
         }
 
         let topSpeed =
-            stats.speed + this.afterBurnerActive * stats.afterBurnerSpeedBonus;
+            stats.speed*debuffMult + this.afterBurnerActive * stats.afterBurnerSpeedBonus*debuffMult;
         if (this.velocity.length() >= topSpeed) {
             if (this.control.y >= 0) {
                 this.velocity.mult(1 - stats.drag * dt); // odpor
@@ -481,7 +513,7 @@ function Ship(id) {
         this.afterBurnerUsed = 0;
         if (
             this.afterBurnerActive == 1 &&
-            (afterBurnerUsed || this.velocity.length() > stats.speed)
+            (afterBurnerUsed || this.velocity.length() > stats.speed*debuffMult)
         ) {
             this.afterBurnerFuel -= dt;
             this.afterBurnerFuel = Math.max(0, this.afterBurnerFuel);
