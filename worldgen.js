@@ -1,3 +1,4 @@
+const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
 function randomSeedParkMiller(seed = 123456) {
 	// doesn't repeat b4 JS dies.
 	// https://gist.github.com/blixt/f17b47c62508be59987b
@@ -65,6 +66,12 @@ let circle = 30;
 let falloff = 100;
 let shift = 0;
 
+let gasBuffer = new ArrayBuffer(1000005);
+let view = new AutoView(gasBuffer);
+view.setUint8(serverHeaders.gasData);
+view.setUint16(w);
+view.setUint16(h);
+
 function distance(x1, y1, x2, y2) {
 	var a = x1 - x2;
 	var b = y1 - y2;
@@ -111,6 +118,7 @@ for (let y = 0; y < h; y += subres) {
 		}
 
 		gasMap[y / subres][x / subres] = level;
+		view.setUint8(level);
 	}
 }
 
@@ -139,3 +147,4 @@ for (let c = 0; c < 20; c++) {
 
 
 exports.gasMap = gasMap;
+exports.gasBuffer = gasBuffer;

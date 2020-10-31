@@ -1,4 +1,3 @@
-const { gasMap } = require("./worldgen.js");
 const fs = require('fs');
 
 //#region věci
@@ -92,7 +91,14 @@ Area.checkIn = function (entity) {
 
 let Universe = {};
     Universe.size = 20, // area v jedné ose
+    
+
+Universe.init = function(){
+    const { gasMap, gasBuffer } = require("./worldgen.js");
     Universe.scale = Universe.size * Area.size / gasMap.length;
+    Universe.gasBuffer = gasBuffer;
+    Universe.gasMap = gasMap;
+}
 /**
  * 
  * @param {Vector} vector position to check
@@ -101,8 +107,10 @@ Universe.getGas = function (vector) {
     let x = Math.floor(vector.x / Universe.scale);
     let y = Math.floor(vector.y / Universe.scale);
 
-    return gasMap[y][x];
+    return Universe.gasMap[y][x];
 }
+
+exports.Universe = Universe;
 
 for (let x = 0; x < Universe.size; x++) {
     Area.list[x] = [];
@@ -519,7 +527,18 @@ function Ship(id) {
             this.afterBurnerFuel = Math.max(0, this.afterBurnerFuel);
             this.afterBurnerUsed = 1;
         }
-
+        if(this.position.x < 0){
+            this.position.x = 0;
+        }
+        if(this.position.y < 0){
+            this.position.y = 0;
+        }
+        if(this.position.x > Universe.size*Area.size){
+            this.position.x = Universe.size*Area.size;
+        }
+        if(this.position.x > Universe.size*Area.size){
+            this.position.x = Universe.size*Area.size;
+        }
         this.checkCollision();
     };
 

@@ -330,7 +330,7 @@ Datagrams.DebugPacket = DebugPacket;
 
 exports.Datagrams = Datagrams;
 
-const serverHeaders = {initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6};
+const serverHeaders = {initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7};
 exports.serverHeaders = serverHeaders;
 const clientHeaders = {init: 0, control: 1};
 exports.clientHeaders = clientHeaders;

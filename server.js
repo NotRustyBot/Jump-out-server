@@ -1,6 +1,6 @@
-const { Vector, ShipType, Ship, Player, Entity, CollisionEvent } = require("./gameobjects.js");
+const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe } = require("./gameobjects.js");
 const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
-
+Universe.init();
 //#region INIT
 let http = require('http');
 const { debug } = require("console");
@@ -29,6 +29,7 @@ function onConnection(connection) {
   let p = new Player(connection);
   p.init();
   p.open = true;
+  p.send(Universe.gasBuffer);
 
   console.log((new Date()) + "New connection, ID: " + p.id);
 
