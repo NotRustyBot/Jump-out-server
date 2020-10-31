@@ -98,6 +98,10 @@ Universe.init = function(){
     Universe.scale = Universe.size * Area.size / gasMap.length;
     Universe.gasBuffer = gasBuffer;
     Universe.gasMap = gasMap;
+    let mid = new Vector(Universe.size * Area.size /2, Universe.size * Area.size /2);
+
+    let e1 = new Entity(mid.x+1000, mid.y, 1);
+    e1.colliderFromFile("test.json");
 }
 /**
  * 
@@ -344,26 +348,6 @@ function Entity(x, y, type) {
     }
 }
 Entity.list = [];
-
-/*
-let e1 = new Entity(300, 0, 1);
-e1.collider.push(new Shape().circle(0, 0, 130));
-e1.rotationSpeed = 0.5 / 3;
-*/
-/*
-let e1 = new Entity(600, 0, 1);
-e1.collider.push(new Shape().line(-300, 300, 300, 300));
-e1.collider.push(new Shape().line(-300, 300, -300, -300));
-e1.collider.push(new Shape().line(300, 300, 300, -300));
-e1.collider.push(new Shape().line(-300, -300, 300, -300));
-e1.rotationSpeed = 0.5 / 3;
-*/
-
-let e1 = new Entity(1000, 0, 1);
-e1.colliderFromFile("test.json");
-
-//e1.rotation = Math.PI / 4;
-
 
 exports.Entity = Entity;
 
