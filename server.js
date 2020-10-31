@@ -3,7 +3,6 @@ const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require(
 Universe.init();
 //#region INIT
 let http = require('http');
-const { debug } = require("console");
 let server = http.createServer(function (request, response) {
 });
 let WebSocketServer = require('ws').Server;
