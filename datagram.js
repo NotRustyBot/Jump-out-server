@@ -323,10 +323,14 @@ CollisionEvent.add(types.uint16, "entityId");
 CollisionEvent.add(types.vector32, "position");
 Datagrams.CollisionEvent = CollisionEvent;
 
+let DebugPacket = new Datagram();
+DebugPacket.add(types.string, "data");
+Datagrams.DebugPacket = DebugPacket;
+
 
 exports.Datagrams = Datagrams;
 
-const serverHeaders = {initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5};
+const serverHeaders = {initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6};
 exports.serverHeaders = serverHeaders;
 const clientHeaders = {init: 0, control: 1};
 exports.clientHeaders = clientHeaders;

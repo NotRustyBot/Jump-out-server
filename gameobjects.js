@@ -442,7 +442,7 @@ function Ship(id) {
 
         let debuffMult = 1-this.debuff/110;
 
-        console.log(this.debuff + " / "+ gas);
+        Player.players.get(this.id).debug = this.debuff.toFixed(2) + " -> "+ debuffMult.toFixed(3);
 
         if (this.afterBurnerFuel <= 0) {
             this.afterBurnerActive = 0;
@@ -582,6 +582,7 @@ function Player(connection) {
     Player.nextId++;
     this.open = false;
     this.initialised = false;
+    this.debug = "";
     this.send = function (data) {
         if (this.connection.readyState == 1) this.connection.send(data);
     };

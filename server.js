@@ -3,6 +3,7 @@ const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require(
 
 //#region INIT
 let http = require('http');
+const { debug } = require("console");
 let server = http.createServer(function (request, response) {
 });
 let WebSocketServer = require('ws').Server;
@@ -76,6 +77,9 @@ function update() {
       p.ship.update(dt);
     }
   });
+  if (NetworkTimer % 30 == 0) {
+    SendDebugPackets();
+  }
 }
 
 
@@ -178,6 +182,18 @@ function EntitySetupMessage(inView) {
   return buffer.slice(0, view.index);
 }
 
+
+function SendDebugPackets(){
+  Player.players.forEach(p => {
+    if(p.debug.length > 0){
+      let toSend = {data: p.debug};
+      const view = new AutoView(buffer);
+      view.setUint8(serverHeaders.debugPacket);
+      view.serialize(toSend,Datagrams.DebugPacket);
+      p.send(buffer.slice(0,view.index));
+    }
+  })
+}
 
 function sendAll(data) {
   connections.forEach(c => {
