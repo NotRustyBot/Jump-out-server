@@ -101,7 +101,7 @@ Universe.init = function(){
     let mid = new Vector(Universe.size * Area.size /2, Universe.size * Area.size /2);
 
     let e1 = new Entity(mid.x+1000, mid.y, 1);
-    e1.colliderFromFile("test.json");
+    e1.colliderFromFile("hitboxes/plane.json");
 }
 /**
  * 
