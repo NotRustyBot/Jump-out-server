@@ -340,7 +340,7 @@ function Entity(x, y, type) {
         shapes.forEach(s => {
             let shape;
             if (s.type == 2) {
-                shape = new Shape().line(s.x1, s.y2, s.x2, s.y2);
+                shape = new Shape().line(s.x1, s.y1, s.x2, s.y2);
             } else {
                 shape = new Shape().circle(s.x, s.y, s.r);
             }
