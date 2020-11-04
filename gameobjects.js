@@ -101,7 +101,7 @@ Universe.init = function(){
     let mid = new Vector(Universe.size * Area.size /2, Universe.size * Area.size /2);
 
     let e1 = new Entity(mid.x+1000, mid.y, 1);
-    e1.colliderFromFile("hitboxes/plane.json");
+    e1.colliderFromFile("hitboxes/square600.json");
 }
 /**
  * 
@@ -110,7 +110,9 @@ Universe.init = function(){
 Universe.getGas = function (vector) {
     let x = Math.floor(vector.x / Universe.scale);
     let y = Math.floor(vector.y / Universe.scale);
-
+    if(isNaN(x) || isNaN(y)){
+        return 0;
+    }
     return Universe.gasMap[y][x];
 }
 
