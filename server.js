@@ -77,7 +77,7 @@ function update() {
       p.ship.update(dt);
     }
   });
-  if (NetworkTimer % 30 == 0) {
+  if (NetworkTimer % 3 == 0) {
     SendDebugPackets();
   }
 }

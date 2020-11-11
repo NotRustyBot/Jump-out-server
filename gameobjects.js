@@ -77,6 +77,9 @@ exports.Vector = Vector;
 function Area(x, y) {
     this.coordinates = new Vector(x, y);
     this.position = new Vector(Area.size * x, Area.size * y);
+    /**
+     * @type {Entity[]}
+     */
     this.entities = [];
 }
 Area.size = 5000;
@@ -89,7 +92,6 @@ Area.list = [];
  * @param {Entity} entity 
  */
 Area.checkIn = function (entity) {
-
     let position = entity.position;
     let x = Math.floor((position.x + entity.bounds) / Area.size);
     let y = Math.floor((position.y + entity.bounds) / Area.size);
@@ -122,7 +124,6 @@ Area.checkIn = function (entity) {
     if (!area.entities.includes(entity)) {
         area.entities.push(entity);
     }   
-    
 };
 
 
@@ -139,8 +140,15 @@ Area.getLocalArea = function(position){
 }
 
 let Universe = {};
-    Universe.size = 20, // area v jedné ose
-    
+    Universe.size = 20; // area v jedné ose
+
+let SpawnRules = {
+    asteroids: {
+        rolls: 100,
+        oreChance: 0.5,
+        oreMaxCount: 3,
+    },
+};
 
 Universe.init = function(){
     const { gasMap, gasBuffer } = require("./worldgen.js");
@@ -150,9 +158,11 @@ Universe.init = function(){
     let mid = new Vector(Universe.size * Area.size /2, Universe.size * Area.size /2);
 
     let e1 = new Entity(mid.x+1000, mid.y, 1);
-    e1.colliderFromFile("hitboxes/shape.json");
+    e1.collider.push(new Shape().circle(0,0,300));
+    e1.calculateBounds();
     e1.rotationSpeed = 0.1;
     e1.init();
+    new Resource(e1, new Vector(-300,0), 60, 0);
 }
 
 /**
@@ -367,9 +377,16 @@ function Entity(x, y, type) {
     this.type = type;
     this.rotatedCollider = [];
     this.rotatedColliderValid = false;
+    /**
+     * @type {Shape[]}
+     */
     this.collider = [];
     this.bounds = 0;
     this.id = Entity.list.length;
+    /**
+     * @type {Resource[]}
+     */
+    this.children = [];
 
     this.init = function(){
         Entity.list.push(this);
@@ -380,7 +397,11 @@ function Entity(x, y, type) {
         this.rotatedColliderValid = false;
         this.rotation += this.rotationSpeed * dt;
         this.rotation = this.rotation % (Math.PI * 2);
-    };
+
+        this.children.forEach(e => {
+            e.update();
+        });
+    }
     this.rotateCollider = function () {
         this.rotatedCollider = [];
         this.collider.forEach(s => {
@@ -390,6 +411,21 @@ function Entity(x, y, type) {
         });
         this.rotatedColliderValid = true;
     }
+
+    this.calculateBounds = function() {
+        this.collider.forEach(s => {
+            let dist = 0;
+            if (s.type == 2) {
+                dist = Math.max(new Vector(s.x1,s.y1).length(),new Vector(s.x2,s.y2).length());
+            } else {
+                dist = new Vector(s.x,s.y).length() + s.r;
+            }
+            this.bounds = Math.max(dist, this.bounds);
+        });
+
+        this.bounds += maxInteractionRange;
+    }
+
     this.colliderFromFile = function (file) {
         this.collider = [];
         let str = fs.readFileSync(file, "utf8");
@@ -407,14 +443,40 @@ function Entity(x, y, type) {
             this.bounds = Math.max(dist, this.bounds);
             this.collider.push(shape);
         });
-        this.bounds += biggestShip;
+        this.bounds += maxInteractionRange;
     }
 }
 Entity.list = [];
 
 exports.Entity = Entity;
 
-const biggestShip = 60;
+/**
+ * 
+ * @param {Entity} parent 
+ * @param {Vector} offset 
+ * @param {number} size 
+ * @param {*} type
+ */
+function Resource(parent, offset, size, type){
+    this.parent = parent;
+    this.type = type;
+    this.offset = offset;
+    this.collisionShape = new Shape().circle(offset.x, offset.y, size);
+
+    this.update = function(){
+        this.collisionShape.x = offset.x;
+        this.collisionShape.y = offset.y;
+        this.collisionShape.rotate(parent.rotation);
+    }
+
+    parent.children.push(this);
+}
+
+Resource.list = [];
+
+exports.Resource = Resource;
+
+const maxInteractionRange = 600 + 60; //max resource size
 function ShipType() {
     this.name;
     this.speed;
@@ -497,8 +559,6 @@ function Ship(id) {
         }
 
         let debuffMult = 1-this.debuff/110;
-
-        Player.players.get(this.id).debug = this.debuff.toFixed(2) + " -> "+ debuffMult.toFixed(3);
 
         if (this.afterBurnerFuel <= 0) {
             this.afterBurnerActive = 0;
@@ -587,10 +647,38 @@ function Ship(id) {
         if(this.position.y > Universe.size*Area.size){
             this.position.y = Universe.size*Area.size;
         }
-        this.checkCollision();
+        this.checkCollision(dt);
+        this.extract(dt);
     };
 
-    this.checkCollision = function () {
+    this.extract = function(dt){
+        let localArea = Area.getLocalArea(this.position);
+        const laserLength = 400;
+        
+        
+        for (let i = 0; i < localArea.entities.length; i++) {
+            const e = localArea.entities[i];
+            e.children.forEach(r => {
+                let relativePos = this.position.result();
+                relativePos.sub(e.position);
+                if (relativePos.length() < laserLength+e.bounds) {
+                    let laser = new Shape().line(0,0,laserLength,0);
+                    laser.rotate(this.rotation);
+                    laser.x1 += relativePos.x;
+                    laser.y1 += relativePos.y;
+                    laser.x2 += relativePos.x;
+                    laser.y2 += relativePos.y;
+                    let result = laser.checkCollision(r.collisionShape);
+                    if (result.result) {
+                        this.afterBurnerFuel += dt*3;
+                        this.afterBurnerFuel = Math.min(this.afterBurnerFuel,this.stats.afterBurnerCapacity);
+                    }
+                }
+            });
+        }
+    }
+
+    this.checkCollision = function (dt) {
         let size = 60; //??;
         let localArea = Area.getLocalArea(this.position);
         for (let i = 0; i < localArea.entities.length; i++) {
@@ -622,6 +710,8 @@ function Ship(id) {
             });
         }
 
+
+        /*
         Player.players.forEach(p => {
             let other = p.ship;
             if (this != other) {
@@ -633,7 +723,7 @@ function Ship(id) {
                     this.position.add(res.overlap);
                 }
             }
-        })
+        })*/
     }
 }
 
