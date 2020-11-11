@@ -80,14 +80,63 @@ function Area(x, y) {
     this.entities = [];
 }
 Area.size = 5000;
+/**
+ * @type {Area[][]}
+ */
 Area.list = [];
+/**
+ * 
+ * @param {Entity} entity 
+ */
 Area.checkIn = function (entity) {
+
     let position = entity.position;
-    let x = Math.floor(position.x / Area.size);
-    let y = Math.floor(position.y / Area.size);
+    let x = Math.floor((position.x + entity.bounds) / Area.size);
+    let y = Math.floor((position.y + entity.bounds) / Area.size);
     let area = Area.list[x][y];
     area.entities.push(entity);
+
+    position = entity.position;
+    x = Math.floor((position.x - entity.bounds) / Area.size);
+    y = Math.floor((position.y + entity.bounds) / Area.size);
+    area = Area.list[x][y];
+
+    if (!area.entities.includes(entity)) {
+        area.entities.push(entity);
+    }
+
+    position = entity.position;
+    x = Math.floor((position.x + entity.bounds) / Area.size);
+    y = Math.floor((position.y - entity.bounds) / Area.size);
+    area = Area.list[x][y];
+
+    if (!area.entities.includes(entity)) {
+        area.entities.push(entity);
+    }   
+
+    position = entity.position;
+    x = Math.floor((position.x - entity.bounds) / Area.size);
+    y = Math.floor((position.y - entity.bounds) / Area.size);
+    area = Area.list[x][y];
+
+    if (!area.entities.includes(entity)) {
+        area.entities.push(entity);
+    }   
+    
 };
+
+
+/**
+ * 
+ * @param {Vector} position 
+ * @returns {Area}
+ */
+Area.getLocalArea = function(position){
+    let x = Math.floor(position.x / Area.size);
+    let y = Math.floor(position.y / Area.size);
+
+    return Area.list[x][y];
+}
 
 let Universe = {};
     Universe.size = 20, // area v jedné ose
@@ -101,8 +150,11 @@ Universe.init = function(){
     let mid = new Vector(Universe.size * Area.size /2, Universe.size * Area.size /2);
 
     let e1 = new Entity(mid.x+1000, mid.y, 1);
-    e1.colliderFromFile("hitboxes/square600.json");
+    e1.colliderFromFile("hitboxes/shape.json");
+    e1.rotationSpeed = 0.1;
+    e1.init();
 }
+
 /**
  * 
  * @param {Vector} vector position to check
@@ -113,7 +165,7 @@ Universe.getGas = function (vector) {
     if(isNaN(x) || isNaN(y)){
         return 0;
     }
-    return Universe.gasMap[y][x];
+    return Math.min(Universe.gasMap[y][x],100);
 }
 
 exports.Universe = Universe;
@@ -316,9 +368,14 @@ function Entity(x, y, type) {
     this.rotatedCollider = [];
     this.rotatedColliderValid = false;
     this.collider = [];
+    this.bounds = 0;
     this.id = Entity.list.length;
-    Entity.list.push(this);
-    Area.checkIn(this);
+
+    this.init = function(){
+        Entity.list.push(this);
+        Area.checkIn(this);
+    }
+
     this.update = function (dt) {
         this.rotatedColliderValid = false;
         this.rotation += this.rotationSpeed * dt;
@@ -339,20 +396,25 @@ function Entity(x, y, type) {
         let shapes = JSON.parse(str);
         shapes.forEach(s => {
             let shape;
+            let dist = 0;
             if (s.type == 2) {
                 shape = new Shape().line(s.x1, s.y1, s.x2, s.y2);
+                dist = Math.max(new Vector(s.x1,s.y1).length(),new Vector(s.x2,s.y2).length());
             } else {
                 shape = new Shape().circle(s.x, s.y, s.r);
+                dist = new Vector(s.x1,s.y1).length() + s.r;
             }
+            this.bounds = Math.max(dist, this.bounds);
             this.collider.push(shape);
         });
-
+        this.bounds += biggestShip;
     }
 }
 Entity.list = [];
 
 exports.Entity = Entity;
 
+const biggestShip = 60;
 function ShipType() {
     this.name;
     this.speed;
@@ -522,16 +584,17 @@ function Ship(id) {
         if(this.position.x > Universe.size*Area.size){
             this.position.x = Universe.size*Area.size;
         }
-        if(this.position.x > Universe.size*Area.size){
-            this.position.x = Universe.size*Area.size;
+        if(this.position.y > Universe.size*Area.size){
+            this.position.y = Universe.size*Area.size;
         }
         this.checkCollision();
     };
 
     this.checkCollision = function () {
         let size = 60; //??;
-        for (let i = 0; i < Entity.list.length; i++) {
-            const e = Entity.list[i];
+        let localArea = Area.getLocalArea(this.position);
+        for (let i = 0; i < localArea.entities.length; i++) {
+            const e = localArea.entities[i];
             let relativePos = this.position.result();
             relativePos.x -= e.position.x;
             relativePos.y -= e.position.y;
@@ -540,6 +603,7 @@ function Ship(id) {
             if (!e.rotatedColliderValid) {
                 e.rotateCollider();
             }
+
             e.rotatedCollider.forEach(s => {
                 res = collisionShape.checkCollision(s);
                 if (res.result) {
