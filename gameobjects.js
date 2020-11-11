@@ -158,7 +158,7 @@ Universe.init = function(){
     let mid = new Vector(Universe.size * Area.size /2, Universe.size * Area.size /2);
 
     let e1 = new Entity(mid.x+1000, mid.y, 1);
-    e1.collider.push(new Shape().circle(0,0,300));
+    e1.collider.push(new Shape().circle(0,0,125));
     e1.calculateBounds();
     e1.rotationSpeed = 0.1;
     e1.init();
