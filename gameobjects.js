@@ -163,6 +163,11 @@ Universe.init = function(){
     e1.rotationSpeed = 0.1;
     e1.init();
     new Resource(e1, new Vector(-300,0), 60, 0);
+
+    let e2 = new Entity(mid.x-1000, mid.y, 2);
+    e2.colliderFromFile("hitboxes/plane.json");
+    e2.calculateBounds();
+    e2.init();
 }
 
 /**
