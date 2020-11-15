@@ -83,7 +83,7 @@ function update() {
 }
 
 
-var buffer = new ArrayBuffer(1000);
+var buffer = new ArrayBuffer(50000);
 
 let NetworkTimer = 0;
 

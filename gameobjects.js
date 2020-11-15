@@ -55,6 +55,10 @@ function Vector(x, y) {
     this.result = function () {
         return new Vector(this.x, this.y);
     };
+
+    this.inbound = function (bound) {
+        return this.x < bound && this.x > -bound && this.y < bound && this.y > -bound
+    }
 }
 Vector.fromAngle = function (r) {
     return new Vector(Math.cos(r), Math.sin(r));
@@ -114,7 +118,7 @@ Area.checkIn = function (entity) {
 
     if (!area.entities.includes(entity)) {
         area.entities.push(entity);
-    }   
+    }
 
     position = entity.position;
     x = Math.floor((position.x - entity.bounds) / Area.size);
@@ -123,7 +127,7 @@ Area.checkIn = function (entity) {
 
     if (!area.entities.includes(entity)) {
         area.entities.push(entity);
-    }   
+    }
 };
 
 
@@ -132,7 +136,7 @@ Area.checkIn = function (entity) {
  * @param {Vector} position 
  * @returns {Area}
  */
-Area.getLocalArea = function(position){
+Area.getLocalArea = function (position) {
     let x = Math.floor(position.x / Area.size);
     let y = Math.floor(position.y / Area.size);
 
@@ -140,31 +144,55 @@ Area.getLocalArea = function(position){
 }
 
 let Universe = {};
-    Universe.size = 20; // area v jedné ose
+Universe.size = 20; // area v jedné ose
 
 let SpawnRules = {
     asteroids: {
-        rolls: 100,
+        count: 500,
         oreChance: 0.5,
         oreMaxCount: 3,
+        rareChance: 0,
+        gasThreshold: 30,
+        rotationSpeed: 0.1,
     },
 };
 
-Universe.init = function(){
+Universe.init = function () {
     const { gasMap, gasBuffer } = require("./worldgen.js");
     Universe.scale = Universe.size * Area.size / gasMap.length;
     Universe.gasBuffer = gasBuffer;
     Universe.gasMap = gasMap;
-    let mid = new Vector(Universe.size * Area.size /2, Universe.size * Area.size /2);
+    let mid = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
 
-    let e1 = new Entity(mid.x+1000, mid.y, 1);
-    e1.collider.push(new Shape().circle(0,0,125));
-    e1.calculateBounds();
-    e1.rotationSpeed = 0.1;
-    e1.init();
-    new Resource(e1, new Vector(-300,0), 60, 0);
+    for (let i = 0; i < SpawnRules.asteroids.count; i++) {
+        let pos = new Vector(Math.random() * ( Area.size * (Universe.size- 2)) + Area.size, Math.random() * ( Area.size * (Universe.size- 2)) + Area.size);
+        let asteroid = new Entity(pos.x, pos.y, 1);
+        asteroid.collider.push(new Shape().circle(0, 0, 125));
+        asteroid.calculateBounds();
+        let area = Area.getLocalArea(pos);
+        let colliding = false;
+        area.entities.forEach(e => {
+            let relativeCoords = pos.result().sub(e.position);
+            if (relativeCoords.inbound(e.bounds + asteroid.bounds)) {
+                colliding = true;
+                i--;
+                return;
+            }
+        });
 
-    let e2 = new Entity(mid.x-1000, mid.y, 2);
+        if (colliding) continue;
+
+        if (Universe.getGas(pos) <= SpawnRules.asteroids.gasThreshold) {
+            asteroid.rotationSpeed = Math.random() * SpawnRules.asteroids.rotationSpeed * 2 - SpawnRules.asteroids.rotationSpeed;
+            asteroid.init();
+        }else{
+            asteroid.rotationSpeed = Math.random() * SpawnRules.asteroids.rotationSpeed * 2 - SpawnRules.asteroids.rotationSpeed;
+            asteroid.init();
+        }
+    }
+    //new Resource(e1, new Vector(-300, 0), 60, 0);
+
+    let e2 = new Entity(mid.x - 1000, mid.y, 2);
     e2.colliderFromFile("hitboxes/plane.json");
     e2.calculateBounds();
     e2.init();
@@ -177,10 +205,10 @@ Universe.init = function(){
 Universe.getGas = function (vector) {
     let x = Math.floor(vector.x / Universe.scale);
     let y = Math.floor(vector.y / Universe.scale);
-    if(isNaN(x) || isNaN(y)){
+    if (isNaN(x) || isNaN(y)) {
         return 0;
     }
-    return Math.min(Universe.gasMap[y][x],100);
+    return Math.min(Universe.gasMap[y][x], 100);
 }
 
 exports.Universe = Universe;
@@ -393,7 +421,7 @@ function Entity(x, y, type) {
      */
     this.children = [];
 
-    this.init = function(){
+    this.init = function () {
         Entity.list.push(this);
         Area.checkIn(this);
     }
@@ -417,13 +445,13 @@ function Entity(x, y, type) {
         this.rotatedColliderValid = true;
     }
 
-    this.calculateBounds = function() {
+    this.calculateBounds = function () {
         this.collider.forEach(s => {
             let dist = 0;
             if (s.type == 2) {
-                dist = Math.max(new Vector(s.x1,s.y1).length(),new Vector(s.x2,s.y2).length());
+                dist = Math.max(new Vector(s.x1, s.y1).length(), new Vector(s.x2, s.y2).length());
             } else {
-                dist = new Vector(s.x,s.y).length() + s.r;
+                dist = new Vector(s.x, s.y).length() + s.r;
             }
             this.bounds = Math.max(dist, this.bounds);
         });
@@ -440,10 +468,10 @@ function Entity(x, y, type) {
             let dist = 0;
             if (s.type == 2) {
                 shape = new Shape().line(s.x1, s.y1, s.x2, s.y2);
-                dist = Math.max(new Vector(s.x1,s.y1).length(),new Vector(s.x2,s.y2).length());
+                dist = Math.max(new Vector(s.x1, s.y1).length(), new Vector(s.x2, s.y2).length());
             } else {
                 shape = new Shape().circle(s.x, s.y, s.r);
-                dist = new Vector(s.x1,s.y1).length() + s.r;
+                dist = new Vector(s.x1, s.y1).length() + s.r;
             }
             this.bounds = Math.max(dist, this.bounds);
             this.collider.push(shape);
@@ -462,13 +490,13 @@ exports.Entity = Entity;
  * @param {number} size 
  * @param {*} type
  */
-function Resource(parent, offset, size, type){
+function Resource(parent, offset, size, type) {
     this.parent = parent;
     this.type = type;
     this.offset = offset;
     this.collisionShape = new Shape().circle(offset.x, offset.y, size);
 
-    this.update = function(){
+    this.update = function () {
         this.collisionShape.x = offset.x;
         this.collisionShape.y = offset.y;
         this.collisionShape.rotate(parent.rotation);
@@ -563,7 +591,7 @@ function Ship(id) {
             }
         }
 
-        let debuffMult = 1-this.debuff/110;
+        let debuffMult = 1 - this.debuff / 110;
 
         if (this.afterBurnerFuel <= 0) {
             this.afterBurnerActive = 0;
@@ -580,7 +608,7 @@ function Ship(id) {
         }
 
         let topSpeed =
-            stats.speed*debuffMult + this.afterBurnerActive * stats.afterBurnerSpeedBonus*debuffMult;
+            stats.speed * debuffMult + this.afterBurnerActive * stats.afterBurnerSpeedBonus * debuffMult;
         if (this.velocity.length() >= topSpeed) {
             if (this.control.y >= 0) {
                 this.velocity.mult(1 - stats.drag * dt); // odpor
@@ -634,54 +662,26 @@ function Ship(id) {
         this.afterBurnerUsed = 0;
         if (
             this.afterBurnerActive == 1 &&
-            (afterBurnerUsed || this.velocity.length() > stats.speed*debuffMult)
+            (afterBurnerUsed || this.velocity.length() > stats.speed * debuffMult)
         ) {
             this.afterBurnerFuel -= dt;
             this.afterBurnerFuel = Math.max(0, this.afterBurnerFuel);
             this.afterBurnerUsed = 1;
         }
-        if(this.position.x < 0){
+        if (this.position.x < 0) {
             this.position.x = 0;
         }
-        if(this.position.y < 0){
+        if (this.position.y < 0) {
             this.position.y = 0;
         }
-        if(this.position.x > Universe.size*Area.size){
-            this.position.x = Universe.size*Area.size;
+        if (this.position.x > Universe.size * Area.size) {
+            this.position.x = Universe.size * Area.size;
         }
-        if(this.position.y > Universe.size*Area.size){
-            this.position.y = Universe.size*Area.size;
+        if (this.position.y > Universe.size * Area.size) {
+            this.position.y = Universe.size * Area.size;
         }
         this.checkCollision(dt);
-        this.extract(dt);
     };
-
-    this.extract = function(dt){
-        let localArea = Area.getLocalArea(this.position);
-        const laserLength = 400;
-        
-        
-        for (let i = 0; i < localArea.entities.length; i++) {
-            const e = localArea.entities[i];
-            e.children.forEach(r => {
-                let relativePos = this.position.result();
-                relativePos.sub(e.position);
-                if (relativePos.length() < laserLength+e.bounds) {
-                    let laser = new Shape().line(0,0,laserLength,0);
-                    laser.rotate(this.rotation);
-                    laser.x1 += relativePos.x;
-                    laser.y1 += relativePos.y;
-                    laser.x2 += relativePos.x;
-                    laser.y2 += relativePos.y;
-                    let result = laser.checkCollision(r.collisionShape);
-                    if (result.result) {
-                        this.afterBurnerFuel += dt*3;
-                        this.afterBurnerFuel = Math.min(this.afterBurnerFuel,this.stats.afterBurnerCapacity);
-                    }
-                }
-            });
-        }
-    }
 
     this.checkCollision = function (dt) {
         let size = 60; //??;
