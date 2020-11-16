@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe } = require("./gameobjects.js");
+const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe, Area} = require("./gameobjects.js");
 const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
 Universe.init();
 //#region INIT
@@ -67,13 +67,16 @@ function update() {
   dt = (Date.now() - last) / 1000;
   last = Date.now();
   let msg = updateMessage();
+  let sameIndex = msg.index;
   Entity.list.forEach(e => {
     e.update(dt);
   });
 
   Player.players.forEach(p => {
     if (p.initialised) {
-      p.send(msg);
+      let toSend = AreaInfo(msg, p);
+      msg.index = sameIndex;
+      p.send(toSend);
       p.ship.update(dt);
     }
   });
@@ -128,10 +131,6 @@ function updateMessage() {
     Player.leftPlayers = [];
   }
 
-  if (NetworkTimer % 300 == 0) {
-    EntitySetupMessage(view);
-  }
-
   CollisionEvent.list.forEach(c => {
     view.setUint8(serverHeaders.collisionEvent);
     view.serialize(c, Datagrams.CollisionEvent);
@@ -139,8 +138,8 @@ function updateMessage() {
 
   CollisionEvent.list = [];
 
-
-  return buffer.slice(0, view.index);
+  return view;
+  //return buffer.slice(0, view.index);
 }
 
 
@@ -166,6 +165,22 @@ function initMessage(p) {
   view.view.setUint8(sizeGoesHere, count);
 
   return buffer.slice(0, view.index);
+}
+
+/**
+ * 
+ * @param {AutoView} inView 
+ * @param {Player} player 
+ */
+function AreaInfo(inView, player) {
+  inView.setUint8(serverHeaders.proximity);
+  let entities = player.proximity();
+  inView.setUint16(entities.length);
+  entities.forEach(entity => {
+    inView.serialize(entity, Datagrams.EntitySetup);
+  });
+
+  return buffer.slice(0, inView.index);
 }
 
 function EntitySetupMessage(inView) {

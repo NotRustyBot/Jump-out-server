@@ -140,7 +140,9 @@ Area.getLocalArea = function (position) {
     let x = Math.floor(position.x / Area.size);
     let y = Math.floor(position.y / Area.size);
 
-    return Area.list[x][y];
+    if (Area.list[x] != undefined && Area.list[x][y] != undefined) {
+        return Area.list[x][y];
+    }
 }
 
 let Universe = {};
@@ -610,7 +612,7 @@ function Ship(id) {
         let topSpeed =
             stats.speed * debuffMult + this.afterBurnerActive * stats.afterBurnerSpeedBonus * debuffMult;
         if (this.velocity.length() >= topSpeed) {
-            if (this.control.y >= 0) {
+            if (this.control.y != 0) {
                 this.velocity.mult(1 - stats.drag * dt); // odpor
                 if (this.velocity.length() < Ship.minSpeed) {
                     this.velocity = Vector.zero();
@@ -753,6 +755,34 @@ function Player(connection) {
     this.init = function () {
         this.ship = new Ship(this.id);
         this.ship.init(ShipType.types["Debug"]);
+    };
+    /**
+     * @returns {Entity[]}
+     */
+    this.proximity = function(){
+        let proximity = [];
+        let coords = this.ship.position.result();
+
+        for (let y = -1; y <= 1; y++) {
+            for (let x = -1; x <= 1; x++) {
+                let adjusted = coords.result();
+                adjusted.x += x*Area.size;
+                adjusted.y += y*Area.size;
+                let area = Area.getLocalArea(adjusted);
+                if(area != undefined) proximity.push(area);
+            }
+        }
+
+        let nearby = [];
+        proximity.forEach(a => {
+            a.entities.forEach(e => {
+                nearby.push(e);
+            });
+        });
+
+        this.debug = " Nearby: "+nearby.length;
+
+        return nearby;
     };
     Player.players.set(this.id, this);
 }
