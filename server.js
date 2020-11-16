@@ -86,7 +86,7 @@ function update() {
 }
 
 
-var buffer = new ArrayBuffer(50000);
+var buffer = new ArrayBuffer(500000);
 
 let NetworkTimer = 0;
 

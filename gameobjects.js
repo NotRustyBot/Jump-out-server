@@ -146,11 +146,11 @@ Area.getLocalArea = function (position) {
 }
 
 let Universe = {};
-Universe.size = 20; // area v jedné ose
+Universe.size = 200; // area v jedné ose
 
 let SpawnRules = {
     asteroids: {
-        count: 500,
+        count: 5000,
         oreChance: 0.5,
         oreMaxCount: 3,
         rareChance: 0,
@@ -163,11 +163,13 @@ Universe.init = function () {
     const { gasMap, gasBuffer } = require("./worldgen.js");
     Universe.scale = Universe.size * Area.size / gasMap.length;
     Universe.gasBuffer = gasBuffer;
+    let view = new DataView(gasBuffer);
+    view.setUint16(1, Universe.scale);
     Universe.gasMap = gasMap;
     let mid = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
 
     for (let i = 0; i < SpawnRules.asteroids.count; i++) {
-        let pos = new Vector(Math.random() * ( Area.size * (Universe.size- 2)) + Area.size, Math.random() * ( Area.size * (Universe.size- 2)) + Area.size);
+        let pos = new Vector(Math.random() * (Area.size * (Universe.size - 2)) + Area.size, Math.random() * (Area.size * (Universe.size - 2)) + Area.size);
         let asteroid = new Entity(pos.x, pos.y, 1);
         asteroid.collider.push(new Shape().circle(0, 0, 125));
         asteroid.calculateBounds();
@@ -187,7 +189,7 @@ Universe.init = function () {
         if (Universe.getGas(pos) <= SpawnRules.asteroids.gasThreshold) {
             asteroid.rotationSpeed = Math.random() * SpawnRules.asteroids.rotationSpeed * 2 - SpawnRules.asteroids.rotationSpeed;
             asteroid.init();
-        }else{
+        } else {
             asteroid.rotationSpeed = Math.random() * SpawnRules.asteroids.rotationSpeed * 2 - SpawnRules.asteroids.rotationSpeed;
             asteroid.init();
         }
@@ -612,23 +614,9 @@ function Ship(id) {
         let topSpeed =
             stats.speed * debuffMult + this.afterBurnerActive * stats.afterBurnerSpeedBonus * debuffMult;
         if (this.velocity.length() >= topSpeed) {
-            if (this.control.y != 0) {
-                this.velocity.mult(1 - stats.drag * dt); // odpor
-                if (this.velocity.length() < Ship.minSpeed) {
-                    this.velocity = Vector.zero();
-                }
-            } else {
-                let pointing = Vector.fromAngle(this.rotation).mult(
-                    this.control.y
-                );
-                pointing.normalize(
-                    stats.reverseAccelreation +
-                    this.afterBurnerActive *
-                    stats.afterBurnerAccelerationBonus
-                );
-                afterBurnerUsed = true;
-                pointing.mult(dt);
-                this.velocity.add(pointing);
+            this.velocity.mult(1 - stats.drag * dt); // odpor
+            if (this.velocity.length() < Ship.minSpeed) {
+                this.velocity = Vector.zero();
             }
         } else {
             if (this.control.y != 0) {
@@ -688,33 +676,36 @@ function Ship(id) {
     this.checkCollision = function (dt) {
         let size = 60; //??;
         let localArea = Area.getLocalArea(this.position);
-        for (let i = 0; i < localArea.entities.length; i++) {
-            const e = localArea.entities[i];
-            let relativePos = this.position.result();
-            relativePos.x -= e.position.x;
-            relativePos.y -= e.position.y;
-            let collisionShape = new Shape().circle(relativePos.x, relativePos.y, size);
-            let res;
-            if (!e.rotatedColliderValid) {
-                e.rotateCollider();
-            }
 
-            e.rotatedCollider.forEach(s => {
-                res = collisionShape.checkCollision(s);
-                if (res.result) {
-                    this.position.add(res.overlap);
-                    res.overlap.normalize();
-                    res.overlap.mult(-Math.min(Vector.dot(res.overlap, this.velocity), 0) * 2);
-                    this.velocity.add(res.overlap);
-                    this.velocity.mult(0.8);
-                    relativePos = this.position.result();
-                    relativePos.x -= e.position.x;
-                    relativePos.y -= e.position.y;
-                    collisionShape.x = relativePos.x;
-                    collisionShape.y = relativePos.y;
-                    CollisionEvent.list.push(new CollisionEvent(this, e, res));
+        if (localArea != undefined) {
+            for (let i = 0; i < localArea.entities.length; i++) {
+                const e = localArea.entities[i];
+                let relativePos = this.position.result();
+                relativePos.x -= e.position.x;
+                relativePos.y -= e.position.y;
+                let collisionShape = new Shape().circle(relativePos.x, relativePos.y, size);
+                let res;
+                if (!e.rotatedColliderValid) {
+                    e.rotateCollider();
                 }
-            });
+
+                e.rotatedCollider.forEach(s => {
+                    res = collisionShape.checkCollision(s);
+                    if (res.result) {
+                        this.position.add(res.overlap);
+                        res.overlap.normalize();
+                        res.overlap.mult(-Math.min(Vector.dot(res.overlap, this.velocity), 0) * 2);
+                        this.velocity.add(res.overlap);
+                        this.velocity.mult(0.8);
+                        relativePos = this.position.result();
+                        relativePos.x -= e.position.x;
+                        relativePos.y -= e.position.y;
+                        collisionShape.x = relativePos.x;
+                        collisionShape.y = relativePos.y;
+                        CollisionEvent.list.push(new CollisionEvent(this, e, res));
+                    }
+                });
+            }
         }
 
 
@@ -759,17 +750,17 @@ function Player(connection) {
     /**
      * @returns {Entity[]}
      */
-    this.proximity = function(){
+    this.proximity = function () {
         let proximity = [];
         let coords = this.ship.position.result();
 
         for (let y = -1; y <= 1; y++) {
             for (let x = -1; x <= 1; x++) {
                 let adjusted = coords.result();
-                adjusted.x += x*Area.size;
-                adjusted.y += y*Area.size;
+                adjusted.x += x * Area.size;
+                adjusted.y += y * Area.size;
                 let area = Area.getLocalArea(adjusted);
-                if(area != undefined) proximity.push(area);
+                if (area != undefined) proximity.push(area);
             }
         }
 
@@ -780,7 +771,7 @@ function Player(connection) {
             });
         });
 
-        this.debug = " Nearby: "+nearby.length;
+        this.debug = " Nearby: " + nearby.length;
 
         return nearby;
     };

@@ -66,9 +66,10 @@ let circle = 30;
 let falloff = 100;
 let shift = 0;
 
-let gasBuffer = new ArrayBuffer(1000005);
+let gasBuffer = new ArrayBuffer(1000007);
 let view = new AutoView(gasBuffer);
 view.setUint8(serverHeaders.gasData);
+view.setUint16(100);
 view.setUint16(w);
 view.setUint16(h);
 
