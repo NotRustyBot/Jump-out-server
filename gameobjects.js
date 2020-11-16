@@ -146,7 +146,7 @@ Area.getLocalArea = function (position) {
 }
 
 let Universe = {};
-Universe.size = 200; // area v jedné ose
+Universe.size = 80; // area v jedné ose
 
 let SpawnRules = {
     asteroids: {
