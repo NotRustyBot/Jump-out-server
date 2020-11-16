@@ -555,7 +555,7 @@ function Ship(id) {
      * @type {ShipType}
      */
     this.stats;
-    this.position = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
+    this.position = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 3);
     this.velocity = new Vector(0, 0);
     this.rotation = 0;
     this.control = new Vector(0, 0);
