@@ -98,6 +98,16 @@ function updateMessage() {
     NetworkTimer = 0;
   }
 
+  //MESSAGE TYPE 2 (NEW PLAYER)
+
+  if (Player.newPlayers.length > 0) {
+    view.setUint8(serverHeaders.newPlayers);
+    view.setUint8(Player.newPlayers.length);
+    Player.newPlayers.forEach(player => {
+      view.serialize(player, Datagrams.initPlayer);
+    });
+    Player.newPlayers = [];
+  }
 
   //MESSAGE TYPE 1 (SHIP UPDATE)
 
@@ -109,16 +119,6 @@ function updateMessage() {
     }
   });
 
-  //MESSAGE TYPE 2 (NEW PLAYER)
-
-  if (Player.newPlayers.length > 0) {
-    view.setUint8(serverHeaders.newPlayers);
-    view.setUint8(Player.newPlayers.length);
-    Player.newPlayers.forEach(player => {
-      view.serialize(player, Datagrams.initPlayer);
-    });
-    Player.newPlayers = [];
-  }
 
   //MESSAGE TYPE 3 (LEFT PLAYER)
 
