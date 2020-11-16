@@ -533,10 +533,10 @@ ShipType.init = function () {
     debugShip.acceleration = 600;
     debugShip.reverseAccelreation = 300;
     debugShip.rotationSpeed = 3;
-    debugShip.afterBurnerSpeedBonus = 600;
+    debugShip.afterBurnerSpeedBonus = 6000;
     debugShip.afterBurnerRotationBonus = 3;
     debugShip.afterBurnerAccelerationBonus = 300;
-    debugShip.afterBurnerCapacity = 60;
+    debugShip.afterBurnerCapacity = 600;
     debugShip.drag = 1;
 
     debugShip.drag = (100000 - debugShip.drag) / 100000;
@@ -561,7 +561,7 @@ function Ship(id) {
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
     this.afterBurnerUsed = 0;
-    this.afterBurnerFuel = 60;
+    this.afterBurnerFuel = 600;
     this.debuff = 0;
     /**
     * @type {number} id of the player who owns this ship
