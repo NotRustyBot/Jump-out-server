@@ -665,10 +665,10 @@ function Ship(id) {
             this.position.y = 0;
         }
         if (this.position.x > Universe.size * Area.size) {
-            this.position.x = Universe.size * Area.size;
+            this.position.x = Universe.size * Area.size -1;
         }
         if (this.position.y > Universe.size * Area.size) {
-            this.position.y = Universe.size * Area.size;
+            this.position.y = Universe.size * Area.size -1;
         }
         this.checkCollision(dt);
     };
