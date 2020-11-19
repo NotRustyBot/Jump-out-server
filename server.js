@@ -63,6 +63,11 @@ setInterval(() => {
 
 let last = Date.now();
 
+let mspt = 0; 
+let msptavg =  [];
+
+for (let i = 0; i < fps; i++) { msptavg[i] = 0; }
+
 function update() {
   dt = (Date.now() - last) / 1000;
   last = Date.now();
@@ -74,6 +79,7 @@ function update() {
 
   Player.players.forEach(p => {
     if (p.initialised) {
+      p.debug = "   MSPT: " + mspt.toFixed(2);
       let toSend = AreaInfo(msg, p);
       msg.index = sameIndex;
       p.send(toSend);
@@ -83,6 +89,23 @@ function update() {
   if (NetworkTimer % 3 == 0) {
     SendDebugPackets();
   }
+  mspt = Date.now() - last;
+  msptavg.unshift(mspt);
+  msptavg.pop();
+  mspt = average(msptavg);
+}
+
+/**
+ * 
+ * @param {number[]} array 
+ * @returns {number}
+ */
+function average(array){
+  let total = 0;
+  array.forEach(e => {
+    total += e;
+  });
+  return total/array.length;
 }
 
 

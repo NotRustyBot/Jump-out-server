@@ -63,9 +63,9 @@ let subres = 1;
 let scale = 80;
 
 let circle = 5;
-let falloff = 7;
+let falloff = 10;
 let shift = 0;
-let mult = 3;
+let mult = 4;
 
 let gasBuffer = new ArrayBuffer(1000007);
 let view = new AutoView(gasBuffer);

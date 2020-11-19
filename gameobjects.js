@@ -772,8 +772,6 @@ function Player(connection) {
             });
         });
 
-        this.debug = " Nearby: " + nearby.length;
-
         return nearby;
     };
     Player.players.set(this.id, this);
