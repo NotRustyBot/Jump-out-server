@@ -155,6 +155,7 @@ let SpawnRules = {
         oreMaxCount: 3,
         rareChance: 0,
         gasThreshold: 30,
+        gasRareThreshold: 80,
         rotationSpeed: 0.1,
     },
 };
@@ -189,8 +190,8 @@ Universe.init = function () {
         if (Universe.getGas(pos) <= SpawnRules.asteroids.gasThreshold) {
             asteroid.rotationSpeed = Math.random() * SpawnRules.asteroids.rotationSpeed * 2 - SpawnRules.asteroids.rotationSpeed;
             asteroid.init();
-        } else {
-            asteroid.rotationSpeed = Math.random() * SpawnRules.asteroids.rotationSpeed * 2 - SpawnRules.asteroids.rotationSpeed;
+        } else if(Universe.getGas(pos) <= SpawnRules.asteroids.gasRareThreshold){
+            asteroid.rotationSpeed = 20;
             asteroid.init();
         }
     }
@@ -533,10 +534,10 @@ ShipType.init = function () {
     debugShip.acceleration = 600;
     debugShip.reverseAccelreation = 300;
     debugShip.rotationSpeed = 3;
-    debugShip.afterBurnerSpeedBonus = 6000;
+    debugShip.afterBurnerSpeedBonus = 600;
     debugShip.afterBurnerRotationBonus = 3;
     debugShip.afterBurnerAccelerationBonus = 300;
-    debugShip.afterBurnerCapacity = 600;
+    debugShip.afterBurnerCapacity = 60;
     debugShip.drag = 1;
 
     debugShip.drag = (100000 - debugShip.drag) / 100000;
@@ -555,13 +556,13 @@ function Ship(id) {
      * @type {ShipType}
      */
     this.stats;
-    this.position = new Vector(Universe.size * Area.size / 2, Area.size);
+    this.position = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
     this.velocity = new Vector(0, 0);
     this.rotation = 0;
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
     this.afterBurnerUsed = 0;
-    this.afterBurnerFuel = 600;
+    this.afterBurnerFuel = 60;
     this.debuff = 0;
     /**
     * @type {number} id of the player who owns this ship

@@ -62,9 +62,10 @@ let subres = 1;
 
 let scale = 80;
 
-let circle = 30;
-let falloff = 100;
+let circle = 5;
+let falloff = 7;
 let shift = 0;
+let mult = 3;
 
 let gasBuffer = new ArrayBuffer(1000007);
 let view = new AutoView(gasBuffer);
@@ -114,6 +115,7 @@ for (let y = 0; y < h; y += subres) {
 		}
 
 		level = level - shift;
+		level = Math.min(level * mult, 100)
 		if (level < 0) {
 			level = 0;
 		}
