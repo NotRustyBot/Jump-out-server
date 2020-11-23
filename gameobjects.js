@@ -130,6 +130,7 @@ Area.checkIn = function (entity) {
     }
 };
 
+exports.Area = Area;
 
 /**
  * 
@@ -147,61 +148,6 @@ Area.getLocalArea = function (position) {
 
 let Universe = {};
 Universe.size = 80; // area v jedné ose
-
-let SpawnRules = {
-    asteroids: {
-        count: 5000,
-        oreChance: 0.5,
-        oreMaxCount: 3,
-        rareChance: 0,
-        gasThreshold: 30,
-        gasRareThreshold: 80,
-        rotationSpeed: 0.1,
-    },
-};
-
-Universe.init = function () {
-    const { gasMap, gasBuffer } = require("./worldgen.js");
-    Universe.scale = Universe.size * Area.size / gasMap.length;
-    Universe.gasBuffer = gasBuffer;
-    let view = new DataView(gasBuffer);
-    view.setUint16(1, Universe.scale);
-    Universe.gasMap = gasMap;
-    let mid = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
-
-    for (let i = 0; i < SpawnRules.asteroids.count; i++) {
-        let pos = new Vector(Math.random() * (Area.size * (Universe.size - 2)) + Area.size, Math.random() * (Area.size * (Universe.size - 2)) + Area.size);
-        let asteroid = new Entity(pos.x, pos.y, 1);
-        asteroid.collider.push(new Shape().circle(0, 0, 125));
-        asteroid.calculateBounds();
-        let area = Area.getLocalArea(pos);
-        let colliding = false;
-        area.entities.forEach(e => {
-            let relativeCoords = pos.result().sub(e.position);
-            if (relativeCoords.inbound(e.bounds + asteroid.bounds)) {
-                colliding = true;
-                i--;
-                return;
-            }
-        });
-
-        if (colliding) continue;
-
-        if (Universe.getGas(pos) <= SpawnRules.asteroids.gasThreshold) {
-            asteroid.rotationSpeed = Math.random() * SpawnRules.asteroids.rotationSpeed * 2 - SpawnRules.asteroids.rotationSpeed;
-            asteroid.init();
-        } else if(Universe.getGas(pos) <= SpawnRules.asteroids.gasRareThreshold){
-            asteroid.rotationSpeed = 20;
-            asteroid.init();
-        }
-    }
-    //new Resource(e1, new Vector(-300, 0), 60, 0);
-
-    let e2 = new Entity(mid.x - 1000, mid.y, 2);
-    e2.colliderFromFile("hitboxes/plane.json");
-    e2.calculateBounds();
-    e2.init();
-}
 
 /**
  * 
@@ -400,6 +346,7 @@ function Shape() {
     };
 }
 Shape.types = { circle: 1, line: 2 };
+exports.Shape = Shape;
 
 
 /**

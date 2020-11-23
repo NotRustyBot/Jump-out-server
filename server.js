@@ -1,6 +1,7 @@
 const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe, Area} = require("./gameobjects.js");
+const { } = require("./worldgen");
 const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
-Universe.init();
+
 //#region INIT
 let http = require('http');
 let server = http.createServer(function (request, response) {
