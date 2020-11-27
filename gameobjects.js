@@ -462,6 +462,19 @@ Resource.list = [];
 exports.Resource = Resource;
 
 const maxInteractionRange = 600 + 60; //max resource size
+
+let Action = {};
+
+/**
+ * 
+ * @param {Ship} ship 
+ */
+Action.test = function (ship) {
+    ship.afterBurnerFuel += 10;
+    ship.afterBurnerFuel = Math.min(ship.afterBurnerFuel, ship.stats.afterBurnerCapacity);
+    return 10;
+}
+
 function ShipType() {
     this.name;
     this.speed;
@@ -471,6 +484,7 @@ function ShipType() {
     this.afterBurnerBonus;
     this.afterBurnerCapacity;
     this.drag;
+    this.actionPool = [];
 }
 
 ShipType.init = function () {
@@ -486,6 +500,7 @@ ShipType.init = function () {
     debugShip.afterBurnerAccelerationBonus = 300;
     debugShip.afterBurnerCapacity = 60;
     debugShip.drag = 1;
+    debugShip.actionPool = [Action.test];
 
     debugShip.drag = (100000 - debugShip.drag) / 100000;
     ShipType.types["Debug"] = debugShip;
@@ -511,6 +526,8 @@ function Ship(id) {
     this.afterBurnerUsed = 0;
     this.afterBurnerFuel = 60;
     this.debuff = 0;
+    this.action = 0;
+    this.cooldowns = [];
     /**
     * @type {number} id of the player who owns this ship
     */
@@ -522,6 +539,10 @@ function Ship(id) {
      */
     this.init = function (type) {
         this.stats = type;
+        for (let i = 0; i < type.actionPool.length; i++) {
+            this.cooldowns[i] = 0;
+            console.log(i);
+        }
     };
 
     this.update = function (dt) {
@@ -618,8 +639,28 @@ function Ship(id) {
         if (this.position.y > Universe.size * Area.size) {
             this.position.y = Universe.size * Area.size -1;
         }
+        this.handleAction(dt);
         this.checkCollision(dt);
     };
+
+    this.handleAction = function(dt){
+        for (let i = 0; i < this.cooldowns.length; i++) {
+            if (this.cooldowns[i] > 0) {
+                this.cooldowns[i] -= dt;
+            }else{
+                this.cooldowns[i] = 0;
+            }
+        }
+
+        if (this.action != 0) {
+            this.action--;
+            if(this.stats.actionPool[this.action] != undefined){
+                if(this.cooldowns[this.action] == 0){
+                    this.cooldowns[this.action] = this.stats.actionPool[this.action](this);
+                }
+            }
+        }
+    }
 
     this.checkCollision = function (dt) {
         let size = 60; //??;
@@ -655,21 +696,6 @@ function Ship(id) {
                 });
             }
         }
-
-
-        /*
-        Player.players.forEach(p => {
-            let other = p.ship;
-            if (this != other) {
-                let collisionShape = new Shape().circle(this.position.x, this.position.y, size);
-                let otherShape = new Shape().circle(other.position.x, other.position.y, size);
-                res = collisionShape.checkCollision(otherShape);
-                if (res.result) {
-                    this.velocity.mult(-0.5);
-                    this.position.add(res.overlap);
-                }
-            }
-        })*/
     }
 }
 

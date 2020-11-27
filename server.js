@@ -271,7 +271,6 @@ function parseMessage(buffer, player) {
 function parseInput(view, player) {
   let ship = player.ship;
   view.deserealize(ship, Datagrams.input);
-  //console.log("Parsing to: ",controlVector);
 }
 
 function parseInit(view, player) {

@@ -287,6 +287,7 @@ let input = new Datagram();
 
 input.add(types.vector32, "control");
 input.add(types.int8, "afterBurnerActive");
+input.add(types.int8, "action");
 Datagrams.input = input;
 
 
