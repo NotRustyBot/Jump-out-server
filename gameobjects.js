@@ -1,3 +1,4 @@
+const { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } = require('constants');
 const fs = require('fs');
 
 //#region věci
@@ -475,6 +476,74 @@ Action.test = function (ship) {
     return 10;
 }
 
+Action.buildTest = function (ship){
+    return construct(ship, Buildings.test)? 0.1: 0;
+}
+
+let Buildings = {
+    test: {
+        size: 300,
+        type: 101,
+    }
+}
+
+/**
+ * 
+ * @param {Ship} ship 
+ * @param {*} building 
+ */
+function construct(ship, building) {
+    let position = ship.position.result();
+    position.add(Vector.fromAngle(ship.rotation).mult(500));
+    if (isAvalible(position, building.size)) {
+        let build = new Entity(position.x,position.y,building.type);
+        build.collider.push(new Shape().circle(0,0,building.size));
+        build.calculateBounds();
+        build.init();
+        return true;
+    }
+    return false;
+}
+
+function isAvalible(position, size) {
+    let out = true;
+    let localArea = Area.getLocalArea(position);
+
+    if (localArea != undefined) {
+        for (let i = 0; i < localArea.entities.length; i++) {
+            const e = localArea.entities[i];
+            let relativePos = position.result();
+            relativePos.x -= e.position.x;
+            relativePos.y -= e.position.y;
+            let collisionShape = new Shape().circle(relativePos.x, relativePos.y, size);
+            let res;
+            if (!e.rotatedColliderValid) {
+                e.rotateCollider();
+            }
+
+            e.rotatedCollider.forEach(s => {
+                res = collisionShape.checkCollision(s);
+                if (res.result) {
+                    out = false;
+                    return;
+                }
+            });
+        }
+    }
+
+    let collisionShape = new Shape().circle(position.x, position.y, size);
+    Player.players.forEach(p => {
+        let s = new Shape().circle(p.ship.position.x, p.ship.position.y, 60);
+        res = collisionShape.checkCollision(s);
+        if (res.result) {
+            out = false;
+            return;
+        }
+    });
+
+    return out;
+}
+
 function ShipType() {
     this.name;
     this.speed;
@@ -500,7 +569,7 @@ ShipType.init = function () {
     debugShip.afterBurnerAccelerationBonus = 300;
     debugShip.afterBurnerCapacity = 60;
     debugShip.drag = 1;
-    debugShip.actionPool = [Action.test];
+    debugShip.actionPool = [Action.buildTest];
 
     debugShip.drag = (100000 - debugShip.drag) / 100000;
     ShipType.types["Debug"] = debugShip;
@@ -541,7 +610,6 @@ function Ship(id) {
         this.stats = type;
         for (let i = 0; i < type.actionPool.length; i++) {
             this.cooldowns[i] = 0;
-            console.log(i);
         }
     };
 
@@ -634,28 +702,28 @@ function Ship(id) {
             this.position.y = 0;
         }
         if (this.position.x > Universe.size * Area.size) {
-            this.position.x = Universe.size * Area.size -1;
+            this.position.x = Universe.size * Area.size - 1;
         }
         if (this.position.y > Universe.size * Area.size) {
-            this.position.y = Universe.size * Area.size -1;
+            this.position.y = Universe.size * Area.size - 1;
         }
         this.handleAction(dt);
         this.checkCollision(dt);
     };
 
-    this.handleAction = function(dt){
+    this.handleAction = function (dt) {
         for (let i = 0; i < this.cooldowns.length; i++) {
             if (this.cooldowns[i] > 0) {
                 this.cooldowns[i] -= dt;
-            }else{
+            } else {
                 this.cooldowns[i] = 0;
             }
         }
 
         if (this.action != 0) {
             this.action--;
-            if(this.stats.actionPool[this.action] != undefined){
-                if(this.cooldowns[this.action] == 0){
+            if (this.stats.actionPool[this.action] != undefined) {
+                if (this.cooldowns[this.action] == 0) {
                     this.cooldowns[this.action] = this.stats.actionPool[this.action](this);
                 }
             }
