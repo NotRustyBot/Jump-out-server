@@ -594,7 +594,7 @@ for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
                 closest = dist;
             }
         });
-        if (target != null) {
+        if (target != undefined) {
             if (closest < 200) {
                 this.velocity = Vector.zero();
             } else {

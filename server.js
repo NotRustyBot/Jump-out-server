@@ -114,7 +114,7 @@ function average(array){
 }
 
 
-var buffer = new ArrayBuffer(500000);
+var buffer = new ArrayBuffer(5000000);
 
 let NetworkTimer = 0;
 
