@@ -574,8 +574,8 @@ function Mobile(x, y, type) {
     }
 }
 
-console.log(process.env.HOLOUBCI);
-for (let index = 0; index < process.env.HOLOUBCI; index++) {
+console.log(typeof(process.env.HOLOUBCI));
+for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
     let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
     m1.collider.push(new Shape().circle(0, 0, 125));
     m1.calculateBounds();
