@@ -574,38 +574,46 @@ function Mobile(x, y, type) {
     }
 }
 
-let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 1);
-m1.collider.push(new Shape().circle(0, 0, 125));
-m1.calculateBounds();
-m1.collisionPurpose = Entity.CollisionFlags.projectile;
-m1.init();
-m1.control = function (dt) {
-    if (this.startPos == undefined) {
-        this.startPos = this.position.result();
-    }
+for (let index = 0; index < 100; index++) {
+    let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
+    m1.collider.push(new Shape().circle(0, 0, 125));
+    m1.calculateBounds();
+    m1.collisionPurpose = Entity.CollisionFlags.projectile;
+    m1.init();
+    m1.control = function (dt) {
+        if (this.startPos == undefined) {
+            this.startPos = this.position.result();
+        }
 
-    let closest = 1500;
-    let target = undefined;
-    Player.players.forEach(p => {
-        let dist = p.ship.position.distance(this.position);
-        if (dist < closest) {
-            target = p.ship;
+        let closest = 1500;
+        let target = undefined;
+        Player.players.forEach(p => {
+            let dist = p.ship.position.distance(this.position);
+            if (dist < closest) {
+                target = p.ship;
+                closest = dist;
+            }
+        });
+        if (target != null) {
+            if (closest < 200) {
+                this.velocity.normalize(0);
+            } else {
+                this.velocity = target.position.result().sub(this.position);
+                this.velocity.normalize(dt * 600);
+            }
+        } else {
+            if (Vector.sub(this.startPos, this.position).length() > 3000) {
+                this.velocity = Vector.sub(this.startPos, this.position);
+                this.velocity.normalize(dt * 300);
+            } else if (Math.random() < 0.01) {
+                this.velocity = new Vector(Math.random(), Math.random());
+                this.velocity.normalize(dt * 300);
+            }
         }
-    });
-    if (target != null) {
-        this.velocity = target.position.result().sub(this.position);
-        this.velocity.normalize(dt * 600);
-    } else {
-        if (Vector.sub(this.startPos, this.position).length() > 3000) {
-            this.velocity = Vector.sub(this.startPos, this.position);
-            this.velocity.normalize(dt * 300);
-        } else if (Math.random() < 0.01) {
-            this.velocity = new Vector(Math.random(), Math.random());
-            this.velocity.normalize(dt * 300);
-        }
+        this.rotation = this.velocity.toAngle();
     }
-    this.rotation = this.velocity.toAngle();
 }
+
 
 
 let Action = {};
@@ -819,21 +827,21 @@ function Ship(id) {
             }
         }
         this.velocity.mult(1 - stats.drag * dt);
-        
+
         let absoluteLimit = stats.speed + stats.afterBurnerSpeedBonus;
-        if(this.velocity.length() > absoluteLimit){
+        if (this.velocity.length() > absoluteLimit) {
             this.velocity.normalize(absoluteLimit);
         }
 
 
         let targetSpeed = stats.speed * debuffMult + stats.afterBurnerSpeedBonus * this.afterBurnerActive * debuffMult;
         let speed = this.velocity.length();
-        if(speed > targetSpeed){
-            this.velocity.normalize(speed-stats.acceleration*dt);
-            if(this.velocity.length() < targetSpeed) this.velocity.normalize(targetSpeed);
+        if (speed > targetSpeed) {
+            this.velocity.normalize(speed - stats.acceleration * dt);
+            if (this.velocity.length() < targetSpeed) this.velocity.normalize(targetSpeed);
         }
 
-        Player.players.get(id).debug += "  Speed: " + this.velocity.length().toFixed(2) +"/"+targetSpeed.toFixed(2)+ "\n";
+        Player.players.get(id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "/" + targetSpeed.toFixed(2) + "\n";
         this.position.add(this.velocity.result().mult(dt));
         this.afterBurnerUsed = 0;
         if (
