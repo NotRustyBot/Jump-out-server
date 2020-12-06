@@ -573,7 +573,7 @@ function Mobile(x, y, type) {
         });
     }
 }
-
+process.env.HOLOUBCI = process.env.HOLOUBCI || 500;
 for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
     let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
     m1.collider.push(new Shape().circle(0, 0, 125));
@@ -596,7 +596,7 @@ for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
         });
         if (target != null) {
             if (closest < 200) {
-                this.velocity.normalize(0);
+                this.velocity = Vector.zero();
             } else {
                 this.velocity = target.position.result().sub(this.position);
                 this.velocity.normalize(dt * 600);
@@ -891,8 +891,6 @@ function Ship(id) {
         let size = 60; //??;
         let localArea = Area.getLocalArea(this.position);
 
-        let date = Date.now();
-
         if (localArea != undefined) {
             for (let i = 0; i < localArea.entities.length; i++) {
                 const e = localArea.entities[i];
@@ -924,8 +922,6 @@ function Ship(id) {
                 });
             }
         }
-        date = Date.now() - date;
-        Player.players.get(id).debug += "  ptime: " + date.length().toFixed(2) + "ms" + "\n";
     }
 }
 

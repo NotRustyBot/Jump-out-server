@@ -74,17 +74,21 @@ function update() {
   last = Date.now();
   let msg = updateMessage();
   let sameIndex = msg.index;
+  
+
   Entity.list.forEach(e => {
     e.update(dt);
   });
 
+
   Player.players.forEach(p => {
     if (p.initialised) {
-      p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
+      
       let toSend = AreaInfo(msg, p);
       msg.index = sameIndex;
       p.ship.update(dt);
       p.send(toSend);
+      p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
     }
   });
   if (NetworkTimer % 3 == 0) {
