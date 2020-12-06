@@ -580,7 +580,7 @@ m1.calculateBounds();
 m1.collisionPurpose = Entity.CollisionFlags.projectile;
 m1.init();
 m1.control = function (dt) {
-    if(this.startPos == undefined){
+    if (this.startPos == undefined) {
         this.startPos = this.position.result();
     }
 
@@ -596,10 +596,10 @@ m1.control = function (dt) {
         this.velocity = target.position.result().sub(this.position);
         this.velocity.normalize(dt * 600);
     } else {
-        if(Vector.sub(this.startPos, this.position).length() > 3000){
-            this.velocity = Vector.sub(this.startPos,this.position);
+        if (Vector.sub(this.startPos, this.position).length() > 3000) {
+            this.velocity = Vector.sub(this.startPos, this.position);
             this.velocity.normalize(dt * 300);
-        }else if (Math.random() < 0.01) {
+        } else if (Math.random() < 0.01) {
             this.velocity = new Vector(Math.random(), Math.random());
             this.velocity.normalize(dt * 300);
         }
@@ -708,14 +708,14 @@ ShipType.init = function () {
     debugShip.acceleration = 600;
     debugShip.reverseAccelreation = 300;
     debugShip.rotationSpeed = 3;
-    debugShip.afterBurnerSpeedBonus = 6000;
+    debugShip.afterBurnerSpeedBonus = 600;
     debugShip.afterBurnerRotationBonus = 3;
     debugShip.afterBurnerAccelerationBonus = 300;
     debugShip.afterBurnerCapacity = 60;
-    debugShip.drag = 1;
+    debugShip.drag = 500;
     debugShip.actionPool = [Action.buildTest];
 
-    debugShip.drag = (100000 - debugShip.drag) / 100000;
+    debugShip.drag = debugShip.drag / 1000;
     ShipType.types["Debug"] = debugShip;
 };
 ShipType.init();
@@ -792,43 +792,48 @@ function Ship(id) {
             afterBurnerUsed = true;
         }
 
-        let topSpeed =
-            stats.speed * debuffMult + this.afterBurnerActive * stats.afterBurnerSpeedBonus * debuffMult;
-
-        if (this.velocity.length() >= topSpeed) {
-            this.velocity.mult(1 - stats.drag * dt); // odpor
-        } else {
-            if (this.control.y != 0) {
-                // zrychlení / brždění
-                let pointing = Vector.fromAngle(this.rotation).mult(
-                    this.control.y
+        if (this.control.y != 0) {
+            // zrychlení / brždění
+            let pointing = Vector.fromAngle(this.rotation).mult(
+                this.control.y
+            );
+            if (this.control.y > 0) {
+                pointing.normalize(
+                    stats.acceleration +
+                    this.afterBurnerActive *
+                    stats.afterBurnerAccelerationBonus
                 );
-                if (this.control.y > 0) {
-                    pointing.normalize(
-                        stats.acceleration +
-                        this.afterBurnerActive *
-                        stats.afterBurnerAccelerationBonus
-                    );
-                } else {
-                    pointing.normalize(
-                        stats.reverseAccelreation +
-                        this.afterBurnerActive *
-                        stats.afterBurnerAccelerationBonus
-                    );
-                }
-                afterBurnerUsed = true;
-                pointing.mult(dt);
-                this.velocity.add(pointing);
             } else {
-                this.velocity.mult(1 - stats.drag * dt); // odpor
-                if (this.velocity.length() < Ship.minSpeed) {
-                    this.velocity = Vector.zero();
-                }
+                pointing.normalize(
+                    stats.reverseAccelreation +
+                    this.afterBurnerActive *
+                    stats.afterBurnerAccelerationBonus
+                );
+            }
+            afterBurnerUsed = true;
+            pointing.mult(dt);
+            this.velocity.add(pointing);
+        } else {
+            if (this.velocity.length() < Ship.minSpeed) {
+                this.velocity = Vector.zero();
             }
         }
+        this.velocity.mult(1 - stats.drag * dt);
         
+        let absoluteLimit = stats.speed + stats.afterBurnerSpeedBonus;
+        if(this.velocity.length() > absoluteLimit){
+            this.velocity.normalize(absoluteLimit);
+        }
 
-        Player.players.get(id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "\n";
+
+        let targetSpeed = stats.speed * debuffMult + stats.afterBurnerSpeedBonus * this.afterBurnerActive * debuffMult;
+        let speed = this.velocity.length();
+        if(speed > targetSpeed){
+            this.velocity.normalize(speed-stats.acceleration*dt);
+            if(this.velocity.length() < targetSpeed) this.velocity.normalize(targetSpeed);
+        }
+
+        Player.players.get(id).debug += "  Speed: " + this.velocity.length().toFixed(2) +"/"+targetSpeed.toFixed(2)+ "\n";
         this.position.add(this.velocity.result().mult(dt));
         this.afterBurnerUsed = 0;
         if (
