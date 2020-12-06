@@ -80,11 +80,11 @@ function update() {
 
   Player.players.forEach(p => {
     if (p.initialised) {
-      p.debug = "   MSPT: " + mspt.toFixed(2);
+      p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
       let toSend = AreaInfo(msg, p);
       msg.index = sameIndex;
-      p.send(toSend);
       p.ship.update(dt);
+      p.send(toSend);
     }
   });
   if (NetworkTimer % 3 == 0) {

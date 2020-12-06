@@ -1,4 +1,3 @@
-const { SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION } = require('constants');
 const fs = require('fs');
 
 //#region věci
@@ -129,6 +128,91 @@ Area.checkIn = function (entity) {
     if (!area.entities.includes(entity)) {
         area.entities.push(entity);
     }
+};
+
+/**
+ * 
+ * @param {Entity} entity 
+ */
+Area.checkOut = function (entity) {
+    let position = entity.position;
+    let x = Math.floor((position.x + entity.bounds) / Area.size);
+    let y = Math.floor((position.y + entity.bounds) / Area.size);
+    let area = Area.list[x][y];
+    if (area.entities.includes(entity)) {
+        area.entities.slice(area.entities.indexOf(entity));
+    }
+
+    position = entity.position;
+    x = Math.floor((position.x - entity.bounds) / Area.size);
+    y = Math.floor((position.y + entity.bounds) / Area.size);
+    area = Area.list[x][y];
+
+    if (area.entities.includes(entity)) {
+        area.entities.slice(area.entities.indexOf(entity));
+    }
+
+    position = entity.position;
+    x = Math.floor((position.x + entity.bounds) / Area.size);
+    y = Math.floor((position.y - entity.bounds) / Area.size);
+    area = Area.list[x][y];
+
+    if (area.entities.includes(entity)) {
+        area.entities.slice(area.entities.indexOf(entity));
+    }
+
+    position = entity.position;
+    x = Math.floor((position.x - entity.bounds) / Area.size);
+    y = Math.floor((position.y - entity.bounds) / Area.size);
+    area = Area.list[x][y];
+
+    if (area.entities.includes(entity)) {
+        area.entities.slice(area.entities.indexOf(entity));
+    }
+};
+
+
+/**
+ * 
+ * @param {Mobile} mobile 
+ */
+Area.moveMe = function (mobile) {
+    let position = mobile.position;
+    let newPosition = position.result().add(mobile.velocity);
+    let x = Math.floor((position.x + mobile.bounds) / Area.size);
+    let y = Math.floor((position.y + mobile.bounds) / Area.size);
+    let nx = Math.floor((newPosition.x + mobile.bounds) / Area.size);
+    let ny = Math.floor((newPosition.y + mobile.bounds) / Area.size);
+
+    if (x == nx && y == ny) {
+        mobile.position = newPosition;
+        x = Math.floor((position.x - mobile.bounds) / Area.size);
+        y = Math.floor((position.y + mobile.bounds) / Area.size);
+        nx = Math.floor((newPosition.x - mobile.bounds) / Area.size);
+        ny = Math.floor((newPosition.y + mobile.bounds) / Area.size);
+        if (x == nx && y == ny) {
+            mobile.position = newPosition;
+            x = Math.floor((position.x + mobile.bounds) / Area.size);
+            y = Math.floor((position.y - mobile.bounds) / Area.size);
+            nx = Math.floor((newPosition.x + mobile.bounds) / Area.size);
+            ny = Math.floor((newPosition.y - mobile.bounds) / Area.size);
+            if (x == nx && y == ny) {
+                mobile.position = newPosition;
+                x = Math.floor((position.x - mobile.bounds) / Area.size);
+                y = Math.floor((position.y - mobile.bounds) / Area.size);
+                nx = Math.floor((newPosition.x - mobile.bounds) / Area.size);
+                ny = Math.floor((newPosition.y - mobile.bounds) / Area.size);
+                if (x == nx && y == ny) {
+                    return;
+                }
+            }
+        }
+    }
+
+    Area.checkOut(mobile);
+    mobile.position = newPosition;
+    Area.checkIn(mobile);
+
 };
 
 exports.Area = Area;
@@ -360,6 +444,7 @@ function Entity(x, y, type) {
     this.position = new Vector(x, y);
     this.rotation = 0;
     this.rotationSpeed = 0;
+    this.collisionPurpose = 0;
     this.type = type;
     this.rotatedCollider = [];
     this.rotatedColliderValid = false;
@@ -369,9 +454,6 @@ function Entity(x, y, type) {
     this.collider = [];
     this.bounds = 0;
     this.id = Entity.list.length;
-    /**
-     * @type {Resource[]}
-     */
     this.children = [];
 
     this.init = function () {
@@ -434,6 +516,12 @@ function Entity(x, y, type) {
 }
 Entity.list = [];
 
+Entity.CollisionFlags = {
+    player: 1,
+    projectile: 2,
+    pickup: 4,
+}
+
 exports.Entity = Entity;
 
 /**
@@ -464,6 +552,62 @@ exports.Resource = Resource;
 
 const maxInteractionRange = 600 + 60; //max resource size
 
+function Mobile(x, y, type) {
+    Entity.call(this, x, y, type);
+    this.velocity = new Vector(0, 0);
+    this.timer = 0;
+    this.control = function (dt) { };
+    this.update = function (dt) {
+        this.rotatedColliderValid = false;
+        this.timer++;
+        this.timer = this.timer % 100;
+        this.control(dt);
+        Area.moveMe(this);
+        this.position.add(this.velocity.result().mult(dt));
+
+        this.rotation += this.rotationSpeed * dt;
+        this.rotation = this.rotation % (Math.PI * 2);
+
+        this.children.forEach(e => {
+            e.update();
+        });
+    }
+}
+
+let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 1);
+m1.collider.push(new Shape().circle(0, 0, 125));
+m1.calculateBounds();
+m1.collisionPurpose = Entity.CollisionFlags.projectile;
+m1.init();
+m1.control = function (dt) {
+    if(this.startPos == undefined){
+        this.startPos = this.position.result();
+    }
+
+    let closest = 1500;
+    let target = undefined;
+    Player.players.forEach(p => {
+        let dist = p.ship.position.distance(this.position);
+        if (dist < closest) {
+            target = p.ship;
+        }
+    });
+    if (target != null) {
+        this.velocity = target.position.result().sub(this.position);
+        this.velocity.normalize(dt * 600);
+    } else {
+        if(Vector.sub(this.startPos, this.position).length() > 3000){
+            this.velocity = Vector.sub(this.startPos,this.position);
+            this.velocity.normalize(dt * 300);
+        }else if (Math.random() < 0.01) {
+            this.velocity = new Vector(Math.random(), Math.random());
+            this.velocity.normalize(dt * 300);
+        }
+    }
+    this.rotation = this.velocity.toAngle();
+}
+
+
 let Action = {};
 
 /**
@@ -476,8 +620,8 @@ Action.test = function (ship) {
     return 10;
 }
 
-Action.buildTest = function (ship){
-    return construct(ship, Buildings.test)? 0.1: 0;
+Action.buildTest = function (ship) {
+    return construct(ship, Buildings.test) ? 0.1 : 0;
 }
 
 let Buildings = {
@@ -496,8 +640,8 @@ function construct(ship, building) {
     let position = ship.position.result();
     position.add(Vector.fromAngle(ship.rotation).mult(500));
     if (isAvalible(position, building.size)) {
-        let build = new Entity(position.x,position.y,building.type);
-        build.collider.push(new Shape().circle(0,0,building.size));
+        let build = new Entity(position.x, position.y, building.type);
+        build.collider.push(new Shape().circle(0, 0, building.size));
         build.calculateBounds();
         build.init();
         return true;
@@ -650,11 +794,9 @@ function Ship(id) {
 
         let topSpeed =
             stats.speed * debuffMult + this.afterBurnerActive * stats.afterBurnerSpeedBonus * debuffMult;
+
         if (this.velocity.length() >= topSpeed) {
             this.velocity.mult(1 - stats.drag * dt); // odpor
-            if (this.velocity.length() < Ship.minSpeed) {
-                this.velocity = Vector.zero();
-            }
         } else {
             if (this.control.y != 0) {
                 // zrychlení / brždění
@@ -684,7 +826,9 @@ function Ship(id) {
                 }
             }
         }
+        
 
+        Player.players.get(id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "\n";
         this.position.add(this.velocity.result().mult(dt));
         this.afterBurnerUsed = 0;
         if (
@@ -737,6 +881,7 @@ function Ship(id) {
         if (localArea != undefined) {
             for (let i = 0; i < localArea.entities.length; i++) {
                 const e = localArea.entities[i];
+                if ((e.collisionPurpose & Entity.CollisionFlags.player) != Entity.CollisionFlags.player) continue;
                 let relativePos = this.position.result();
                 relativePos.x -= e.position.x;
                 relativePos.y -= e.position.y;

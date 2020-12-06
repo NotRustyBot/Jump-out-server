@@ -1,5 +1,5 @@
 const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
-const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe, Area, Shape} = require("./gameobjects.js");
+const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe, Area, Shape } = require("./gameobjects.js");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 
@@ -13,7 +13,7 @@ function randomSeedParkMiller(seed = 123456) {
 	};
 }
 
-Math.random = randomSeedParkMiller(Math.random());
+Math.random = randomSeedParkMiller();
 
 ("use strict"); //https://github.com/joeiddon/perlin
 let perlin = {
@@ -79,6 +79,14 @@ view.setUint16(100);
 view.setUint16(w);
 view.setUint16(h);
 
+
+let debugMap = true;
+if (debugMap) {
+	let obj = JSON.parse(fs.readFileSync("perlin_data.json"));
+	perlin.memory = obj.memory;
+	perlin.gradients = obj.gradients;
+}
+
 const canvas = createCanvas(w, w);
 const context = canvas.getContext('2d');
 
@@ -92,17 +100,17 @@ function distance(x1, y1, x2, y2) {
 	return (c = Math.sqrt(a * a + b * b));
 }
 
-function voidCircle(x1, y1, r,p) {
+function voidCircle(x1, y1, r, p) {
 	let dMode = (p == 0);
-	p = Math.min(p,1);
-	for (let y = Math.floor(y1-r); y < y1 + r; y += subres) {
-		for (let x = Math.floor(x1-r); x < x1 + r; x += subres) {
+	p = Math.min(p, 1);
+	for (let y = Math.floor(y1 - r); y < y1 + r; y += subres) {
+		for (let x = Math.floor(x1 - r); x < x1 + r; x += subres) {
 			let dist = distance(x, y, x1, y1);
-			if (dist < r && x > 10 && x < w-10 && y > 10 && y < h-10) {
-				if(dMode){
-					p = Math.pow(dist/r,4);
+			if (dist < r && x > 10 && x < w - 10 && y > 10 && y < h - 10) {
+				if (dMode) {
+					p = Math.pow(dist / r, 4);
 				}
-				gasMap[y / subres][x / subres] = Math.floor(gasMap[y / subres][x / subres]*p);
+				gasMap[y / subres][x / subres] = Math.floor(gasMap[y / subres][x / subres] * p);
 			}
 		}
 	}
@@ -113,10 +121,10 @@ for (let y = 0; y < h; y += subres) {
 	gasMap[y / subres] = [];
 	for (let x = 0; x < w; x += subres) {
 		let level = Math.abs(perlin.get(x / scale, y / scale));
-		let level2 = (perlin.get((x+9999*subres) / scale, y / scale)+1)/2;
+		let level2 = (perlin.get((x + 9999 * subres) / scale, y / scale) + 1) / 2;
 
 		level *= level2;
-		level = 100*level;
+		level = 100 * level;
 
 		let dist = distance(x, y, w / 2, h / 2);
 		if (dist < circle) {
@@ -126,7 +134,7 @@ for (let y = 0; y < h; y += subres) {
 			level = level - Math.pow(close, 3) * 100;
 		}
 
-		if(x < 10 || x > w-10|| y< 10 || y > h-10){
+		if (x < 10 || x > w - 10 || y < 10 || y > h - 10) {
 			level = 100;
 		}
 
@@ -141,7 +149,7 @@ for (let y = 0; y < h; y += subres) {
 }
 
 for (let c = 0; c < 20; c++) {
-	voidCircle(Math.random()*w, Math.random()*h, 30,0 );
+	voidCircle(Math.random() * w, Math.random() * h, 30, 0);
 }
 
 for (let c = 0; c < 20; c++) {
@@ -152,9 +160,9 @@ for (let c = 0; c < 20; c++) {
 		dy: Math.random() * 1 - 0.5,
 	};
 	for (let t = 0; t < 1000; t++) {
-		let v = 1+(Math.abs(obj.dx) + Math.abs(obj.dy))/10;
-		v = 1/v;
-		voidCircle(obj.x, obj.y, Math.max(Math.min(20,100/(1+t/10)),2), 0.98);
+		let v = 1 + (Math.abs(obj.dx) + Math.abs(obj.dy)) / 10;
+		v = 1 / v;
+		voidCircle(obj.x, obj.y, Math.max(Math.min(20, 100 / (1 + t / 10)), 2), 0.98);
 		obj.x += obj.dx;
 		obj.y += obj.dy;
 		obj.dx = obj.dx * 0.995;
@@ -163,36 +171,37 @@ for (let c = 0; c < 20; c++) {
 }
 
 let SpawnRules = {
-    asteroids: {
+	asteroids: {
 		count: 5000,
 		area: 2500,
-        oreChance: 0.5,
-        oreMaxCount: 3,
-        rareChance: 0,
+		oreChance: 0.5,
+		oreMaxCount: 3,
+		rareChance: 0,
 		gasThreshold: 30,
 		gasRareThreshold: 80,
 		rotationSpeed: 0.1,
 		clusterSize: 50,
-    },
+	},
 };
 
 Universe.init = function () {
-    Universe.scale = Universe.size * Area.size / gasMap.length;
-    Universe.gasBuffer = gasBuffer;
-    let view = new DataView(gasBuffer);
-    view.setUint16(1, Universe.scale);
-    Universe.gasMap = gasMap;
-    let mid = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
+	Universe.scale = Universe.size * Area.size / gasMap.length;
+	Universe.gasBuffer = gasBuffer;
+	let view = new DataView(gasBuffer);
+	view.setUint16(1, Universe.scale);
+	Universe.gasMap = gasMap;
+	let mid = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
 
-    for (let i = 0; i < SpawnRules.asteroids.count;) {
+	for (let i = 0; i < SpawnRules.asteroids.count;) {
 		let clusterPos = new Vector(Math.random() * (Area.size * (Universe.size - 2)) + Area.size, Math.random() * (Area.size * (Universe.size - 2)) + Area.size);
-		let clusterSize = Math.floor(Math.min(SpawnRules.asteroids.count-i, Math.random()*SpawnRules.asteroids.clusterSize/2+SpawnRules.asteroids.clusterSize/2+1));
-		for (let b = 0; b < clusterSize;b++){
-			let offset = new Vector(Math.random() * SpawnRules.asteroids.area + SpawnRules.asteroids.area/2,Math.random() * SpawnRules.asteroids.area + SpawnRules.asteroids.area/2);
+		let clusterSize = Math.floor(Math.min(SpawnRules.asteroids.count - i, Math.random() * SpawnRules.asteroids.clusterSize / 2 + SpawnRules.asteroids.clusterSize / 2 + 1));
+		for (let b = 0; b < clusterSize; b++) {
+			let offset = new Vector(Math.random() * SpawnRules.asteroids.area + SpawnRules.asteroids.area / 2, Math.random() * SpawnRules.asteroids.area + SpawnRules.asteroids.area / 2);
 			let pos = clusterPos.result().add(offset);
 			let asteroid = new Entity(pos.x, pos.y, 1);
 			asteroid.collider.push(new Shape().circle(0, 0, 125));
 			asteroid.calculateBounds();
+			asteroid.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 			let area = Area.getLocalArea(pos);
 			let colliding = false;
 			area.entities.forEach(e => {
@@ -203,31 +212,40 @@ Universe.init = function () {
 					return;
 				}
 			});
-	
+
 			if (colliding) continue;
 			if (Universe.getGas(pos) <= SpawnRules.asteroids.gasThreshold) {
 				asteroid.rotationSpeed = Math.random() * SpawnRules.asteroids.rotationSpeed * 2 - SpawnRules.asteroids.rotationSpeed;
 				asteroid.init();
-			} else if(Universe.getGas(pos) <= SpawnRules.asteroids.gasRareThreshold){
+			} else if (Universe.getGas(pos) <= SpawnRules.asteroids.gasRareThreshold) {
 				asteroid.rotationSpeed = 20;
 				asteroid.init();
 			}
 		}
 		i += clusterSize;
-    }
-    //new Resource(e1, new Vector(-300, 0), 60, 0);
+	}
+	//new Resource(e1, new Vector(-300, 0), 60, 0);
 
-    let e2 = new Entity(mid.x - 1000, mid.y, 2);
-    e2.colliderFromFile("hitboxes/plane.json");
-    e2.calculateBounds();
-    e2.init();
+	let e2 = new Entity(mid.x - 1000, mid.y, 2);
+	e2.colliderFromFile("hitboxes/plane.json");
+	e2.calculateBounds();
+	e2.init();
+	e2.collisionPurpose = Entity.CollisionFlags.player;
 }
 Universe.init();
+let toSave = {
+	memory: perlin.memory,
+	gradients: perlin.gradients
+};
+if (!debugMap) {
+	let str = JSON.stringify(toSave);
+	fs.writeFileSync("perlin_data.json", str);
+}
 
 for (let y = 0; y < h; y += subres) {
 	for (let x = 0; x < w; x += subres) {
 		let level = gasMap[y][x];
-		context.fillStyle = "rgba("+level+","+level+","+level+","+1+")";
+		context.fillStyle = "rgba(" + level + "," + level + "," + level + "," + 1 + ")";
 		context.fillRect(x * subres, y * subres, subres, subres);
 		view.setUint8(level);
 	}
@@ -236,7 +254,7 @@ for (let y = 0; y < h; y += subres) {
 for (let i = 0; i < Entity.list.length; i++) {
 	const e = Entity.list[i];
 	context.fillStyle = "rgba(255,0,0,1)";
-	context.fillRect(Math.floor(e.position.x /400), Math.floor(e.position.y /400), 1, 1);
+	context.fillRect(Math.floor(e.position.x / 400), Math.floor(e.position.y / 400), 1, 1);
 }
 
 const buffer = canvas.toBuffer('image/png')
