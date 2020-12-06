@@ -574,7 +574,6 @@ function Mobile(x, y, type) {
     }
 }
 
-console.log(typeof(process.env.HOLOUBCI));
 for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
     let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
     m1.collider.push(new Shape().circle(0, 0, 125));
@@ -892,6 +891,8 @@ function Ship(id) {
         let size = 60; //??;
         let localArea = Area.getLocalArea(this.position);
 
+        let date = Date.now();
+
         if (localArea != undefined) {
             for (let i = 0; i < localArea.entities.length; i++) {
                 const e = localArea.entities[i];
@@ -923,6 +924,8 @@ function Ship(id) {
                 });
             }
         }
+        date = Date.now() - date;
+        Player.players.get(id).debug += "  ptime: " + date.length().toFixed(2) + "ms" + "\n";
     }
 }
 
