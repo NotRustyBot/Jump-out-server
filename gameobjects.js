@@ -140,7 +140,7 @@ Area.checkOut = function (entity) {
     let y = Math.floor((position.y + entity.bounds) / Area.size);
     let area = Area.list[x][y];
     if (area.entities.includes(entity)) {
-        area.entities = area.entities.slice(area.entities.indexOf(entity));
+        area.entities.splice(area.entities.indexOf(entity),1);
     }
 
     position = entity.position;
@@ -149,7 +149,7 @@ Area.checkOut = function (entity) {
     area = Area.list[x][y];
 
     if (area.entities.includes(entity)) {
-        area.entities = area.entities.slice(area.entities.indexOf(entity));
+        area.entities.splice(area.entities.indexOf(entity),1);
     }
 
     position = entity.position;
@@ -158,7 +158,7 @@ Area.checkOut = function (entity) {
     area = Area.list[x][y];
 
     if (area.entities.includes(entity)) {
-        area.entities = area.entities.slice(area.entities.indexOf(entity));
+        area.entities.splice(area.entities.indexOf(entity),1);
     }
 
     position = entity.position;
@@ -167,7 +167,7 @@ Area.checkOut = function (entity) {
     area = Area.list[x][y];
 
     if (area.entities.includes(entity)) {
-        area.entities = area.entities.slice(area.entities.indexOf(entity));
+        area.entities.splice(area.entities.indexOf(entity),1);
     }
 };
 
