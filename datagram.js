@@ -20,7 +20,7 @@ function Datagram() {
         return size;
     };
 
-    this.transferData = function(target, data){
+    this.transferData = function (target, data) {
         for (let i = 0; i < this.structure.length; i++) {
             const info = this.structure[i];
             target[info.name] = data[info.name];
@@ -192,84 +192,84 @@ function AutoView(buffer, index) {
         }
     };
 
-    this.getInt8 = function(){
+    this.getInt8 = function () {
         this.index += 1;
         return this.view.getInt8(this.index - 1);
     }
-    this.getUint8 = function(){
+    this.getUint8 = function () {
         this.index += 1;
         return this.view.getUint8(this.index - 1);
     }
-    this.getInt16 = function(){
+    this.getInt16 = function () {
         this.index += 2;
         return this.view.getInt16(this.index - 2);
     }
-    this.getUint16 = function(){
+    this.getUint16 = function () {
         this.index += 2;
         return this.view.getUint16(this.index - 2);
     }
-    this.getInt32 = function(){
+    this.getInt32 = function () {
         this.index += 4;
         return this.view.getInt32(this.index - 4);
     }
-    this.getUint32 = function(){
+    this.getUint32 = function () {
         this.index += 4;
         return this.view.getUint32(this.index - 4);
     }
-    this.getBigInt64 = function(){
+    this.getBigInt64 = function () {
         this.index += 8;
         return this.view.getBigInt64(this.index - 8);
     }
-    this.getBigUint64 = function(){
+    this.getBigUint64 = function () {
         this.index += 8;
         return this.view.getBigUint64(this.index - 4);
     }
-    this.setFloat32 = function(){
+    this.setFloat32 = function () {
         this.index += 4;
         return this.view.setFloat32(this.index - 4);
     }
-    this.setFloat64 = function(){
+    this.setFloat64 = function () {
         this.index += 8;
         return this.view.setFloat64(this.index - 4);
     }
 
-    this.setInt8 = function(value){
+    this.setInt8 = function (value) {
         this.view.setUint8(this.index, value);
         this.index += 1;
     }
-    this.setUint8 = function(value){
+    this.setUint8 = function (value) {
         this.view.setUint8(this.index, value);
         this.index += 1;
     }
-    this.setInt16 = function(value){
+    this.setInt16 = function (value) {
         this.view.setInt16(this.index, value);
         this.index += 2;
     }
-    this.setUint16 = function(value){
+    this.setUint16 = function (value) {
         this.view.setUint16(this.index, value);
         this.index += 2;
     }
-    this.setInt32 = function(value){
+    this.setInt32 = function (value) {
         this.view.setInt32(this.index, value);
         this.index += 4;
     }
-    this.setUint32 = function(value){
+    this.setUint32 = function (value) {
         this.view.setUint32(this.index, value);
         this.index += 4;
     }
-    this.setBigInt64 = function(value){
+    this.setBigInt64 = function (value) {
         this.view.setBigInt64(this.index, value);
         this.index += 8;
     }
-    this.setBigUint64 = function(value){
+    this.setBigUint64 = function (value) {
         this.view.setBigUint64(this.index, value);
         this.index += 8;
     }
-    this.setFloat32 = function(value){
+    this.setFloat32 = function (value) {
         this.view.setFloat32(this.index, value);
         this.index += 4;
     }
-    this.setFloat64 = function(value){
+    this.setFloat64 = function (value) {
         this.view.setFloat64(this.index, value);
         this.index += 8;
     }
@@ -303,11 +303,11 @@ Datagrams.shipUpdate = shipUpdate;
 
 let initPlayer = new Datagram();
 initPlayer.add(types.uint16, "id");
-initPlayer.add(types.string,"nick");
+initPlayer.add(types.string, "nick");
 Datagrams.initPlayer = initPlayer;
 
 let playerSettingsDatagram = new Datagram();
-playerSettingsDatagram.add(types.string,"nick");
+playerSettingsDatagram.add(types.string, "nick");
 Datagrams.playerSettings = playerSettingsDatagram;
 
 let EntitySetup = new Datagram();
@@ -328,12 +328,51 @@ let DebugPacket = new Datagram();
 DebugPacket.add(types.string, "data");
 Datagrams.DebugPacket = DebugPacket;
 
+let SmartAction = new Datagram();
+SmartAction.add(types.uint8, "handle");
+SmartAction.add(types.uint16, "actionId");
+Datagrams.SmartAction = SmartAction;
+
 
 exports.Datagrams = Datagrams;
 
-const serverHeaders = {initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8};
+let SmartActionData = [];
+
+let PlaceObject = new Datagram();
+PlaceObject.add(types.int8, "structure");
+SmartActionData.push(PlaceObject);
+exports.SmartActionData = SmartActionData;
+
+const ActionId = { placeObject: 0 };
+exports.ActionId = ActionId;
+
+
+let ReplyData = [];
+
+let ActionSuccess = new Datagram();
+ActionSuccess.add(types.uint8, "id");
+ActionSuccess.add(types.uint8, "handle");
+ReplyData.push(ActionSuccess);
+
+let InvalidAction = new Datagram();
+InvalidAction.add(types.uint8, "id");
+InvalidAction.add(types.uint8, "handle");
+ReplyData.push(InvalidAction);
+
+let Cooldown = new Datagram();
+Cooldown.add(types.uint8, "id");
+Cooldown.add(types.uint8, "handle");
+Cooldown.add(types.float32, "time");
+ReplyData.push(Cooldown);
+
+exports.ReplyData = ReplyData;
+
+const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
+exports.ReplyId = ReplyId;
+
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9 };
 exports.serverHeaders = serverHeaders;
-const clientHeaders = {init: 0, control: 1};
+const clientHeaders = { init: 0, control: 1, smartAction: 2 };
 exports.clientHeaders = clientHeaders;
 
 
@@ -341,7 +380,7 @@ exports.clientHeaders = clientHeaders;
 //#endregion
 
 
-/* 
+/*
 
 var type = Datagram.types;
 

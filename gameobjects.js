@@ -622,14 +622,21 @@ let Action = {};
  * 
  * @param {Ship} ship 
  */
-Action.test = function (ship) {
+Action.test = function (ship, action) {
     ship.afterBurnerFuel += 10;
     ship.afterBurnerFuel = Math.min(ship.afterBurnerFuel, ship.stats.afterBurnerCapacity);
     return 10;
 }
 
-Action.buildTest = function (ship) {
-    return construct(ship, Buildings.test) ? 0.1 : 0;
+Action.buildTest = function (ship, action) {
+    action.replyData = {};
+    if(construct(ship, Buildings.test)){
+        action.replyData.id = 0;
+        return 10;
+    }else{
+        action.replyData.id = 0;
+        return 0.1;
+    }
 }
 
 let Buildings = {
@@ -696,6 +703,30 @@ function isAvalible(position, size) {
     return out;
 }
 
+/**
+ * 
+ * @param {Player} player 
+ */
+function SmartAction(player){
+    this.handle;
+    this.id;
+    this.player = player;
+    this.replyData = undefined;
+    player.actions.push(this);
+
+    this.reply = function(id){
+        if(this.replyData == undefined){
+            return {handle: this.handle, id: id};
+        }else{
+            this.replyData.handle = this.handle;
+            return this.replyData;
+        }
+
+    }
+}
+
+exports.SmartAction = SmartAction;
+
 function ShipType() {
     this.name;
     this.speed;
@@ -720,6 +751,7 @@ ShipType.init = function () {
     debugShip.afterBurnerRotationBonus = 3;
     debugShip.afterBurnerAccelerationBonus = 300;
     debugShip.afterBurnerCapacity = 60;
+    debugShip.cargoCapacity = 100;
     debugShip.drag = 500;
     debugShip.actionPool = [Action.buildTest];
 
@@ -749,6 +781,7 @@ function Ship(id) {
     this.debuff = 0;
     this.action = 0;
     this.cooldowns = [];
+    this.cargo = [];
     /**
     * @type {number} id of the player who owns this ship
     */
@@ -841,7 +874,7 @@ function Ship(id) {
             if (this.velocity.length() < targetSpeed) this.velocity.normalize(targetSpeed);
         }
 
-        Player.players.get(id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "/" + targetSpeed.toFixed(2) + "\n";
+        Player.players.get(this.id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "/" + targetSpeed.toFixed(2) + "\n";
         this.position.add(this.velocity.result().mult(dt));
         this.afterBurnerUsed = 0;
         if (
@@ -877,14 +910,25 @@ function Ship(id) {
             }
         }
 
-        if (this.action != 0) {
-            this.action--;
-            if (this.stats.actionPool[this.action] != undefined) {
-                if (this.cooldowns[this.action] == 0) {
-                    this.cooldowns[this.action] = this.stats.actionPool[this.action](this);
+        let toHandle = Player.players.get(this.id).actions;
+        let replies = Player.players.get(this.id).replies;
+        for (let i = 0; i < toHandle.length; i++) {
+            const a = toHandle[i];
+            if (this.stats.actionPool[a.actionId] != undefined) {
+                if (this.cooldowns[a.actionId] == 0) {
+                    this.cooldowns[a.actionId] = this.stats.actionPool[a.actionId](this,a);
+                    replies.push(a.reply());
+                }else{
+                    let reply = a.reply(2);
+                    reply.time = this.cooldowns[a.actionId];
+                    replies.push(reply);
                 }
+            }else{
+                let reply = a.reply(1);
+                replies.push(reply);
             }
         }
+        Player.players.get(this.id).actions = [];
     }
 
     this.checkCollision = function (dt) {
@@ -939,6 +983,11 @@ function Player(connection) {
     Player.nextId++;
     this.open = false;
     this.initialised = false;
+    /**
+     * @type {SmartAction[]}
+     */
+    this.actions = [];
+    this.replies = [];
     this.debug = "";
     this.send = function (data) {
         if (this.connection.readyState == 1) this.connection.send(data);

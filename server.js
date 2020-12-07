@@ -1,9 +1,10 @@
-const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe, Area} = require("./gameobjects.js");
+const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction } = require("./gameobjects.js");
 const { } = require("./worldgen");
-const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
+const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData } = require("./datagram.js");
 
 //#region INIT
 let http = require('http');
+const { Console } = require("console");
 let server = http.createServer(function (request, response) {
 });
 let WebSocketServer = require('ws').Server;
@@ -64,8 +65,8 @@ setInterval(() => {
 
 let last = Date.now();
 
-let mspt = 0; 
-let msptavg =  [];
+let mspt = 0;
+let msptavg = [];
 
 for (let i = 0; i < fps; i++) { msptavg[i] = 0; }
 
@@ -74,7 +75,7 @@ function update() {
   last = Date.now();
   let msg = updateMessage();
   let sameIndex = msg.index;
-  
+
 
   Entity.list.forEach(e => {
     e.update(dt);
@@ -83,10 +84,11 @@ function update() {
 
   Player.players.forEach(p => {
     if (p.initialised) {
-      
+
+      p.ship.update(dt);
+      prepareReplies(msg, p);
       let toSend = AreaInfo(msg, p);
       msg.index = sameIndex;
-      p.ship.update(dt);
       p.send(toSend);
       p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
     }
@@ -105,12 +107,12 @@ function update() {
  * @param {number[]} array 
  * @returns {number}
  */
-function average(array){
+function average(array) {
   let total = 0;
   array.forEach(e => {
     total += e;
   });
-  return total/array.length;
+  return total / array.length;
 }
 
 
@@ -195,6 +197,23 @@ function initMessage(p) {
   return buffer.slice(0, view.index);
 }
 
+
+/**
+ * 
+ * @param {AutoView} inView 
+ * @param {Player} player 
+ */
+function prepareReplies(inView, player) {
+  if(player.replies == 0 ) return;
+  inView.setUint8(serverHeaders.actionReply);
+  player.replies.forEach(r => {
+    inView.serialize(r,ReplyData[r.id]);
+  });
+
+  player.replies = [];
+}
+
+
 /**
  * 
  * @param {AutoView} inView 
@@ -226,14 +245,14 @@ function EntitySetupMessage(inView) {
 }
 
 
-function SendDebugPackets(){
+function SendDebugPackets() {
   Player.players.forEach(p => {
-    if(p.debug.length > 0){
-      let toSend = {data: p.debug};
+    if (p.debug.length > 0) {
+      let toSend = { data: p.debug };
       const view = new AutoView(buffer);
       view.setUint8(serverHeaders.debugPacket);
-      view.serialize(toSend,Datagrams.DebugPacket);
-      p.send(buffer.slice(0,view.index));
+      view.serialize(toSend, Datagrams.DebugPacket);
+      p.send(buffer.slice(0, view.index));
     }
   })
 }
@@ -260,6 +279,10 @@ function parseMessage(buffer, player) {
         parseInput(view, player);
         break;
 
+      case clientHeaders.smartAction:
+        parseSmartAction(view, player);
+        break;
+
       default:
         break;
     }
@@ -284,4 +307,15 @@ function parseInit(view, player) {
   player.send(initMessage(player));
   player.send(EntitySetupMessage());
   Player.newPlayers.push(player);
+}
+
+/**
+ * 
+ * @param {AutoView} view 
+ * @param {Player} player 
+ */
+function parseSmartAction(view, player) {
+  let action = new SmartAction(player);
+  view.deserealize(action, Datagrams.SmartAction);
+  view.deserealize(action, SmartActionData[action.actionId]);
 }
