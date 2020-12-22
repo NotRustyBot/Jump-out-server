@@ -1,5 +1,14 @@
-const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
+const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, init } = require("./datagram.js");
 const fs = require('fs');
+
+exports.Datagram = Datagram;
+exports.Datagrams = Datagrams;
+exports.AutoView = AutoView;
+exports.serverHeaders = serverHeaders;
+exports.clientHeaders = clientHeaders;
+exports.SmartActionData = SmartActionData;
+exports.ActionId = ActionId;
+exports.ReplyData  = ReplyData;
 
 //#region věci
 /**
@@ -78,6 +87,7 @@ Vector.zero = function () {
 };
 
 exports.Vector = Vector;
+init(Vector);
 
 function Area(x, y) {
     this.coordinates = new Vector(x, y);
@@ -469,6 +479,8 @@ function Entity(x, y, type) {
      * @param {AutoView} inView 
      */
     this.serialize = function(inView){
+        inView.serialize(this, Datagrams.EntitySetup);
+        return;
         if (this.bytesValid) {
             bytes.copy(inView.view.buffer, inView.index, 0,bytes.length);
             inView.index += bytes.length;

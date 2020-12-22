@@ -1,7 +1,24 @@
-const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
-const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe, Area, Shape } = require("./gameobjects.js");
+const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData } = require("./gameobjects.js");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
+
+exports.Vector = Vector
+exports.ShipType = ShipType
+exports.Ship = Ship
+exports.Player = Player
+exports.Entity = Entity
+exports.CollisionEvent = CollisionEvent
+exports.Universe = Universe
+exports.Area = Area
+exports.SmartAction = SmartAction
+exports.Datagram = Datagram
+exports.Datagrams = Datagrams
+exports.AutoView = AutoView
+exports.serverHeaders = serverHeaders
+exports.clientHeaders = clientHeaders
+exports.SmartActionData = SmartActionData
+exports.ActionId = ActionId
+exports.ReplyData = ReplyData
 
 function randomSeedParkMiller(seed = 123456) {
 	// doesn't repeat b4 JS dies.

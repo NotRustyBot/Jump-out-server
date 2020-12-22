@@ -1,4 +1,10 @@
-const { Vector, ShipType, Ship, Player } = require("./gameobjects.js");
+let Vector;
+
+function init(vec){
+    Vector = vec;
+}
+
+exports.init = init;
 
 function Datagram() {
     this.structure = [];
