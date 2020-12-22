@@ -1,3 +1,4 @@
+const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders } = require("./datagram.js");
 const fs = require('fs');
 
 //#region věci
@@ -448,6 +449,8 @@ function Entity(x, y, type) {
     this.type = type;
     this.rotatedCollider = [];
     this.rotatedColliderValid = false;
+    this.bytes;
+    this.bytesValid = false;
     /**
      * @type {Shape[]}
      */
@@ -461,7 +464,23 @@ function Entity(x, y, type) {
         Area.checkIn(this);
     }
 
+    /**
+     * 
+     * @param {AutoView} inView 
+     */
+    this.serialize = function(inView){
+        if (this.bytesValid) {
+            bytes.copy(inView.view.buffer, inView.index, 0,bytes.length);
+            inView.index += bytes.length;
+        }else{
+            let index = inView.index;
+            inView.serialize(this, Datagrams.EntitySetup);
+            bytes = inView.view.buffer.slice(index);
+        }
+    }
+
     this.update = function (dt) {
+        this.bytesValid = false;
         this.rotatedColliderValid = false;
         this.rotation += this.rotationSpeed * dt;
         this.rotation = this.rotation % (Math.PI * 2);

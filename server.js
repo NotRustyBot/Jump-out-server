@@ -224,7 +224,7 @@ function AreaInfo(inView, player) {
   let entities = player.proximity();
   inView.setUint16(entities.length);
   entities.forEach(entity => {
-    inView.serialize(entity, Datagrams.EntitySetup);
+    entity.serialize(inView);
   });
 
   return buffer.slice(0, inView.index);
