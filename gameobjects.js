@@ -474,6 +474,11 @@ function Entity(x, y, type) {
         Area.checkIn(this);
     }
 
+    this.delete = function () {
+        Area.checkOut(this);
+        Entity.list.splice(Entity.list.indexOf(this), 1);
+    }
+
     /**
      * 
      * @param {AutoView} inView 
@@ -604,7 +609,7 @@ function Mobile(x, y, type) {
         });
     }
 }
-process.env.HOLOUBCI = process.env.HOLOUBCI || 500;
+process.env.HOLOUBCI = process.env.HOLOUBCI || 0;
 for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
     let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
     m1.collider.push(new Shape().circle(0, 0, 125));
@@ -668,6 +673,39 @@ Action.buildTest = function (ship, action) {
         action.replyData.id = 0;
         return 0.1;
     }
+}
+
+
+/**
+ * 
+ * @param {Ship} ship 
+ * @param {SmartAction} action 
+ */
+Action.MineRock = function (ship, action) {
+    let localArea = Area.getLocalArea(ship.position);
+
+    let closestDist = 300;
+    let closest = undefined;
+    if (localArea != undefined) {
+        for (let i = 0; i < localArea.entities.length; i++) {
+            const e = localArea.entities[i];
+            if (closestDist > ship.position.distance(e.position)) {
+                closestDist = ship.position.distance(e.position);
+                closest = e;
+            }
+        }
+    }
+
+    action.replyData = {};
+    if(closest != undefined){
+        ship.afterBurnerFuel += 10; 
+        action.replyData.id = 0;
+        closest.delete();
+    }else{
+        action.replyData.id = 0;
+    }
+
+    return 1;
 }
 
 let Buildings = {
@@ -784,7 +822,7 @@ ShipType.init = function () {
     debugShip.afterBurnerCapacity = 60;
     debugShip.cargoCapacity = 100;
     debugShip.drag = 500;
-    debugShip.actionPool = [Action.buildTest];
+    debugShip.actionPool = [Action.buildTest, Action.MineRock];
 
     debugShip.drag = debugShip.drag / 1000;
     ShipType.types["Debug"] = debugShip;
