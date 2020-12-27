@@ -698,7 +698,7 @@ Action.MineRock = function (ship, action) {
 
     action.replyData = {};
     if(closest != undefined){
-        ship.afterBurnerFuel += 10; 
+        ship.addCargo(cargoType.rock, 30);
         action.replyData.id = 0;
         closest.delete();
     }else{
@@ -796,6 +796,8 @@ function SmartAction(player){
 
 exports.SmartAction = SmartAction;
 
+let cargoType = {rock: 0, crystals: 1, scrap: 2, count: 3 };
+
 function ShipType() {
     this.name;
     this.speed;
@@ -804,6 +806,7 @@ function ShipType() {
     this.rotationSpeed;
     this.afterBurnerBonus;
     this.afterBurnerCapacity;
+    this.cargoCapacity;
     this.drag;
     this.actionPool = [];
 }
@@ -864,6 +867,9 @@ function Ship(id) {
         this.stats = type;
         for (let i = 0; i < type.actionPool.length; i++) {
             this.cooldowns[i] = 0;
+        }
+        for (let i = 0; i < cargoType.count; i++) {
+            this.cargo[i] = 0;
         }
     };
 
@@ -944,6 +950,13 @@ function Ship(id) {
         }
 
         Player.players.get(this.id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "/" + targetSpeed.toFixed(2) + "\n";
+        for (let i = 0; i < this.cargo.length; i++) {
+            Player.players.get(this.id).debug += "      " + i+": " + this.cargo[i] + "\n";
+        }
+
+        Player.players.get(this.id).debug += "  Cargo: " + this.cargoUsed() +"/"+ stats.cargoCapacity;
+
+
         this.position.add(this.velocity.result().mult(dt));
         this.afterBurnerUsed = 0;
         if (
@@ -998,6 +1011,26 @@ function Ship(id) {
             }
         }
         Player.players.get(this.id).actions = [];
+    }
+
+    this.addCargo = function(type, count) {
+        let used = this.cargoUsed();
+        if (used + count <= this.stats.cargoCapacity) {
+            this.cargo[type] += count;
+            return 0;
+        }else{
+            let space = this.stats.cargoCapacity - used;
+            this.cargo[type] += space;
+            return count - space;
+        }
+    }
+
+    this.cargoUsed = function() {
+        let used = 0;
+        this.cargo.forEach(c => {
+            used += c;
+        });
+        return used;
     }
 
     this.checkCollision = function (dt) {
