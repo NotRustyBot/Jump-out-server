@@ -165,9 +165,10 @@ function updateMessage() {
 
     CollisionEvent.list = [];
 
+    view.setUint8(serverHeaders.entitySetup);
+    view.setUint16(Entity.create.length);
     Entity.create.forEach(c => {
-        view.setUint8(serverHeaders.entitySetup);
-        view.serialize(c, Datagrams.entitySetup);
+        view.serialize(c, Datagrams.EntitySetup);
     });
 
     Entity.create = [];
@@ -237,9 +238,6 @@ function AreaInfo(inView, player) {
     inView.setUint16(entities.length);
     entities.forEach(entity => {
         entity.serialize(inView);
-        if(entity.id > Entity.list.length){
-            console.warn("possibly invalid id"+entity.id);
-        }
     });
 
     return buffer.slice(0, inView.index);

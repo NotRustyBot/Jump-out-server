@@ -738,6 +738,7 @@ function construct(ship, building) {
         build.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
         build.calculateBounds();
         build.init();
+        Entity.create.push(build);
         return true;
     }
     return false;
