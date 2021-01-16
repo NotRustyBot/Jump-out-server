@@ -466,7 +466,8 @@ function Entity(x, y, type) {
      */
     this.collider = [];
     this.bounds = 0;
-    this.id = Entity.list.length;
+    this.id = Entity.next_id;
+    Entity.next_id++;
     this.children = [];
 
     this.init = function () {
@@ -551,6 +552,7 @@ function Entity(x, y, type) {
     }
 }
 Entity.list = [];
+Entity.next_id = 0;
 
 Entity.CollisionFlags = {
     player: 1,
@@ -666,7 +668,8 @@ Action.test = function (ship, action) {
 
 Action.buildTest = function (ship, action) {
     action.replyData = {};
-    if(construct(ship, Buildings.test)){
+    if(ship.cargo[cargoType.rock] >= 30  && construct(ship, Buildings.test)){
+        ship.cargo[cargoType.rock] -= 30; 
         action.replyData.id = 0;
         return 10;
     }else{
@@ -726,6 +729,7 @@ function construct(ship, building) {
     if (isAvalible(position, building.size)) {
         let build = new Entity(position.x, position.y, building.type);
         build.collider.push(new Shape().circle(0, 0, building.size));
+        build.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
         build.calculateBounds();
         build.init();
         return true;
