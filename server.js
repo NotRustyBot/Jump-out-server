@@ -187,6 +187,8 @@ function updateMessage() {
         Universe.gasChange.forEach(e => {
             view.serialize(e, Datagrams.GasUpdate);
         });
+        
+        Universe.gasChange = [];
     }
 
     return view;
