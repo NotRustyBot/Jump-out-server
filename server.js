@@ -82,7 +82,6 @@ function update() {
 
     Player.players.forEach(p => {
         if (p.initialised) {
-
             p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
             p.ship.update(dt);
             prepareReplies(msg, p);
@@ -166,6 +165,21 @@ function updateMessage() {
 
     CollisionEvent.list = [];
 
+    Entity.create.forEach(c => {
+        view.setUint8(serverHeaders.entitySetup);
+        view.serialize(c, Datagrams.entitySetup);
+    });
+
+    Entity.create = [];
+
+    Entity.remove.forEach(c => {
+        view.setUint8(serverHeaders.entityRemove);
+        let temp = {id: c};
+        view.serialize(temp, Datagrams.EnitiyRemove);
+    });
+
+    Entity.remove = [];
+
     return view;
     //return buffer.slice(0, view.index);
 }
@@ -223,11 +237,19 @@ function AreaInfo(inView, player) {
     inView.setUint16(entities.length);
     entities.forEach(entity => {
         entity.serialize(inView);
+        if(entity.id > Entity.list.length){
+            console.warn("possibly invalid id"+entity.id);
+        }
     });
 
     return buffer.slice(0, inView.index);
 }
 
+
+/**
+ * 
+ * @param {AutoView} inView 
+ */
 function EntitySetupMessage(inView) {
     const view = inView || new AutoView(buffer);
     view.setUint8(serverHeaders.entitySetup);
@@ -241,7 +263,6 @@ function EntitySetupMessage(inView) {
     view.view.setUint16(sizeGoesHere, count);
     return buffer.slice(0, view.index);
 }
-
 
 function SendDebugPackets() {
     Player.players.forEach(p => {

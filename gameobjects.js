@@ -466,16 +466,17 @@ function Entity(x, y, type) {
      */
     this.collider = [];
     this.bounds = 0;
-    this.id = Entity.next_id;
-    Entity.next_id++;
     this.children = [];
 
     this.init = function () {
+        this.id = Entity.next_id;
+        Entity.next_id++;
         Entity.list.push(this);
         Area.checkIn(this);
     }
 
     this.delete = function () {
+        Entity.remove.push(this.id);
         Area.checkOut(this);
         Entity.list.splice(Entity.list.indexOf(this), 1);
     }
@@ -551,8 +552,13 @@ function Entity(x, y, type) {
         this.bounds += maxInteractionRange;
     }
 }
+
 Entity.list = [];
 Entity.next_id = 0;
+Entity.create = [];
+Entity.remove = [];
+
+
 
 Entity.CollisionFlags = {
     player: 1,

@@ -324,6 +324,10 @@ EntitySetup.add(types.float32, "rotation");
 EntitySetup.add(types.float32, "rotationSpeed");
 Datagrams.EntitySetup = EntitySetup;
 
+let EnitiyRemove = new Datagram();
+EntitySetup.add(types.uint16, "id");
+Datagrams.EnitiyRemove = EnitiyRemove;
+
 let CollisionEvent = new Datagram();
 CollisionEvent.add(types.uint16, "shipId");
 CollisionEvent.add(types.uint16, "entityId");
@@ -380,7 +384,7 @@ exports.ReplyData = ReplyData;
 const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
 exports.ReplyId = ReplyId;
 
-const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9 };
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10 };
 exports.serverHeaders = serverHeaders;
 const clientHeaders = { init: 0, control: 1, smartAction: 2 };
 exports.clientHeaders = clientHeaders;

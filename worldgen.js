@@ -242,7 +242,7 @@ Universe.init = function () {
 		i += clusterSize;
 	}
 	//new Resource(e1, new Vector(-300, 0), 60, 0);
-
+	Entity.remove = [];
 	let e2 = new Entity(mid.x - 1000, mid.y, 2);
 	e2.colliderFromFile("hitboxes/plane.json");
 	e2.calculateBounds();
@@ -250,6 +250,7 @@ Universe.init = function () {
 	e2.collisionPurpose = Entity.CollisionFlags.player;
 }
 Universe.init();
+
 let toSave = {
 	memory: perlin.memory,
 	gradients: perlin.gradients
