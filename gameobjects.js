@@ -258,6 +258,21 @@ Universe.getGas = function (vector) {
     return Math.min(Universe.gasMap[y][x], 100);
 }
 
+/**
+ * 
+ * @param {Vector} position 
+ * @param {number} value 
+ */
+Universe.setGas = function(position, value){
+    let x = Math.floor(position.x / Universe.scale);
+    let y = Math.floor(position.y / Universe.scale);
+    Universe.gasMap[y][x] = value;
+
+    Universe.gasChange.push({position: new Vector(x,y), value: value});
+}
+
+Universe.gasChange = [];
+
 exports.Universe = Universe;
 
 for (let x = 0; x < Universe.size; x++) {
@@ -888,6 +903,8 @@ function Ship(id) {
         let stats = this.stats;
         let afterBurnerUsed = false;
         let gas = Universe.getGas(this.position);
+
+        Universe.setGas(this.position, Math.max(0,0));
 
         if (this.debuff != gas) {
             if (this.debuff > gas) {

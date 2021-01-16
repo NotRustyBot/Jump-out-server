@@ -343,6 +343,10 @@ SmartAction.add(types.uint8, "handle");
 SmartAction.add(types.uint16, "actionId");
 Datagrams.SmartAction = SmartAction;
 
+let GasUpdate = new Datagram();
+GasUpdate.add(types.vector32, "position");
+GasUpdate.add(types.uint8, "value");
+Datagrams.GasUpdate = GasUpdate;
 
 exports.Datagrams = Datagrams;
 
@@ -384,7 +388,7 @@ exports.ReplyData = ReplyData;
 const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
 exports.ReplyId = ReplyId;
 
-const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10 };
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11 };
 exports.serverHeaders = serverHeaders;
 const clientHeaders = { init: 0, control: 1, smartAction: 2 };
 exports.clientHeaders = clientHeaders;

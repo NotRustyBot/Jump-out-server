@@ -181,6 +181,14 @@ function updateMessage() {
 
     Entity.remove = [];
 
+    if (Universe.gasChange.length > 0) {
+        view.setUint8(serverHeaders.gasUpdate);
+        view.setUint16(Universe.gasChange.length);
+        Universe.gasChange.forEach(e => {
+            view.serialize(e, Datagrams.GasUpdate);
+        });
+    }
+
     return view;
     //return buffer.slice(0, view.index);
 }
