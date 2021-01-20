@@ -255,7 +255,7 @@ Universe.getGas = function (vector) {
     if (isNaN(x) || isNaN(y)) {
         return 0;
     }
-    return Math.min(Universe.gasMap[y][x], 100);
+    return Math.min(Universe.gasMap[x][y], 100);
 }
 
 /**
@@ -266,7 +266,7 @@ Universe.getGas = function (vector) {
 Universe.setGas = function(position, value){
     let x = Math.floor(position.x / Universe.scale);
     let y = Math.floor(position.y / Universe.scale);
-    Universe.gasMap[y][x] = value;
+    Universe.gasMap[x][y] = value;
 
     Universe.gasChange.push({position: new Vector(x,y), value: value});
 }

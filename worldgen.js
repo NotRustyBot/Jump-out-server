@@ -127,16 +127,16 @@ function voidCircle(x1, y1, r, p) {
 				if (dMode) {
 					p = Math.pow(dist / r, 4);
 				}
-				gasMap[y / subres][x / subres] = Math.floor(gasMap[y / subres][x / subres] * p);
+				gasMap[x / subres][y / subres] = Math.floor(gasMap[x / subres][y / subres] * p);
 			}
 		}
 	}
 }
 
 let gasMap = [];
-for (let y = 0; y < h; y += subres) {
-	gasMap[y / subres] = [];
-	for (let x = 0; x < w; x += subres) {
+for (let x = 0; x < w; x += subres) {
+	gasMap[x / subres] = [];
+	for (let y = 0; y < w; y += subres) {
 		let level = Math.abs(perlin.get(x / scale, y / scale));
 		let level2 = (perlin.get((x + 9999 * subres) / scale, y / scale) + 1) / 2;
 
@@ -161,7 +161,7 @@ for (let y = 0; y < h; y += subres) {
 			level = 0;
 		}
 
-		gasMap[y / subres][x / subres] = Math.floor(level);
+		gasMap[x / subres][y / subres] = Math.floor(level);
 	}
 }
 
@@ -260,14 +260,16 @@ if (!debugMap) {
 	fs.writeFileSync("perlin_data.json", str);
 }
 
-for (let y = 0; y < h; y += subres) {
-	for (let x = 0; x < w; x += subres) {
-		let level = gasMap[y][x];
+for (let x = 0; x < w; x += subres) {
+	for (let y = 0; y < h; y += subres) {
+
+		let level = gasMap[x][y];
 		context.fillStyle = "rgba(" + level + "," + level + "," + level + "," + 1 + ")";
 		context.fillRect(x * subres, y * subres, subres, subres);
 		view.setUint8(level);
 	}
 }
+
 
 for (let i = 0; i < Entity.list.length; i++) {
 	const e = Entity.list[i];
