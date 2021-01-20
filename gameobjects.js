@@ -835,19 +835,21 @@ function ShipType() {
     this.cargoCapacity;
     this.drag;
     this.actionPool = [];
+    this.size;
 }
 
 ShipType.init = function () {
     ShipType.types = [];
     let debugShip = new ShipType();
     debugShip.name = "Debug";
-    debugShip.speed = 600;
+    debugShip.size = 150;
+    debugShip.speed = 1000;
     debugShip.acceleration = 600;
     debugShip.reverseAccelreation = 300;
     debugShip.rotationSpeed = 3;
-    debugShip.afterBurnerSpeedBonus = 600;
-    debugShip.afterBurnerRotationBonus = 3;
-    debugShip.afterBurnerAccelerationBonus = 300;
+    debugShip.afterBurnerSpeedBonus = 1000;
+    debugShip.afterBurnerRotationBonus = 1;
+    debugShip.afterBurnerAccelerationBonus = 800;
     debugShip.afterBurnerCapacity = 60;
     debugShip.cargoCapacity = 100;
     debugShip.drag = 500;
@@ -903,19 +905,6 @@ function Ship(id) {
         let stats = this.stats;
         let afterBurnerUsed = false;
         let gas = Universe.getGas(this.position);
-        
-        let gasVector = this.position.result();
-        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-10*dt,0));
-
-        gasVector.x += Universe.scale;
-        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-5*dt,0));
-        gasVector.x -= Universe.scale*2;
-        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-5*dt,0));
-        gasVector.x += Universe.scale;
-        gasVector.y += Universe.scale;
-        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-5*dt,0));
-        gasVector.y -= Universe.scale*2;
-        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-5*dt,0));
 
         if (this.debuff != gas) {
             if (this.debuff > gas) {
@@ -984,7 +973,7 @@ function Ship(id) {
         let targetSpeed = stats.speed * debuffMult + stats.afterBurnerSpeedBonus * this.afterBurnerActive * debuffMult;
         let speed = this.velocity.length();
         if (speed > targetSpeed) {
-            this.velocity.normalize(speed - stats.acceleration * dt);
+            this.velocity.normalize(speed - stats.acceleration * dt - this.afterBurnerActive * stats.afterBurnerAccelerationBonus * dt);
             if (this.velocity.length() < targetSpeed) this.velocity.normalize(targetSpeed);
         }
 
@@ -1073,7 +1062,7 @@ function Ship(id) {
     }
 
     this.checkCollision = function (dt) {
-        let size = 60; //??;
+        let size = this.stats.size;
         let localArea = Area.getLocalArea(this.position);
 
         if (localArea != undefined) {
