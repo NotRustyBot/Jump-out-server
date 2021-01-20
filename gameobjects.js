@@ -903,8 +903,19 @@ function Ship(id) {
         let stats = this.stats;
         let afterBurnerUsed = false;
         let gas = Universe.getGas(this.position);
+        
+        let gasVector = this.position.result();
+        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-10*dt,0));
 
-        Universe.setGas(this.position, Math.max(0,0));
+        gasVector.x += Universe.scale;
+        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-5*dt,0));
+        gasVector.x -= Universe.scale*2;
+        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-5*dt,0));
+        gasVector.x += Universe.scale;
+        gasVector.y += Universe.scale;
+        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-5*dt,0));
+        gasVector.y -= Universe.scale*2;
+        Universe.setGas(gasVector, Math.max(Universe.getGas(gasVector)-5*dt,0));
 
         if (this.debuff != gas) {
             if (this.debuff > gas) {
