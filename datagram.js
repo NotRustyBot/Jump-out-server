@@ -325,7 +325,7 @@ EntitySetup.add(types.float32, "rotationSpeed");
 Datagrams.EntitySetup = EntitySetup;
 
 let EnitiyRemove = new Datagram();
-EntitySetup.add(types.uint16, "id");
+EnitiyRemove.add(types.uint16, "id");
 Datagrams.EnitiyRemove = EnitiyRemove;
 
 let CollisionEvent = new Datagram();

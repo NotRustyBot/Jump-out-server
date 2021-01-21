@@ -176,6 +176,7 @@ function updateMessage() {
     Entity.remove.forEach(c => {
         view.setUint8(serverHeaders.entityRemove);
         let temp = {id: c};
+        console.log(c);
         view.serialize(temp, Datagrams.EnitiyRemove);
     });
 
