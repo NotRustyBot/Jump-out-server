@@ -682,9 +682,17 @@ let Action = {};
  * @param {Ship} ship 
  */
 Action.test = function (ship, action) {
-    ship.afterBurnerFuel += 10;
-    ship.afterBurnerFuel = Math.min(ship.afterBurnerFuel, ship.stats.afterBurnerCapacity);
-    return 10;
+    action.replyData = {};
+    if(ship.cargo[cargoType.rock] >= 10){
+        ship.afterBurnerFuel += 10;
+        ship.cargo[cargoType.rock] -= 10; 
+        ship.afterBurnerFuel = Math.min(ship.afterBurnerFuel, ship.stats.afterBurnerCapacity);
+        action.replyData.id = 0;
+        return 1;
+    }else{
+        action.replyData.id = 0;
+        return 0.1;
+    }
 }
 
 Action.buildTest = function (ship, action) {
@@ -853,7 +861,7 @@ ShipType.init = function () {
     debugShip.afterBurnerCapacity = 60;
     debugShip.cargoCapacity = 100;
     debugShip.drag = 500;
-    debugShip.actionPool = [Action.buildTest, Action.MineRock];
+    debugShip.actionPool = [Action.test, Action.MineRock];
 
     debugShip.drag = debugShip.drag / 1000;
     ShipType.types["Debug"] = debugShip;
