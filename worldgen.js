@@ -237,14 +237,19 @@ Universe.init = function () {
 				asteroid.rotationSpeed = Math.random() * SpawnRules.asteroids.rotationSpeed * 2 - SpawnRules.asteroids.rotationSpeed;
 				asteroid.init();
 			} else if (Universe.getGas(pos) <= SpawnRules.asteroids.gasRareThreshold) {
-				asteroid.rotationSpeed = 20;
+				asteroid.rotationSpeed = 2;
 				asteroid.init();
 			}
 		}
 		i += clusterSize;
 	}
-	//new Resource(e1, new Vector(-300, 0), 60, 0);
 	Entity.remove = [];
+	let e1 = new Entity(mid.x + 1000, mid.y, 1);
+	e1.colliderFromFile("hitboxes/asteroid.json");
+	e1.calculateBounds();
+	e1.init();
+	e1.collisionPurpose = Entity.CollisionFlags.player;
+
 	let e2 = new Entity(mid.x - 1000, mid.y, 1);
 	//e2.colliderFromFile("hitboxes/plane.json");
 	e2.collider.push(new Shape().circle(0, 0, 200));
