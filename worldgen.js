@@ -216,8 +216,10 @@ Universe.init = function () {
 			let offset = new Vector(Math.random() * SpawnRules.asteroids.area + SpawnRules.asteroids.area / 2, Math.random() * SpawnRules.asteroids.area + SpawnRules.asteroids.area / 2);
 			let pos = clusterPos.result().add(offset);
 			let asteroid = new Entity(pos.x, pos.y, 1);
-			asteroid.collider.push(new Shape().circle(0, 0, 125));
-			asteroid.calculateBounds();
+			//asteroid.collider.push(new Shape().circle(0, 0, 200));
+			asteroid.colliderFromFile("hitboxes/asteroid.json");
+
+			//asteroid.calculateBounds();
 			asteroid.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 			let area = Area.getLocalArea(pos);
 			let colliding = false;
@@ -243,8 +245,9 @@ Universe.init = function () {
 	}
 	//new Resource(e1, new Vector(-300, 0), 60, 0);
 	Entity.remove = [];
-	let e2 = new Entity(mid.x - 1000, mid.y, 2);
-	e2.colliderFromFile("hitboxes/plane.json");
+	let e2 = new Entity(mid.x - 1000, mid.y, 1);
+	//e2.colliderFromFile("hitboxes/plane.json");
+	e2.collider.push(new Shape().circle(0, 0, 200));
 	e2.calculateBounds();
 	e2.init();
 	e2.collisionPurpose = Entity.CollisionFlags.player;

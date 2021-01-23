@@ -1,5 +1,6 @@
 const { Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, init } = require("./datagram.js");
 const fs = require('fs');
+const { gasBuffer } = require("./worldgen.js");
 
 exports.Datagram = Datagram;
 exports.Datagrams = Datagrams;
@@ -269,6 +270,9 @@ Universe.setGas = function(position, value){
     Universe.gasMap[x][y] = value;
 
     Universe.gasChange.push({position: new Vector(x,y), value: value});
+    let view = new DataView(Universe.gasBuffer);
+    view.setInt8(7+x*1000+y, value);
+    
 }
 
 Universe.gasChange = [];
@@ -481,7 +485,6 @@ function Entity(x, y, type) {
      */
     this.collider = [];
     this.bounds = 0;
-    this.children = [];
 
     this.init = function () {
         this.id = Entity.next_id;
@@ -519,9 +522,6 @@ function Entity(x, y, type) {
         this.rotation += this.rotationSpeed * dt;
         this.rotation = this.rotation % (Math.PI * 2);
 
-        this.children.forEach(e => {
-            e.update();
-        });
     }
     this.rotateCollider = function () {
         this.rotatedCollider = [];
@@ -559,7 +559,7 @@ function Entity(x, y, type) {
                 dist = Math.max(new Vector(s.x1, s.y1).length(), new Vector(s.x2, s.y2).length());
             } else {
                 shape = new Shape().circle(s.x, s.y, s.r);
-                dist = new Vector(s.x1, s.y1).length() + s.r;
+                dist = new Vector(s.x, s.y).length() + s.r;
             }
             this.bounds = Math.max(dist, this.bounds);
             this.collider.push(shape);
@@ -583,31 +583,6 @@ Entity.CollisionFlags = {
 
 exports.Entity = Entity;
 
-/**
- * 
- * @param {Entity} parent 
- * @param {Vector} offset 
- * @param {number} size 
- * @param {*} type
- */
-function Resource(parent, offset, size, type) {
-    this.parent = parent;
-    this.type = type;
-    this.offset = offset;
-    this.collisionShape = new Shape().circle(offset.x, offset.y, size);
-
-    this.update = function () {
-        this.collisionShape.x = offset.x;
-        this.collisionShape.y = offset.y;
-        this.collisionShape.rotate(parent.rotation);
-    }
-
-    parent.children.push(this);
-}
-
-Resource.list = [];
-
-exports.Resource = Resource;
 
 const maxInteractionRange = 600 + 60; //max resource size
 
@@ -626,12 +601,21 @@ function Mobile(x, y, type) {
 
         this.rotation += this.rotationSpeed * dt;
         this.rotation = this.rotation % (Math.PI * 2);
-
-        this.children.forEach(e => {
-            e.update();
-        });
     }
 }
+
+function Building(x, y, type) {
+    Entity.call(this, x, y, type);
+    this.control = function (dt) { };
+    this.update = function (dt) {
+        this.rotatedColliderValid = false;
+        this.control(dt);
+
+        this.rotation += this.rotationSpeed * dt;
+        this.rotation = this.rotation % (Math.PI * 2);
+    }
+}
+
 process.env.HOLOUBCI = process.env.HOLOUBCI || 0;
 for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
     let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
@@ -744,6 +728,24 @@ let Buildings = {
     test: {
         size: 300,
         type: 101,
+        control: function(dt){
+            if(this.reach == undefined) this.reach = 0;
+
+            if(this.timer == undefined || this.timer > 0.1){
+                if(this.reach < 5000){
+                    this.reach += 10;
+                    let angle = 0;
+                    for (let i = 0; i < 100; i++) {
+                        angle += Math.PI*2/100;
+                        let pos = new Vector(Math.cos(angle)*this.reach, Math.sin(angle)*this.reach);
+                        pos.add(this.position);
+                        Universe.setGas(pos, Math.max(Universe.getGas(pos) - 1, 0));
+                    }
+                }
+                this.timer = 0;
+            }
+            this.timer += dt;
+        }
     }
 }
 
@@ -756,11 +758,12 @@ function construct(ship, building) {
     let position = ship.position.result();
     position.add(Vector.fromAngle(ship.rotation).mult(500));
     if (isAvalible(position, building.size)) {
-        let build = new Entity(position.x, position.y, building.type);
+        let build = new Building(position.x, position.y, building.type);
         build.collider.push(new Shape().circle(0, 0, building.size));
         build.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
         build.calculateBounds();
         build.init();
+        build.control = building.control;
         Entity.create.push(build);
         return true;
     }
@@ -850,7 +853,7 @@ ShipType.init = function () {
     ShipType.types = [];
     let debugShip = new ShipType();
     debugShip.name = "Debug";
-    debugShip.size = 150;
+    debugShip.size = 125;
     debugShip.speed = 1000;
     debugShip.acceleration = 600;
     debugShip.reverseAccelreation = 300;
@@ -861,7 +864,7 @@ ShipType.init = function () {
     debugShip.afterBurnerCapacity = 60;
     debugShip.cargoCapacity = 100;
     debugShip.drag = 500;
-    debugShip.actionPool = [Action.test, Action.MineRock];
+    debugShip.actionPool = [Action.buildTest, Action.MineRock];
 
     debugShip.drag = debugShip.drag / 1000;
     ShipType.types["Debug"] = debugShip;
