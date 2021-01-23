@@ -84,8 +84,8 @@ let subres = 1;
 
 let scale = 80;
 
-let circle = 5;
-let falloff = 20;
+let circle = 2;
+let falloff = 10;
 let shift = 0;
 let mult = 4;
 

@@ -700,7 +700,7 @@ Action.buildTest = function (ship, action) {
 Action.MineRock = function (ship, action) {
     let localArea = Area.getLocalArea(ship.position);
 
-    let closestDist = 300;
+    let closestDist = 500;
     let closest = undefined;
     if (localArea != undefined) {
         for (let i = 0; i < localArea.entities.length; i++) {
