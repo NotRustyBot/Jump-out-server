@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData } = require("./worldgen");
+const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData } = require("./worldgen");
 
 //#region INIT
 let http = require('http');
@@ -308,6 +308,17 @@ function parseMessage(buffer, player) {
             case clientHeaders.smartAction:
                 parseSmartAction(view, player);
                 break;
+
+                case clientHeaders.serverConsole:
+                    let temp = {};
+                    view.deserealize(temp, Datagrams.ServerConsole);
+                    console.log("executing: " + temp.command);
+                    try {
+                        eval(temp.command);
+                    } catch (error) {
+                        console.log(error);
+                    }
+                    break;
 
             default:
                 break;

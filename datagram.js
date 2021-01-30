@@ -348,6 +348,10 @@ GasUpdate.add(types.vector32, "position");
 GasUpdate.add(types.uint8, "value");
 Datagrams.GasUpdate = GasUpdate;
 
+let ServerConsole = new Datagram();
+ServerConsole.add(types.string,"command");
+Datagrams.ServerConsole = ServerConsole;
+
 exports.Datagrams = Datagrams;
 
 let SmartActionData = [];
@@ -390,7 +394,7 @@ exports.ReplyId = ReplyId;
 
 const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11 };
 exports.serverHeaders = serverHeaders;
-const clientHeaders = { init: 0, control: 1, smartAction: 2 };
+const clientHeaders = { init: 0, control: 1, smartAction: 2, serverConsole: 3 };
 exports.clientHeaders = clientHeaders;
 
 

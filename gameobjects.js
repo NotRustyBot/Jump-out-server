@@ -606,7 +606,7 @@ function Mobile(x, y, type) {
 
 function Building(x, y, type) {
     Entity.call(this, x, y, type);
-    this.control = function (dt) { };
+    this.control = function (dt) {}
     this.update = function (dt) {
         this.rotatedColliderValid = false;
         this.control(dt);
@@ -614,7 +614,12 @@ function Building(x, y, type) {
         this.rotation += this.rotationSpeed * dt;
         this.rotation = this.rotation % (Math.PI * 2);
     }
+    this.setup = function () { 
+        this.init();
+    }
 }
+
+
 
 process.env.HOLOUBCI = process.env.HOLOUBCI || 0;
 for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
@@ -681,8 +686,8 @@ Action.test = function (ship, action) {
 
 Action.buildTest = function (ship, action) {
     action.replyData = {};
-    if(ship.cargo[cargoType.rock] >= 30  && construct(ship, Buildings.test)){
-        ship.cargo[cargoType.rock] -= 30; 
+    if(ship.cargo[cargoType.rock] >= 10  && construct(ship, Buildings.navBeacon)){
+        ship.cargo[cargoType.rock] -= 10; 
         action.replyData.id = 0;
         return 10;
     }else{
@@ -746,8 +751,25 @@ let Buildings = {
             }
             this.timer += dt;
         }
+    },
+    navBeacon:{
+        size: 50,
+        type: 102,
+        _speedBonus: 500,
+        _range: 5000,
+        _angle: 1,
+        setup: function () {
+            this.init();
+            Building.navBeacons.push(this);
+            this.collisionPurpose = 0;
+        }
     }
 }
+
+/**
+ * @type {Entity[],Building[]}
+ */
+Building.navBeacons = [];
 
 /**
  * 
@@ -762,8 +784,9 @@ function construct(ship, building) {
         build.collider.push(new Shape().circle(0, 0, building.size));
         build.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
         build.calculateBounds();
-        build.init();
-        build.control = building.control;
+        build.setup = building.setup || build.setup;
+        build.setup();
+        build.control = building.control || build.control;
         Entity.create.push(build);
         return true;
     }
@@ -975,13 +998,29 @@ function Ship(id) {
         }
         this.velocity.mult(1 - stats.drag * dt);
 
-        let absoluteLimit = stats.speed + stats.afterBurnerSpeedBonus;
+        let navBoost = 0;
+        for (let i = 0; i < Building.navBeacons.length; i++) {
+            const beacon = Building.navBeacons[i];
+            let diff = beacon.position.result().sub(this.position);
+
+            if(diff.length() >  Buildings.navBeacon._range) continue;
+
+            let angle = Math.atan2(diff.y, diff.x);
+            angle = Math.atan2(Math.sin(angle-this.rotation), Math.cos(angle-this.rotation))
+            Player.players.get(this.id).debug += "   Angle: " + angle.toFixed(2) + "\n";
+            if (Math.abs(angle) < Buildings.navBeacon._angle/2) {
+                navBoost = Buildings.navBeacon._speedBonus;
+                break;
+            }
+        }
+
+        let absoluteLimit = stats.speed + stats.afterBurnerSpeedBonus + navBoost;
         if (this.velocity.length() > absoluteLimit) {
             this.velocity.normalize(absoluteLimit);
         }
 
 
-        let targetSpeed = stats.speed * debuffMult + stats.afterBurnerSpeedBonus * this.afterBurnerActive * debuffMult;
+        let targetSpeed = stats.speed * debuffMult + stats.afterBurnerSpeedBonus * this.afterBurnerActive * debuffMult + navBoost;
         let speed = this.velocity.length();
         if (speed > targetSpeed) {
             this.velocity.normalize(speed - stats.acceleration * dt - this.afterBurnerActive * stats.afterBurnerAccelerationBonus * dt);
