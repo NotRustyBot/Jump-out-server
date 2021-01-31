@@ -352,6 +352,18 @@ let ServerConsole = new Datagram();
 ServerConsole.add(types.string,"command");
 Datagrams.ServerConsole = ServerConsole;
 
+let InventorySetup = new Datagram();
+InventorySetup.add(types.int8, "slots");
+InventorySetup.add(types.int16, "capacity");
+Datagrams.InventorySetup = InventorySetup;
+
+let SlotInfo = new Datagram();
+SlotInfo.add(types.int16, "filter");
+SlotInfo.add(types.int16, "capacity");
+SlotInfo.add(types.int16, "item");
+SlotInfo.add(types.int16, "stack");
+Datagrams.SlotInfo = SlotInfo;
+
 exports.Datagrams = Datagrams;
 
 let SmartActionData = [];

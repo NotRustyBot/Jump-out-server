@@ -9,7 +9,7 @@ exports.serverHeaders = serverHeaders;
 exports.clientHeaders = clientHeaders;
 exports.SmartActionData = SmartActionData;
 exports.ActionId = ActionId;
-exports.ReplyData  = ReplyData;
+exports.ReplyData = ReplyData;
 
 //#region věci
 /**
@@ -152,7 +152,7 @@ Area.checkOut = function (entity) {
     let y = Math.floor((position.y + entity.bounds) / Area.size);
     let area = Area.list[x][y];
     if (area.entities.includes(entity)) {
-        area.entities.splice(area.entities.indexOf(entity),1);
+        area.entities.splice(area.entities.indexOf(entity), 1);
     }
 
     position = entity.position;
@@ -161,7 +161,7 @@ Area.checkOut = function (entity) {
     area = Area.list[x][y];
 
     if (area.entities.includes(entity)) {
-        area.entities.splice(area.entities.indexOf(entity),1);
+        area.entities.splice(area.entities.indexOf(entity), 1);
     }
 
     position = entity.position;
@@ -170,7 +170,7 @@ Area.checkOut = function (entity) {
     area = Area.list[x][y];
 
     if (area.entities.includes(entity)) {
-        area.entities.splice(area.entities.indexOf(entity),1);
+        area.entities.splice(area.entities.indexOf(entity), 1);
     }
 
     position = entity.position;
@@ -179,7 +179,7 @@ Area.checkOut = function (entity) {
     area = Area.list[x][y];
 
     if (area.entities.includes(entity)) {
-        area.entities.splice(area.entities.indexOf(entity),1);
+        area.entities.splice(area.entities.indexOf(entity), 1);
     }
 };
 
@@ -264,15 +264,15 @@ Universe.getGas = function (vector) {
  * @param {Vector} position 
  * @param {number} value 
  */
-Universe.setGas = function(position, value){
+Universe.setGas = function (position, value) {
     let x = Math.floor(position.x / Universe.scale);
     let y = Math.floor(position.y / Universe.scale);
     Universe.gasMap[x][y] = value;
 
-    Universe.gasChange.push({position: new Vector(x,y), value: value});
+    Universe.gasChange.push({ position: new Vector(x, y), value: value });
     let view = new DataView(Universe.gasBuffer);
-    view.setInt8(7+x*1000+y, value);
-    
+    view.setInt8(7 + x * 1000 + y, value);
+
 }
 
 Universe.gasChange = [];
@@ -463,6 +463,161 @@ function Shape() {
 Shape.types = { circle: 1, line: 2 };
 exports.Shape = Shape;
 
+let Items = {
+    ore: 1,
+    naviBeacon: 5,
+}
+
+let ItemInfo = {
+    1:{ // ore
+        tag : 0,
+        stackable : true,
+    },
+    5:{ // naviBeacon
+        tag : 1,
+        stackable : false,
+    },
+}
+function Item(id, stack) {
+    this.id = id;
+    this.stack = stack;
+    this.stats = ItemInfo[id];
+}
+
+function Slot(capacity, filter) {
+    this.filter = filter == undefined? -1 : filter;
+    this.capacity = capacity == undefined? -1 : capacity;
+    /**
+     * @type {Inventory}
+     */
+    this.inventory;
+    /**
+     * @type {Item}
+     */
+    this.item = new Item(0, 0);
+
+    /**
+     * 
+     * @param {Item} item 
+     */
+    this.addItem = function (item) {
+        if (this.item.id == 0 || this.item.id == item.id) {
+            let taken = 0;
+            if (this.filter == -1) {
+                if (item.stats.stackable) {
+                    taken = Math.min(this.inventory.capacity - this.inventory.used, item.stack);
+                }else{
+                    taken = Math.min(this.inventory.capacity - this.inventory.used, 1);
+                }
+                this.inventory.used += taken;
+            } else if (this.filter == item.stats.tag) {
+                taken = Math.min(this.capacity - this.item.stack, item.stack);                
+            } else {
+                return 0; // filter mismatch
+            }
+            this.item.id = item.id;
+            this.item.stack += taken;
+            return taken; // == 0) inventory full
+        } else {
+            return 0; // item mismatch
+        }
+    }
+
+    /**
+     * 
+     * @param {Item} item 
+     */
+    this.removeItem = function (item) {
+        let taken = 0;
+        if (this.item.id == item.id) {
+            taken = Math.min(this.item.stack, item.stack);
+            this.item.stack -= taken;
+            if (this.item.stack == 0) {
+                this.item.id = 0;
+            }
+
+            if (this.filter != -1) {
+                this.inventory.used -= taken;
+            }
+        }
+        return taken;
+    }
+}
+
+function Inventory(capacity) {
+    /**
+     * @type {Slot[]}
+     */
+    this.slots = [];
+    this.capacity = capacity;
+    this.used = 0;
+
+    /**
+     * 
+     * @param {Item} item 
+     */
+    this.addItem = function(item){
+        let request = item.stack;
+        for (let i = 0; i < this.slots.length; i++) {
+            const slot = this.slots[i];
+            item.stack -= slot.addItem(item);
+            if (item.stack == 0) break;
+        }
+        return item.stack;
+    }
+
+    /**
+     * 
+     * @param {Item} item 
+     */
+    this.countItem = function(itemID){
+        let count = 0;
+        for (let i = this.slots.length-1; i >= 0; i--) {
+            const slot = this.slots[i];
+            if (slot.item.id == itemID) {
+                count += slot.item.stack;
+            }
+        }
+
+        return count;
+    }
+
+    /**
+     * 
+     * @param {Item} item 
+     */
+    this.removeItem = function(item){
+        let request = item.stack;
+        for (let i = this.slots.length-1; i >= 0; i--) {
+            const slot = this.slots[i];
+            if (slot.item.id == item.id) {
+                request -= slot.item.stack;
+            }
+            if (request <= 0) break;
+        }
+
+        if (request <= 0) {
+            request = item.stack;
+            for (let i = this.slots.length-1; i >= 0; i--) {
+                const slot = this.slots[i];
+                item.stack -= slot.removeItem(item);
+                if (item.stack == 0) break;
+            }
+            return true;
+        } else {
+            return false;
+        }  
+    }
+
+    /**
+     * 
+     * @param {Slot} slot 
+     */
+    this.addSlot = function(slot){
+        slot.inventory = this;
+        this.slots.push(slot);
+    }
+}
 
 /**
  * 
@@ -503,13 +658,13 @@ function Entity(x, y, type) {
      * 
      * @param {AutoView} inView 
      */
-    this.serialize = function(inView){
+    this.serialize = function (inView) {
         inView.serialize(this, Datagrams.EntitySetup);
         return;
         if (this.bytesValid) {
-            bytes.copy(inView.view.buffer, inView.index, 0,bytes.length);
+            bytes.copy(inView.view.buffer, inView.index, 0, bytes.length);
             inView.index += bytes.length;
-        }else{
+        } else {
             let index = inView.index;
             inView.serialize(this, Datagrams.EntitySetup);
             bytes = inView.view.buffer.slice(index);
@@ -606,7 +761,7 @@ function Mobile(x, y, type) {
 
 function Building(x, y, type) {
     Entity.call(this, x, y, type);
-    this.control = function (dt) {}
+    this.control = function (dt) { }
     this.update = function (dt) {
         this.rotatedColliderValid = false;
         this.control(dt);
@@ -614,7 +769,7 @@ function Building(x, y, type) {
         this.rotation += this.rotationSpeed * dt;
         this.rotation = this.rotation % (Math.PI * 2);
     }
-    this.setup = function () { 
+    this.setup = function () {
         this.init();
     }
 }
@@ -672,25 +827,28 @@ let Action = {};
  */
 Action.test = function (ship, action) {
     action.replyData = {};
-    if(ship.cargo[cargoType.rock] >= 10){
+    if (ship.inventory.removeItem(new Item(Items.ore, 1))) {
         ship.afterBurnerFuel += 10;
-        ship.cargo[cargoType.rock] -= 10; 
         ship.afterBurnerFuel = Math.min(ship.afterBurnerFuel, ship.stats.afterBurnerCapacity);
         action.replyData.id = 0;
         return 1;
-    }else{
+    } else {
         action.replyData.id = 0;
         return 0.1;
     }
 }
 
+/**
+ * 
+ * @param {Ship} ship 
+ */
 Action.buildTest = function (ship, action) {
     action.replyData = {};
-    if(ship.cargo[cargoType.rock] >= 10  && construct(ship, Buildings.navBeacon)){
-        ship.cargo[cargoType.rock] -= 10; 
+    if (ship.inventory.countItem(Items.ore) >= 3 && construct(ship, Buildings.navBeacon)) {
+        ship.inventory.removeItem(new Item(Items.ore, 3));
         action.replyData.id = 0;
         return 10;
-    }else{
+    } else {
         action.replyData.id = 0;
         return 0.1;
     }
@@ -718,11 +876,11 @@ Action.MineRock = function (ship, action) {
     }
 
     action.replyData = {};
-    if(closest != undefined){
-        ship.addCargo(cargoType.rock, 30);
+    if (closest != undefined) {
+        ship.inventory.addItem(new Item(Items.ore, 10));
         action.replyData.id = 0;
         closest.delete();
-    }else{
+    } else {
         action.replyData.id = 0;
     }
 
@@ -733,16 +891,16 @@ let Buildings = {
     test: {
         size: 300,
         type: 101,
-        control: function(dt){
-            if(this.reach == undefined) this.reach = 0;
+        control: function (dt) {
+            if (this.reach == undefined) this.reach = 0;
 
-            if(this.timer == undefined || this.timer > 0.1){
-                if(this.reach < 5000){
+            if (this.timer == undefined || this.timer > 0.1) {
+                if (this.reach < 5000) {
                     this.reach += 10;
                     let angle = 0;
                     for (let i = 0; i < 100; i++) {
-                        angle += Math.PI*2/100;
-                        let pos = new Vector(Math.cos(angle)*this.reach, Math.sin(angle)*this.reach);
+                        angle += Math.PI * 2 / 100;
+                        let pos = new Vector(Math.cos(angle) * this.reach, Math.sin(angle) * this.reach);
                         pos.add(this.position);
                         Universe.setGas(pos, Math.max(Universe.getGas(pos) - 1, 0));
                     }
@@ -752,7 +910,7 @@ let Buildings = {
             this.timer += dt;
         }
     },
-    navBeacon:{
+    navBeacon: {
         size: 50,
         type: 102,
         _speedBonus: 500,
@@ -836,17 +994,17 @@ function isAvalible(position, size) {
  * 
  * @param {Player} player 
  */
-function SmartAction(player){
+function SmartAction(player) {
     this.handle;
     this.id;
     this.player = player;
     this.replyData = undefined;
     player.actions.push(this);
 
-    this.reply = function(id){
-        if(this.replyData == undefined){
-            return {handle: this.handle, id: id};
-        }else{
+    this.reply = function (id) {
+        if (this.replyData == undefined) {
+            return { handle: this.handle, id: id };
+        } else {
             this.replyData.handle = this.handle;
             return this.replyData;
         }
@@ -856,7 +1014,6 @@ function SmartAction(player){
 
 exports.SmartAction = SmartAction;
 
-let cargoType = {rock: 0, crystals: 1, scrap: 2, count: 3 };
 
 function ShipType() {
     this.name;
@@ -885,7 +1042,7 @@ ShipType.init = function () {
     debugShip.afterBurnerRotationBonus = 1;
     debugShip.afterBurnerAccelerationBonus = 800;
     debugShip.afterBurnerCapacity = 60;
-    debugShip.cargoCapacity = 100;
+    debugShip.cargoCapacity = 30;
     debugShip.drag = 500;
     debugShip.actionPool = [Action.buildTest, Action.MineRock];
 
@@ -915,7 +1072,11 @@ function Ship(id) {
     this.debuff = 0;
     this.action = 0;
     this.cooldowns = [];
-    this.cargo = [];
+
+    /**
+     * @type {Inventory}
+     */
+    this.inventory;
     /**
     * @type {number} id of the player who owns this ship
     */
@@ -930,9 +1091,11 @@ function Ship(id) {
         for (let i = 0; i < type.actionPool.length; i++) {
             this.cooldowns[i] = 0;
         }
-        for (let i = 0; i < cargoType.count; i++) {
-            this.cargo[i] = 0;
-        }
+
+        this.inventory = new Inventory(this.stats.cargoCapacity);
+        this.inventory.addSlot(new Slot(15,0));
+        this.inventory.addSlot(new Slot());
+        this.inventory.addSlot(new Slot());
     };
 
     this.update = function (dt) {
@@ -1003,12 +1166,12 @@ function Ship(id) {
             const beacon = Building.navBeacons[i];
             let diff = beacon.position.result().sub(this.position);
 
-            if(diff.length() >  Buildings.navBeacon._range) continue;
+            if (diff.length() > Buildings.navBeacon._range) continue;
 
             let angle = Math.atan2(diff.y, diff.x);
-            angle = Math.atan2(Math.sin(angle-this.rotation), Math.cos(angle-this.rotation))
+            angle = Math.atan2(Math.sin(angle - this.rotation), Math.cos(angle - this.rotation))
             Player.players.get(this.id).debug += "   Angle: " + angle.toFixed(2) + "\n";
-            if (Math.abs(angle) < Buildings.navBeacon._angle/2) {
+            if (Math.abs(angle) < Buildings.navBeacon._angle / 2) {
                 navBoost = Buildings.navBeacon._speedBonus;
                 break;
             }
@@ -1028,11 +1191,11 @@ function Ship(id) {
         }
 
         Player.players.get(this.id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "/" + targetSpeed.toFixed(2) + "\n";
-        for (let i = 0; i < this.cargo.length; i++) {
-            Player.players.get(this.id).debug += "      " + i+": " + this.cargo[i] + "\n";
+        for (let i = 0; i < this.inventory.slots.length; i++) {
+            Player.players.get(this.id).debug += "      " + i + ": [" + this.inventory.slots[i].filter +"] " + this.inventory.slots[i].item.id + " x" + this.inventory.slots[i].item.stack + " / " + this.inventory.slots[i].capacity + "\n";
         }
 
-        Player.players.get(this.id).debug += "  Cargo: " + this.cargoUsed() +"/"+ stats.cargoCapacity;
+        Player.players.get(this.id).debug += "  Cargo: " + this.inventory.used + "/" + this.inventory.capacity;
 
 
         this.position.add(this.velocity.result().mult(dt));
@@ -1076,39 +1239,19 @@ function Ship(id) {
             const a = toHandle[i];
             if (this.stats.actionPool[a.actionId] != undefined) {
                 if (this.cooldowns[a.actionId] == 0) {
-                    this.cooldowns[a.actionId] = this.stats.actionPool[a.actionId](this,a);
+                    this.cooldowns[a.actionId] = this.stats.actionPool[a.actionId](this, a);
                     replies.push(a.reply());
-                }else{
+                } else {
                     let reply = a.reply(2);
                     reply.time = this.cooldowns[a.actionId];
                     replies.push(reply);
                 }
-            }else{
+            } else {
                 let reply = a.reply(1);
                 replies.push(reply);
             }
         }
         Player.players.get(this.id).actions = [];
-    }
-
-    this.addCargo = function(type, count) {
-        let used = this.cargoUsed();
-        if (used + count <= this.stats.cargoCapacity) {
-            this.cargo[type] += count;
-            return 0;
-        }else{
-            let space = this.stats.cargoCapacity - used;
-            this.cargo[type] += space;
-            return count - space;
-        }
-    }
-
-    this.cargoUsed = function() {
-        let used = 0;
-        this.cargo.forEach(c => {
-            used += c;
-        });
-        return used;
     }
 
     this.checkCollision = function (dt) {
