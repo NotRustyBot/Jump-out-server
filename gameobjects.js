@@ -469,13 +469,13 @@ let Items = {
 }
 
 let ItemInfo = {
-    1:{ // ore
-        tag : 0,
-        stackable : true,
+    1: { // ore
+        tag: 0,
+        stackable: true,
     },
-    5:{ // naviBeacon
-        tag : 1,
-        stackable : false,
+    5: { // naviBeacon
+        tag: 1,
+        stackable: false,
     },
 }
 function Item(id, stack) {
@@ -485,8 +485,8 @@ function Item(id, stack) {
 }
 
 function Slot(capacity, filter) {
-    this.filter = filter == undefined? -1 : filter;
-    this.capacity = capacity == undefined? -1 : capacity;
+    this.filter = filter == undefined ? -1 : filter;
+    this.capacity = capacity == undefined ? -1 : capacity;
     /**
      * @type {Inventory}
      */
@@ -506,12 +506,12 @@ function Slot(capacity, filter) {
             if (this.filter == -1) {
                 if (item.stats.stackable) {
                     taken = Math.min(this.inventory.capacity - this.inventory.used, item.stack);
-                }else{
+                } else {
                     taken = Math.min(this.inventory.capacity - this.inventory.used, 1);
                 }
                 this.inventory.used += taken;
             } else if (this.filter == item.stats.tag) {
-                taken = Math.min(this.capacity - this.item.stack, item.stack);                
+                taken = Math.min(this.capacity - this.item.stack, item.stack);
             } else {
                 return 0; // filter mismatch
             }
@@ -536,7 +536,7 @@ function Slot(capacity, filter) {
                 this.item.id = 0;
             }
 
-            if (this.filter != -1) {
+            if (this.filter == -1) {
                 this.inventory.used -= taken;
             }
         }
@@ -556,7 +556,7 @@ function Inventory(capacity) {
      * 
      * @param {Item} item 
      */
-    this.addItem = function(item){
+    this.addItem = function (item) {
         let request = item.stack;
         for (let i = 0; i < this.slots.length; i++) {
             const slot = this.slots[i];
@@ -570,9 +570,9 @@ function Inventory(capacity) {
      * 
      * @param {Item} item 
      */
-    this.countItem = function(itemID){
+    this.countItem = function (itemID) {
         let count = 0;
-        for (let i = this.slots.length-1; i >= 0; i--) {
+        for (let i = this.slots.length - 1; i >= 0; i--) {
             const slot = this.slots[i];
             if (slot.item.id == itemID) {
                 count += slot.item.stack;
@@ -586,9 +586,9 @@ function Inventory(capacity) {
      * 
      * @param {Item} item 
      */
-    this.removeItem = function(item){
+    this.removeItem = function (item) {
         let request = item.stack;
-        for (let i = this.slots.length-1; i >= 0; i--) {
+        for (let i = this.slots.length - 1; i >= 0; i--) {
             const slot = this.slots[i];
             if (slot.item.id == item.id) {
                 request -= slot.item.stack;
@@ -598,7 +598,7 @@ function Inventory(capacity) {
 
         if (request <= 0) {
             request = item.stack;
-            for (let i = this.slots.length-1; i >= 0; i--) {
+            for (let i = this.slots.length - 1; i >= 0; i--) {
                 const slot = this.slots[i];
                 item.stack -= slot.removeItem(item);
                 if (item.stack == 0) break;
@@ -606,14 +606,14 @@ function Inventory(capacity) {
             return true;
         } else {
             return false;
-        }  
+        }
     }
 
     /**
      * 
      * @param {Slot} slot 
      */
-    this.addSlot = function(slot){
+    this.addSlot = function (slot) {
         slot.inventory = this;
         this.slots.push(slot);
     }
@@ -633,6 +633,9 @@ function Entity(x, y, type) {
     this.type = type;
     this.rotatedCollider = [];
     this.rotatedColliderValid = false;
+    /**
+     * @type {Uint8Array}
+     */
     this.bytes;
     this.bytesValid = false;
     /**
@@ -659,15 +662,17 @@ function Entity(x, y, type) {
      * @param {AutoView} inView 
      */
     this.serialize = function (inView) {
-        inView.serialize(this, Datagrams.EntitySetup);
-        return;
+
         if (this.bytesValid) {
-            bytes.copy(inView.view.buffer, inView.index, 0, bytes.length);
-            inView.index += bytes.length;
+            let index = inView.index;
+            let array = new Uint8Array(inView.view.buffer);
+            array.set(this.bytes, index);
+            inView.index += this.bytes.length;
         } else {
             let index = inView.index;
             inView.serialize(this, Datagrams.EntitySetup);
-            bytes = inView.view.buffer.slice(index);
+            this.bytes = new Uint8Array(inView.view.buffer.slice(index, index + Datagrams.EntitySetup.size));
+            this.bytesValid = true;
         }
     }
 
@@ -748,6 +753,7 @@ function Mobile(x, y, type) {
     this.control = function (dt) { };
     this.update = function (dt) {
         this.rotatedColliderValid = false;
+        this.bytesValid = false;
         this.timer++;
         this.timer = this.timer % 100;
         this.control(dt);
@@ -775,6 +781,44 @@ function Building(x, y, type) {
 }
 
 
+/**
+ * 
+ * @param {number} x 
+ * @param {number} y 
+ * @param {Item} item 
+ */
+function ItemDrop(x, y, item) {
+    Entity.call(this, x, y, -1);
+    this.item = item;
+    this.bounds = 125;
+    this.collisionPurpose = Entity.CollisionFlags.pickup;
+    this.rotatedCollider.push(new Shape().circle(0, 0, 125));
+    this.rotatedColliderValid = true;
+
+    this.update = function () { };
+
+    this.init = function () {
+        this.id = Entity.next_id;
+        Entity.next_id++;
+        Entity.list.push(this);
+        Area.checkIn(this);
+        ItemDrop.create.push(this);
+    }
+
+    this.delete = function () {
+        Area.checkOut(this);
+        Entity.list.splice(Entity.list.indexOf(this), 1);
+        ItemDrop.remove.push(this);
+    }
+}
+
+ItemDrop.create = [];
+ItemDrop.remove = [];
+exports.ItemDrop = ItemDrop;
+
+let i = new ItemDrop(Universe.size * Area.size / 2, Universe.size * Area.size / 2 + 500, new Item(5, 1));
+i.init();
+
 
 process.env.HOLOUBCI = process.env.HOLOUBCI || 0;
 for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
@@ -798,7 +842,7 @@ for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
             }
         });
         if (target != undefined) {
-            if (closest < 200) {
+            if (closest < 500) {
                 this.velocity = Vector.zero();
             } else {
                 this.velocity = target.position.result().sub(this.position);
@@ -816,8 +860,6 @@ for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
         this.rotation = this.velocity.toAngle();
     }
 }
-
-
 
 let Action = {};
 
@@ -1093,7 +1135,7 @@ function Ship(id) {
         }
 
         this.inventory = new Inventory(this.stats.cargoCapacity);
-        this.inventory.addSlot(new Slot(15,0));
+        this.inventory.addSlot(new Slot(15, 0));
         this.inventory.addSlot(new Slot());
         this.inventory.addSlot(new Slot());
     };
@@ -1192,7 +1234,7 @@ function Ship(id) {
 
         Player.players.get(this.id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "/" + targetSpeed.toFixed(2) + "\n";
         for (let i = 0; i < this.inventory.slots.length; i++) {
-            Player.players.get(this.id).debug += "      " + i + ": [" + this.inventory.slots[i].filter +"] " + this.inventory.slots[i].item.id + " x" + this.inventory.slots[i].item.stack + " / " + this.inventory.slots[i].capacity + "\n";
+            Player.players.get(this.id).debug += "      " + i + ": [" + this.inventory.slots[i].filter + "] " + this.inventory.slots[i].item.id + " x" + this.inventory.slots[i].item.stack + " / " + this.inventory.slots[i].capacity + "\n";
         }
 
         Player.players.get(this.id).debug += "  Cargo: " + this.inventory.used + "/" + this.inventory.capacity;
@@ -1261,7 +1303,27 @@ function Ship(id) {
         if (localArea != undefined) {
             for (let i = 0; i < localArea.entities.length; i++) {
                 const e = localArea.entities[i];
-                if ((e.collisionPurpose & Entity.CollisionFlags.player) != Entity.CollisionFlags.player) continue;
+                if ((e.collisionPurpose & Entity.CollisionFlags.player) != Entity.CollisionFlags.player) {
+                    if ((e.collisionPurpose & Entity.CollisionFlags.pickup) == Entity.CollisionFlags.pickup) {
+                        let relativePos = this.position.result();
+                        relativePos.x -= e.position.x;
+                        relativePos.y -= e.position.y;
+                        let collisionShape = new Shape().circle(relativePos.x, relativePos.y, size);
+                        let res;
+                        e.rotatedCollider.forEach(s => {
+                            res = collisionShape.checkCollision(s);
+                            if (res.result) {
+                                let left = this.inventory.addItem(e.item);
+                                if (left > 0) {
+                                    e.item.stack = left;
+                                }else{
+                                    e.delete();
+                                }
+                            }
+                        });
+                    }
+                    continue;
+                }
                 let relativePos = this.position.result();
                 relativePos.x -= e.position.x;
                 relativePos.y -= e.position.y;
@@ -1339,7 +1401,11 @@ function Player(connection) {
         let nearby = [];
         proximity.forEach(a => {
             a.entities.forEach(e => {
-                nearby.push(e);
+                if (!nearby.includes(e)) {
+                    if (e.type != -1) {
+                        nearby.push(e);
+                    }
+                }
             });
         });
 

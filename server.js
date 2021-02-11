@@ -264,8 +264,10 @@ function EntitySetupMessage(inView) {
     view.index += 2;
     let count = 0;
     Entity.list.forEach(e => {
-        view.serialize(e, Datagrams.EntitySetup);
-        count++;
+        if (e.type != -1){
+            view.serialize(e, Datagrams.EntitySetup);
+            count++;
+        }
     });
     view.view.setUint16(sizeGoesHere, count);
     return buffer.slice(0, view.index);
