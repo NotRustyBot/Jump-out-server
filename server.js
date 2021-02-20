@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData } = require("./worldgen");
+const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop } = require("./worldgen");
 
 //#region INIT
 let http = require('http');
@@ -190,6 +190,23 @@ function updateMessage() {
         Universe.gasChange = [];
     }
 
+    if (ItemDrop.create.length > 0) {
+        view.setUint8(serverHeaders.itemCreate);
+        ItemDrop.create.forEach(i => {
+            let temp = {id: i.id, position: i.position, item: i.item.id, stack: i.item.stack};
+            view.serialize(temp, Datagrams.ItemCreate);
+        });
+        ItemDrop.create = [];
+    }
+
+    if (ItemDrop.remove.length > 0) {
+        view.setUint8(serverHeaders.itemRemove);
+        ItemDrop.remove.forEach(i => {
+            view.serialize(i, Datagrams.ItemRemove);
+        });
+        ItemDrop.remove = [];
+    }
+
     return view;
     //return buffer.slice(0, view.index);
 }
@@ -244,11 +261,16 @@ function prepareReplies(inView, player) {
 function AreaInfo(inView, player) {
     inView.setUint8(serverHeaders.proximity);
     let entities = player.proximity();
-    inView.setUint16(entities.length);
+    let sizeGoesHere = inView.index;
+    inView.setUint16(0);
+    let count = 0;
     entities.forEach(entity => {
-        entity.serialize(inView);
+        if (entity.type != -1) {
+            entity.serialize(inView);    
+            count++;       
+        }
     });
-
+    inView.view.setUint16(sizeGoesHere,count);
     return buffer.slice(0, inView.index);
 }
 
@@ -263,13 +285,21 @@ function EntitySetupMessage(inView) {
     let sizeGoesHere = view.index;
     view.index += 2;
     let count = 0;
+    let items = [];
     Entity.list.forEach(e => {
         if (e.type != -1){
             view.serialize(e, Datagrams.EntitySetup);
             count++;
+        }else{
+            items.push(e);
         }
     });
     view.view.setUint16(sizeGoesHere, count);
+    view.setUint8(serverHeaders.itemCreate);
+    items.forEach(i => {
+        let temp = {id: i.id, position: i.position, item: i.item.id, stack: i.item.stack};
+        view.serialize(temp, Datagrams.ItemCreate);
+    });
     return buffer.slice(0, view.index);
 }
 
@@ -301,7 +331,6 @@ function parseMessage(buffer, player) {
         switch (head) {
             case clientHeaders.init:
                 parseInit(view, player);
-
                 break;
             case clientHeaders.control:
                 parseInput(view, player);

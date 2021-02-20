@@ -364,6 +364,17 @@ SlotInfo.add(types.int16, "item");
 SlotInfo.add(types.int16, "stack");
 Datagrams.SlotInfo = SlotInfo;
 
+let ItemCreate = new Datagram();
+ItemCreate.add(types.vector32, "position");
+ItemCreate.add(types.uint16, "id");
+ItemCreate.add(types.int16, "item");
+ItemCreate.add(types.int16, "stack");
+Datagrams.ItemCreate = ItemCreate;
+
+let ItemRemove = new Datagram();
+ItemRemove.add(types.uint16, "id");
+Datagrams.ItemRemove = ItemRemove;
+
 exports.Datagrams = Datagrams;
 
 let SmartActionData = [];
@@ -404,7 +415,7 @@ exports.ReplyData = ReplyData;
 const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
 exports.ReplyId = ReplyId;
 
-const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11 };
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13};
 exports.serverHeaders = serverHeaders;
 const clientHeaders = { init: 0, control: 1, smartAction: 2, serverConsole: 3 };
 exports.clientHeaders = clientHeaders;

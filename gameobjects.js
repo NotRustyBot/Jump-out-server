@@ -277,6 +277,61 @@ Universe.setGas = function (position, value) {
 
 Universe.gasChange = [];
 
+Universe.scanned = {
+    objects: [],
+    gas: []
+};
+
+/**
+ * 
+ * @param {Vector} position 
+ * @param {number} range 
+ */
+
+Universe.scan = function(position, range){
+    let nearby = Universe.entitiesInRange(position, range);
+
+    nearby.forEach(e => {
+        if(!Universe.scanned.objects.includes(e)){
+            Universe.scanned.objects.push(e);
+        }
+    });
+
+    
+}
+
+/**
+ * 
+ * @param {Vector} position 
+ * @param {number} range 
+ * @returns {Entity[]}
+ */
+
+Universe.entitiesInRange = function (position, range) {
+    let proximity = [];
+    for (let y = -1; y <= 1; y++) {
+        for (let x = -1; x <= 1; x++) {
+            let adjusted = position.result();
+            adjusted.x += x * Area.size;
+            adjusted.y += y * Area.size;
+            let area = Area.getLocalArea(adjusted);
+            if (area != undefined) proximity.push(area);
+        }
+    }
+
+    let nearby = [];
+    proximity.forEach(a => {
+        a.entities.forEach(e => {
+            if (!nearby.includes(e)) {
+                if (e.position.distance(position) <= range) {
+                    nearby.push(e);
+                }
+            }
+        });
+    });
+    return nearby;
+}
+
 exports.Universe = Universe;
 
 for (let x = 0; x < Universe.size; x++) {
@@ -478,6 +533,7 @@ let ItemInfo = {
         stackable: false,
     },
 }
+
 function Item(id, stack) {
     this.id = id;
     this.stack = stack;
@@ -1087,6 +1143,7 @@ ShipType.init = function () {
     debugShip.cargoCapacity = 30;
     debugShip.drag = 500;
     debugShip.actionPool = [Action.buildTest, Action.MineRock];
+    debugShip.radarRange = 3500;
 
     debugShip.drag = debugShip.drag / 1000;
     ShipType.types["Debug"] = debugShip;
@@ -1316,7 +1373,7 @@ function Ship(id) {
                                 let left = this.inventory.addItem(e.item);
                                 if (left > 0) {
                                     e.item.stack = left;
-                                }else{
+                                } else {
                                     e.delete();
                                 }
                             }
@@ -1402,9 +1459,7 @@ function Player(connection) {
         proximity.forEach(a => {
             a.entities.forEach(e => {
                 if (!nearby.includes(e)) {
-                    if (e.type != -1) {
-                        nearby.push(e);
-                    }
+                    nearby.push(e);
                 }
             });
         });
