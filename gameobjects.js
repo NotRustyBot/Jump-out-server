@@ -600,13 +600,15 @@ function Slot(capacity, filter) {
     }
 }
 
-function Inventory(capacity) {
+function Inventory(capacity, owner) {
     /**
      * @type {Slot[]}
      */
     this.slots = [];
     this.capacity = capacity;
     this.used = 0;
+    this.owner = owner;
+    if(owner == undefined) this.owner = -1;
 
     /**
      * 
@@ -617,6 +619,7 @@ function Inventory(capacity) {
         for (let i = 0; i < this.slots.length; i++) {
             const slot = this.slots[i];
             item.stack -= slot.addItem(item);
+            Inventory.changes.push({shipId: this.owner, slot: i, item: slot.item.id, stack: slot.item.stack});
             if (item.stack == 0) break;
         }
         return item.stack;
@@ -657,6 +660,7 @@ function Inventory(capacity) {
             for (let i = this.slots.length - 1; i >= 0; i--) {
                 const slot = this.slots[i];
                 item.stack -= slot.removeItem(item);
+                Inventory.changes.push({shipId: this.owner, slot: i, item: slot.item.id,stack: slot.item.stack});
                 if (item.stack == 0) break;
             }
             return true;
@@ -674,6 +678,9 @@ function Inventory(capacity) {
         this.slots.push(slot);
     }
 }
+
+Inventory.changes = [];
+exports.Inventory = Inventory;
 
 /**
  * 
@@ -1191,7 +1198,7 @@ function Ship(id) {
             this.cooldowns[i] = 0;
         }
 
-        this.inventory = new Inventory(this.stats.cargoCapacity);
+        this.inventory = new Inventory(this.stats.cargoCapacity, this.id);
         this.inventory.addSlot(new Slot(15, 0));
         this.inventory.addSlot(new Slot());
         this.inventory.addSlot(new Slot());

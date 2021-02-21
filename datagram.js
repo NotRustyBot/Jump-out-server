@@ -352,17 +352,12 @@ let ServerConsole = new Datagram();
 ServerConsole.add(types.string,"command");
 Datagrams.ServerConsole = ServerConsole;
 
-let InventorySetup = new Datagram();
-InventorySetup.add(types.int8, "slots");
-InventorySetup.add(types.int16, "capacity");
-Datagrams.InventorySetup = InventorySetup;
-
-let SlotInfo = new Datagram();
-SlotInfo.add(types.int16, "filter");
-SlotInfo.add(types.int16, "capacity");
-SlotInfo.add(types.int16, "item");
-SlotInfo.add(types.int16, "stack");
-Datagrams.SlotInfo = SlotInfo;
+let InventoryChange = new Datagram();
+InventoryChange.add(types.int16, "shipId");
+InventoryChange.add(types.int8, "slot");
+InventoryChange.add(types.int8, "item");
+InventoryChange.add(types.int16, "stack");
+Datagrams.InventoryChange = InventoryChange;
 
 let ItemCreate = new Datagram();
 ItemCreate.add(types.vector32, "position");
@@ -415,7 +410,7 @@ exports.ReplyData = ReplyData;
 const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
 exports.ReplyId = ReplyId;
 
-const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13};
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14};
 exports.serverHeaders = serverHeaders;
 const clientHeaders = { init: 0, control: 1, smartAction: 2, serverConsole: 3 };
 exports.clientHeaders = clientHeaders;

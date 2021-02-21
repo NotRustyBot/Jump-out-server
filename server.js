@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop } = require("./worldgen");
+const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Inventory } = require("./worldgen");
 
 //#region INIT
 let http = require('http');
@@ -191,8 +191,8 @@ function updateMessage() {
     }
 
     if (ItemDrop.create.length > 0) {
-        view.setUint8(serverHeaders.itemCreate);
         ItemDrop.create.forEach(i => {
+            view.setUint8(serverHeaders.itemCreate);
             let temp = {id: i.id, position: i.position, item: i.item.id, stack: i.item.stack};
             view.serialize(temp, Datagrams.ItemCreate);
         });
@@ -200,11 +200,19 @@ function updateMessage() {
     }
 
     if (ItemDrop.remove.length > 0) {
-        view.setUint8(serverHeaders.itemRemove);
         ItemDrop.remove.forEach(i => {
+            view.setUint8(serverHeaders.itemRemove);
             view.serialize(i, Datagrams.ItemRemove);
         });
         ItemDrop.remove = [];
+    }
+
+    if (Inventory.changes.length > 0) {
+        Inventory.changes.forEach(i => {
+            view.setUint8(serverHeaders.inventoryChange);
+            view.serialize(i, Datagrams.InventoryChange);
+        });
+        Inventory.changes = [];
     }
 
     return view;
@@ -295,8 +303,8 @@ function EntitySetupMessage(inView) {
         }
     });
     view.view.setUint16(sizeGoesHere, count);
-    view.setUint8(serverHeaders.itemCreate);
     items.forEach(i => {
+        view.setUint8(serverHeaders.itemCreate);
         let temp = {id: i.id, position: i.position, item: i.item.id, stack: i.item.stack};
         view.serialize(temp, Datagrams.ItemCreate);
     });
