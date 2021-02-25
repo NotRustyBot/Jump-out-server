@@ -288,16 +288,16 @@ Universe.scanned = {
  * @param {number} range 
  */
 
-Universe.scan = function(position, range){
+Universe.scan = function (position, range) {
     let nearby = Universe.entitiesInRange(position, range);
 
     nearby.forEach(e => {
-        if(!Universe.scanned.objects.includes(e)){
+        if (!Universe.scanned.objects.includes(e)) {
             Universe.scanned.objects.push(e);
         }
     });
 
-    
+
 }
 
 /**
@@ -596,7 +596,7 @@ function Inventory(capacity, owner) {
     this.capacity = capacity;
     this.used = 0;
     this.owner = owner;
-    if(owner == undefined) this.owner = -1;
+    if (owner == undefined) this.owner = -1;
 
     /**
      * 
@@ -607,7 +607,7 @@ function Inventory(capacity, owner) {
         for (let i = 0; i < this.slots.length; i++) {
             const slot = this.slots[i];
             item.stack -= slot.addItem(item);
-            Inventory.changes.push({shipId: this.owner, slot: i, item: slot.item.id, stack: slot.item.stack});
+            Inventory.changes.push({ shipId: this.owner, slot: i, item: slot.item.id, stack: slot.item.stack });
             if (item.stack == 0) break;
         }
         return item.stack;
@@ -648,7 +648,7 @@ function Inventory(capacity, owner) {
             for (let i = this.slots.length - 1; i >= 0; i--) {
                 const slot = this.slots[i];
                 item.stack -= slot.removeItem(item);
-                Inventory.changes.push({shipId: this.owner, slot: i, item: slot.item.id,stack: slot.item.stack});
+                Inventory.changes.push({ shipId: this.owner, slot: i, item: slot.item.id, stack: slot.item.stack });
                 if (item.stack == 0) break;
             }
             return true;
@@ -1079,6 +1079,7 @@ function Ship(id) {
     this.position = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
     this.velocity = new Vector(0, 0);
     this.rotation = 0;
+    this.rotation_speed = 0;
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
     this.afterBurnerUsed = 0;
@@ -1139,11 +1140,11 @@ function Ship(id) {
 
         if (this.control.x != 0) {
             // rotationace
-            this.rotation +=
-                (stats.rotationSpeed +
-                    this.afterBurnerActive * stats.afterBurnerRotationBonus) *
+            this.rotation_speed = (stats.rotationSpeed +
+                this.afterBurnerActive * stats.afterBurnerRotationBonus) *
                 this.control.x *
                 dt;
+            this.rotation += this.rotation_speed;
             afterBurnerUsed = true;
         }
 
