@@ -364,7 +364,7 @@ function CollisionResult(result, position, overlap) {
 function CollisionEvent(ship, entity, result) {
     this.shipId = ship.id;
     this.entityId = entity.id;
-    this.position = result.position.result().sub(ship.position);
+    this.position = ship.position.result().sub(result.position);
 }
 CollisionEvent.list = [];
 
