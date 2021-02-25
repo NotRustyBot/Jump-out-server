@@ -1138,6 +1138,7 @@ function Ship(id) {
             this.afterBurnerActive = 0;
         }
 
+        
         if (this.control.x != 0) {
             // rotationace
             this.rotation += this.rotationSpeed * dt;
@@ -1145,7 +1146,8 @@ function Ship(id) {
                 this.afterBurnerActive * stats.afterBurnerRotationBonus) *
                 this.control.x;
             afterBurnerUsed = true;
-        }else{
+        }else if(this.rotationSpeed != 0){
+            this.rotation += this.rotationSpeed * dt;
             this.rotationSpeed = 0;
         }
 
