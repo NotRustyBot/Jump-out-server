@@ -1138,13 +1138,13 @@ function Ship(id) {
             this.afterBurnerActive = 0;
         }
 
+        this.rotationSpeed = 0;
         if (this.control.x != 0) {
             // rotationace
             this.rotationSpeed = (stats.rotationSpeed +
                 this.afterBurnerActive * stats.afterBurnerRotationBonus) *
-                this.control.x *
-                dt;
-            this.rotation += this.rotationSpeed;
+                this.control.x;
+            this.rotation += this.rotationSpeed * dt;
             afterBurnerUsed = true;
         }
 
