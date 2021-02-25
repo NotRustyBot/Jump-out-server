@@ -518,27 +518,15 @@ function Shape() {
 Shape.types = { circle: 1, line: 2 };
 exports.Shape = Shape;
 
-let Items = {
-    ore: 1,
-    naviBeacon: 5,
-}
 
-let ItemInfo = {
-    1: { // ore
-        tag: 0,
-        stackable: true,
-    },
-    5: { // naviBeacon
-        tag: 1,
-        stackable: false,
-    },
-}
 
 function Item(id, stack) {
     this.id = id;
     this.stack = stack;
     this.stats = ItemInfo[id];
 }
+
+exports.Item = Item;
 
 function Slot(capacity, filter) {
     this.filter = filter == undefined ? -1 : filter;
@@ -828,6 +816,8 @@ function Mobile(x, y, type) {
     }
 }
 
+exports.Mobile = Mobile;
+
 function Building(x, y, type) {
     Entity.call(this, x, y, type);
     this.control = function (dt) { }
@@ -842,7 +832,7 @@ function Building(x, y, type) {
         this.init();
     }
 }
-
+exports.Building = Building;
 
 /**
  * 
@@ -878,51 +868,6 @@ function ItemDrop(x, y, item) {
 ItemDrop.create = [];
 ItemDrop.remove = [];
 exports.ItemDrop = ItemDrop;
-
-let i = new ItemDrop(Universe.size * Area.size / 2, Universe.size * Area.size / 2 + 500, new Item(5, 1));
-i.init();
-
-
-process.env.HOLOUBCI = process.env.HOLOUBCI || 0;
-for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
-    let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
-    m1.collider.push(new Shape().circle(0, 0, 125));
-    m1.calculateBounds();
-    m1.collisionPurpose = Entity.CollisionFlags.projectile;
-    m1.init();
-    m1.control = function (dt) {
-        if (this.startPos == undefined) {
-            this.startPos = this.position.result();
-        }
-
-        let closest = 1500;
-        let target = undefined;
-        Player.players.forEach(p => {
-            let dist = p.ship.position.distance(this.position);
-            if (dist < closest) {
-                target = p.ship;
-                closest = dist;
-            }
-        });
-        if (target != undefined) {
-            if (closest < 500) {
-                this.velocity = Vector.zero();
-            } else {
-                this.velocity = target.position.result().sub(this.position);
-                this.velocity.normalize(dt * 600);
-            }
-        } else {
-            if (Vector.sub(this.startPos, this.position).length() > 3000) {
-                this.velocity = Vector.sub(this.startPos, this.position);
-                this.velocity.normalize(dt * 300);
-            } else if (Math.random() < 0.01) {
-                this.velocity = new Vector(Math.random(), Math.random());
-                this.velocity.normalize(dt * 300);
-            }
-        }
-        this.rotation = this.velocity.toAngle();
-    }
-}
 
 let Action = {};
 
@@ -990,43 +935,6 @@ Action.MineRock = function (ship, action) {
     }
 
     return 1;
-}
-
-let Buildings = {
-    test: {
-        size: 300,
-        type: 101,
-        control: function (dt) {
-            if (this.reach == undefined) this.reach = 0;
-
-            if (this.timer == undefined || this.timer > 0.1) {
-                if (this.reach < 5000) {
-                    this.reach += 10;
-                    let angle = 0;
-                    for (let i = 0; i < 100; i++) {
-                        angle += Math.PI * 2 / 100;
-                        let pos = new Vector(Math.cos(angle) * this.reach, Math.sin(angle) * this.reach);
-                        pos.add(this.position);
-                        Universe.setGas(pos, Math.max(Universe.getGas(pos) - 1, 0));
-                    }
-                }
-                this.timer = 0;
-            }
-            this.timer += dt;
-        }
-    },
-    navBeacon: {
-        size: 50,
-        type: 102,
-        _speedBonus: 500,
-        _range: 5000,
-        _angle: 1,
-        setup: function () {
-            this.init();
-            Building.navBeacons.push(this);
-            this.collisionPurpose = 0;
-        }
-    }
 }
 
 /**
@@ -1492,3 +1400,7 @@ Player.leftPlayers = [];
 exports.Player = Player;
 
 //#endregion
+
+const Items = require("./items.js").defineItems();
+const ItemInfo = require("./items.js").defineItemInfo();
+const Buildings = require("./buildings.js").defineBuildings(Building, Universe, Vector, Ship, Entity);

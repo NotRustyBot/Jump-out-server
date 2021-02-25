@@ -1,4 +1,4 @@
-const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Inventory } = require("./gameobjects.js");
+const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile } = require("./gameobjects.js");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 
@@ -292,3 +292,48 @@ fs.writeFileSync('./minimap.png', buffer)
 
 exports.gasMap = gasMap;
 exports.gasBuffer = gasBuffer;
+
+let i = new ItemDrop(Universe.size * Area.size / 2, Universe.size * Area.size / 2 + 500, new Item(5, 1));
+i.init();
+
+
+process.env.HOLOUBCI = process.env.HOLOUBCI || 0;
+for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
+    let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
+    m1.collider.push(new Shape().circle(0, 0, 125));
+    m1.calculateBounds();
+    m1.collisionPurpose = Entity.CollisionFlags.projectile;
+    m1.init();
+    m1.control = function (dt) {
+        if (this.startPos == undefined) {
+            this.startPos = this.position.result();
+        }
+
+        let closest = 1500;
+        let target = undefined;
+        Player.players.forEach(p => {
+            let dist = p.ship.position.distance(this.position);
+            if (dist < closest) {
+                target = p.ship;
+                closest = dist;
+            }
+        });
+        if (target != undefined) {
+            if (closest < 500) {
+                this.velocity = Vector.zero();
+            } else {
+                this.velocity = target.position.result().sub(this.position);
+                this.velocity.normalize(dt * 600);
+            }
+        } else {
+            if (Vector.sub(this.startPos, this.position).length() > 3000) {
+                this.velocity = Vector.sub(this.startPos, this.position);
+                this.velocity.normalize(dt * 300);
+            } else if (Math.random() < 0.01) {
+                this.velocity = new Vector(Math.random(), Math.random());
+                this.velocity.normalize(dt * 300);
+            }
+        }
+        this.rotation = this.velocity.toAngle();
+    }
+}
