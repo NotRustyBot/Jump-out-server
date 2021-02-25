@@ -1079,7 +1079,7 @@ function Ship(id) {
     this.position = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
     this.velocity = new Vector(0, 0);
     this.rotation = 0;
-    this.rotation_speed = 0;
+    this.rotationSpeed = 0;
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
     this.afterBurnerUsed = 0;
@@ -1140,11 +1140,11 @@ function Ship(id) {
 
         if (this.control.x != 0) {
             // rotationace
-            this.rotation_speed = (stats.rotationSpeed +
+            this.rotationSpeed = (stats.rotationSpeed +
                 this.afterBurnerActive * stats.afterBurnerRotationBonus) *
                 this.control.x *
                 dt;
-            this.rotation += this.rotation_speed;
+            this.rotation += this.rotationSpeed;
             afterBurnerUsed = true;
         }
 
