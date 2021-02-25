@@ -302,7 +302,7 @@ let shipUpdate = new Datagram();
 shipUpdate.add(types.vector32, "position");
 shipUpdate.add(types.vector32, "velocity");
 shipUpdate.add(types.float32, "rotation");
-shipUpdate.add(types.float32, "rotation_speed");
+shipUpdate.add(types.float32, "rotationSpeed");
 shipUpdate.add(types.vector32, "control");
 shipUpdate.add(types.uint8, "afterBurnerUsed");
 shipUpdate.add(types.float32, "afterBurnerFuel");
