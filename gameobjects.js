@@ -1056,7 +1056,7 @@ ShipType.init = function () {
     debugShip.afterBurnerAccelerationBonus = 800;
     debugShip.afterBurnerCapacity = 60;
     debugShip.cargoCapacity = 30;
-    debugShip.drag = 5;
+    debugShip.drag = 1000;
     debugShip.actionPool = [Action.buildTest, Action.MineRock];
     debugShip.radarRange = 3500;
 
