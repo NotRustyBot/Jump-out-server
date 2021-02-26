@@ -898,7 +898,7 @@ Action.buildTest = function (ship, action) {
     if (ship.inventory.countItem(Items.ore) >= 3 && construct(ship, Buildings.navBeacon)) {
         ship.inventory.removeItem(new Item(Items.ore, 3));
         action.replyData.id = 0;
-        return 10;
+        return 0.1;
     } else {
         action.replyData.id = 0;
         return 0.1;
@@ -919,7 +919,7 @@ Action.MineRock = function (ship, action) {
     if (localArea != undefined) {
         for (let i = 0; i < localArea.entities.length; i++) {
             const e = localArea.entities[i];
-            if (closestDist > ship.position.distance(e.position)) {
+            if (closestDist > ship.position.distance(e.position) && e.type == 1) {
                 closestDist = ship.position.distance(e.position);
                 closest = e;
             }
