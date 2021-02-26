@@ -895,8 +895,8 @@ Action.test = function (ship, action) {
  */
 Action.buildTest = function (ship, action) {
     action.replyData = {};
-    if (ship.inventory.countItem(Items.ore) >= 3 && construct(ship, Buildings.navBeacon)) {
-        ship.inventory.removeItem(new Item(Items.ore, 3));
+    if (/*ship.inventory.countItem(Items.ore) >= 3 && */construct(ship, Buildings.navBeacon)) {
+        //ship.inventory.removeItem(new Item(Items.ore, 3));
         action.replyData.id = 0;
         return 0.1;
     } else {
@@ -1055,7 +1055,7 @@ ShipType.init = function () {
     debugShip.afterBurnerSpeedBonus = 1000;
     debugShip.afterBurnerRotationBonus = 1;
     debugShip.afterBurnerAccelerationBonus = 800;
-    debugShip.afterBurnerCapacity = 60;
+    debugShip.afterBurnerCapacity = 600;
     debugShip.cargoCapacity = 30;
     debugShip.drag = 500;
     debugShip.actionPool = [Action.buildTest, Action.MineRock];
@@ -1084,7 +1084,7 @@ function Ship(id) {
     this.control = new Vector(0, 0);
     this.afterBurnerActive = 0;
     this.afterBurnerUsed = 0;
-    this.afterBurnerFuel = 60;
+    this.afterBurnerFuel = 600;
     this.debuff = 0;
     this.action = 0;
     this.cooldowns = [];
