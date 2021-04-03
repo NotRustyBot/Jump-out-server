@@ -1,3 +1,3 @@
 git add .
-git commit -m "f"
+git commit -m "%mydate%:%mytime%"
 git push

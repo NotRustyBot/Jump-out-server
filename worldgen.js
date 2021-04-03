@@ -87,7 +87,7 @@ let subres = 1;
 let scale = 80;
 
 let circle = 2;
-let falloff = 10;
+let falloff = 20;
 let shift = 0;
 let mult = 4;
 
@@ -145,12 +145,14 @@ for (let x = 0; x < w; x += subres) {
 		level *= level2;
 		level = 100 * level;
 
+		level = Math.min(level * mult, 100)
+
 		let dist = distance(x, y, w / 2, h / 2);
 		if (dist < circle) {
 			level = 0;
 		} else if (dist < falloff) {
 			let close = 1 - (dist - circle) / (falloff - circle);
-			level = level - Math.pow(close, 3) * 100;
+			level = level - close * 100;
 		}
 
 		if (x < 10 || x > w - 10 || y < 10 || y > h - 10) {
@@ -158,7 +160,7 @@ for (let x = 0; x < w; x += subres) {
 		}
 
 		level = level - shift;
-		level = Math.min(level * mult, 100)
+		
 		if (level < 0) {
 			level = 0;
 		}
