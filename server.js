@@ -254,7 +254,7 @@ function initMessage(p) {
     });
     view.view.setUint8(sizeGoesHere, count);
 
-    //ScannedGas(view);
+    ScannedGas(view);
 
     return buffer.slice(0, view.index);
 }
