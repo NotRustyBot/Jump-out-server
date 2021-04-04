@@ -254,7 +254,7 @@ function initMessage(p) {
     });
     view.view.setUint8(sizeGoesHere, count);
 
-    ScannedGas(view);
+    //ScannedGas(view);
 
     return buffer.slice(0, view.index);
 }
@@ -328,12 +328,11 @@ function EntitySetupMessage(inView) {
 
 
 function ScannedGas(view) {
-    /*
     view.setUint8(serverHeaders.gasScan);
     view.setUint16(Universe.scanned.gas.length);
     Universe.scanned.gas.forEach(e => {
         view.serialize(e, Datagrams.GasScan);
-    });*/
+    });
     
 }
 
