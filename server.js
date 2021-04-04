@@ -88,7 +88,6 @@ function update() {
     Player.players.forEach(p => {
         if (p.initialised) {
             p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
-            p.ship.update(dt);
             prepareReplies(msg, p);
             let toSend = AreaInfo(msg, p);
             msg.index = sameIndex;
