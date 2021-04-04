@@ -215,6 +215,16 @@ function updateMessage() {
         Inventory.changes = [];
     }
 
+    /*
+    if(Universe.scanUpdate.length > 0){
+        view.setUint8(serverHeaders.gasScan);
+        view.setUint16(Universe.scanUpdate.length);
+        Universe.scanUpdate.forEach(i => {
+            view.serialize(i, Datagrams.GasScan);
+        });
+        Universe.scanUpdate = [];
+    }*/
+
     return view;
     //return buffer.slice(0, view.index);
 }
@@ -240,6 +250,8 @@ function initMessage(p) {
         }
     });
     view.view.setUint8(sizeGoesHere, count);
+
+    //ScannedGas(view)
 
     return buffer.slice(0, view.index);
 }
@@ -309,6 +321,15 @@ function EntitySetupMessage(inView) {
         view.serialize(temp, Datagrams.ItemCreate);
     });
     return buffer.slice(0, view.index);
+}
+
+function ScannedGas(view) {
+    view.setUint8(serverHeaders.gasScan);
+    view.setUint16(Universe.scanned.gas);
+    Universe.scanned.gas.forEach(e => {
+        view.serialize(e, Datagrams.GasScan);
+    });
+    
 }
 
 function SendDebugPackets() {

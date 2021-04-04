@@ -279,8 +279,10 @@ Universe.gasChange = [];
 
 Universe.scanned = {
     objects: [],
-    gas: []
+    gas: new Map(),
 };
+
+Universe.scanUpdate = [];
 
 /**
  * 
@@ -297,7 +299,18 @@ Universe.scan = function (position, range) {
         }
     });
 
+    let gasRange = Math.floor(range / Universe.scale);
+    let px = Math.floor(position.x / Universe.scale);
+    let py = Math.floor(position.y / Universe.scale);
 
+    for (let x = Math.max(px - gasRange, 0); x < Math.min(1000, px + gasRange); x++) {
+        for (let y = Math.max(py - gasRange, 0); y < Math.min(1000, py + gasRange); y++) {
+            if (Universe.scanned.gas.get(x * 1000 + y) == undefined || Universe.scanned.gas.get(x * 1000 + y).gas != Universe.gasMap[x][y]) {
+                Universe.scanned.gas.set(x * 1000 + y, { x: x, y: y, gas: Universe.gasMap[x][y] });
+                Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
+            }
+        }
+    }
 }
 
 /**
@@ -1059,7 +1072,7 @@ ShipType.init = function () {
     debugShip.cargoCapacity = 30;
     debugShip.drag = 500;
     debugShip.actionPool = [Action.buildTest, Action.MineRock];
-    debugShip.radarRange = 3500;
+    debugShip.radarRange = 2000;
 
     debugShip.drag = debugShip.drag / 1000;
     ShipType.types["Debug"] = debugShip;
@@ -1139,7 +1152,7 @@ function Ship(id) {
             this.afterBurnerActive = 0;
         }
 
-        
+
         if (this.control.x != 0) {
             // rotationace
             this.rotation += this.rotationSpeed * dt;
@@ -1147,7 +1160,7 @@ function Ship(id) {
                 this.afterBurnerActive * stats.afterBurnerRotationBonus) *
                 this.control.x;
             afterBurnerUsed = true;
-        }else if(this.rotationSpeed != 0){
+        } else if (this.rotationSpeed != 0) {
             this.rotation += this.rotationSpeed * dt;
             this.rotationSpeed = 0;
         }
@@ -1201,7 +1214,6 @@ function Ship(id) {
             this.velocity.normalize(absoluteLimit);
         }
 
-
         let targetSpeed = stats.speed * debuffMult + stats.afterBurnerSpeedBonus * this.afterBurnerActive * debuffMult + navBoost;
         let speed = this.velocity.length();
         if (speed > targetSpeed) {
@@ -1215,7 +1227,6 @@ function Ship(id) {
         }
 
         Player.players.get(this.id).debug += "  Cargo: " + this.inventory.used + "/" + this.inventory.capacity;
-
 
         this.position.add(this.velocity.result().mult(dt));
         this.afterBurnerUsed = 0;
@@ -1241,6 +1252,7 @@ function Ship(id) {
         }
         this.handleAction(dt);
         this.checkCollision(dt);
+        Universe.scan(this.position, this.stats.radarRange);
     };
 
     this.handleAction = function (dt) {
