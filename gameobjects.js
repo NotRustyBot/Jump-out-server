@@ -311,13 +311,15 @@ Universe.scan = function (position, range, speed) {
     const backtrack = Math.ceil(speed / Universe.scale);
     const step = backtrack > 1 ? 0.5 : 1;
 
+    const minimapSize = Universe.size * Area.size / Universe.scale / minimapScale;
+
     for (let a = 0; a < Math.PI * 2; a += angInc) {
         for (let range = 0; range < backtrack; range += step) {
-            let x = Math.max(Math.min(Math.floor(Math.cos(a) * (gasRange - range) + px), Universe.size * Area.size / minimapScale - minimapScale), 0);
-            let y = Math.max(Math.min(Math.floor(Math.sin(a) * (gasRange - range) + py), Universe.size * Area.size / minimapScale - minimapScale), 0);
+            let x = Math.max(Math.min(Math.floor(Math.cos(a) * (gasRange - range) + px), minimapSize - minimapScale), 0);
+            let y = Math.max(Math.min(Math.floor(Math.sin(a) * (gasRange - range) + py), minimapSize - minimapScale), 0);
 
-            if (Universe.scanned.seen[x * Universe.size * Area.size / minimapScale + y] == undefined || Universe.scanned.seen[x * Universe.size * Area.size / minimapScale + y] != Universe.gasMap[x * minimapScale][y * minimapScale]) {
-                Universe.scanned.seen[x * Universe.size * Area.size / minimapScale + y] = Universe.gasMap[x * minimapScale][y * minimapScale];
+            if (Universe.scanned.seen[x * minimapSize + y] == undefined || Universe.scanned.seen[x * minimapSize + y] != Universe.gasMap[x * minimapScale][y * minimapScale]) {
+                Universe.scanned.seen[x * minimapSize + y] = Universe.gasMap[x * minimapScale][y * minimapScale];
                 Universe.scanned.gas.push({ x: x, y: y, gas: Universe.gasMap[x * minimapScale][y * minimapScale] });
                 Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x * minimapScale][y * minimapScale] });
             }
