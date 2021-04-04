@@ -329,7 +329,7 @@ function EntitySetupMessage(inView) {
 
 function ScannedGas(view) {
     view.setUint8(serverHeaders.gasScan);
-    view.setUint16(Universe.scanned.gas.size);
+    view.setUint16(Universe.scanned.gas.length);
     Universe.scanned.gas.forEach(e => {
         view.serialize(e, Datagrams.GasScan);
     });
