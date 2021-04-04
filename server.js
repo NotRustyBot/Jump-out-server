@@ -326,15 +326,16 @@ function EntitySetupMessage(inView) {
     return buffer.slice(0, view.index);
 }
 
-/*
+
 function ScannedGas(view) {
+    /*
     view.setUint8(serverHeaders.gasScan);
     view.setUint16(Universe.scanned.gas.length);
     Universe.scanned.gas.forEach(e => {
         view.serialize(e, Datagrams.GasScan);
-    });
+    });*/
     
-}*/
+}
 
 function SendDebugPackets() {
     Player.players.forEach(p => {
