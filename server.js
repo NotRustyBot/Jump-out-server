@@ -55,7 +55,7 @@ function onClose(event, player) {
 }
 
 
-const fps = 30;
+const fps = 0.3;
 
 setInterval(() => {
     update();
