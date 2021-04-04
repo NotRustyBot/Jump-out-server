@@ -298,7 +298,7 @@ Universe.scan = function (position, range) {
             Universe.scanned.objects.push(e);
         }
     });
-
+/*
     const gasRange = Math.floor(range / Universe.scale);
     const px = Math.floor(position.x / Universe.scale);
     const py = Math.floor(position.y / Universe.scale);
@@ -311,7 +311,7 @@ Universe.scan = function (position, range) {
                 Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
             }
         }
-    }
+    }*/
 }
 
 /**
