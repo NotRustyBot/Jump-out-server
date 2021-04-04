@@ -290,7 +290,7 @@ Universe.scanUpdate = [];
  * @param {number} range 
  */
 
-Universe.scan = function (position, range) {
+Universe.scan = function (position, range, speed) {
     let nearby = Universe.entitiesInRange(position, range);
 
     nearby.forEach(e => {
@@ -298,20 +298,26 @@ Universe.scan = function (position, range) {
             Universe.scanned.objects.push(e);
         }
     });
-/*
+
     const gasRange = Math.floor(range / Universe.scale);
     const px = Math.floor(position.x / Universe.scale);
     const py = Math.floor(position.y / Universe.scale);
-    for (let x = Math.max(px - gasRange, 0); x < Math.min(1000, px + gasRange); x++) {
-        for (let y = Math.max(py - gasRange, 0); y < Math.min(1000, py + gasRange); y++) {
-            if (Universe.scanned.gas[x * 1000 + y] == undefined || Universe.scanned.gas[x * 1000 + y].gas != Universe.gasMap[x][y]) {
 
-                if (gasRange * gasRange < Math.pow(px - x, 2) + Math.pow(py - y, 2)) continue;
+    const angInc = 1/gasRange;
+
+    const backtrack = Math.ceil(speed / Universe.scale); 
+
+    for (let a = 0; a < Math.PI*2; a+=angInc) {
+        for (let range = 0; range < backtrack*2; range+=0.5) {
+            let x = Math.floor(Math.cos(a) * (gasRange - range) + px);
+            let y = Math.floor(Math.sin(a) * (gasRange - range) + py);
+    
+            if (Universe.scanned.gas[x * 1000 + y] == undefined || Universe.scanned.gas[x * 1000 + y].gas != Universe.gasMap[x][y]) {
                 Universe.scanned.gas[x * 1000 + y] = { x: x, y: y, gas: Universe.gasMap[x][y] };
                 Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
             }
         }
-    }*/
+    }
 }
 
 /**
@@ -1126,6 +1132,8 @@ function Ship(id) {
         this.inventory.addSlot(new Slot(15, 0));
         this.inventory.addSlot(new Slot());
         this.inventory.addSlot(new Slot());
+
+        Universe.scan(this.position, this.stats.radarRange, this.stats.radarRange);
     };
 
     this.update = function (dt) {
@@ -1253,7 +1261,7 @@ function Ship(id) {
         }
         this.handleAction(dt);
         this.checkCollision(dt);
-        Universe.scan(this.position, this.stats.radarRange);
+        Universe.scan(this.position, this.stats.radarRange, speed);
     };
 
     this.handleAction = function (dt) {
