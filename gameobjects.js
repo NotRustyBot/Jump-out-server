@@ -271,7 +271,7 @@ Universe.setGas = function (position, value) {
 
     Universe.gasChange.push({ position: new Vector(x, y), value: value });
     let view = new DataView(Universe.gasBuffer);
-    view.setInt8(7 + x * 1000 + y, value);
+    view.setInt8(7 + x * Universe.size * Area.size + y, value);
 
 }
 
@@ -307,14 +307,15 @@ Universe.scan = function (position, range, speed) {
     const angInc = 1/gasRange;
 
     const backtrack = Math.ceil(speed / Universe.scale); 
+    const step = backtrack > 1 ? 0.5 : 1;
 
     for (let a = 0; a < Math.PI*2; a+=angInc) {
-        for (let range = 0; range < backtrack*2; range+=0.5) {
+        for (let range = 0; range < backtrack; range+=step) {
             let x = Math.floor(Math.cos(a) * (gasRange - range) + px);
             let y = Math.floor(Math.sin(a) * (gasRange - range) + py);
     
-            if (Universe.scanned.seen[x * 1000 + y] == undefined || Universe.scanned.seen[x * 1000 + y] != Universe.gasMap[x][y]) {
-                Universe.scanned.seen[x * 1000 + y] = Universe.gasMap[x][y];
+            if (Universe.scanned.seen[x * Universe.size * Area.size + y] == undefined || Universe.scanned.seen[x * Universe.size * Area.size + y] != Universe.gasMap[x][y]) {
+                Universe.scanned.seen[x * Universe.size * Area.size + y] = Universe.gasMap[x][y];
                 Universe.scanned.gas.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
                 Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
             }
