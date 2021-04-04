@@ -291,6 +291,8 @@ Universe.scanUpdate = [];
  * @param {number} range 
  */
 
+
+const minimapScale = 2;
 Universe.scan = function (position, range, speed) {
     let nearby = Universe.entitiesInRange(position, range);
 
@@ -300,24 +302,24 @@ Universe.scan = function (position, range, speed) {
         }
     });
 
-    const gasRange = Math.floor(range / Universe.scale);
-    const px = Math.floor(position.x / Universe.scale);
-    const py = Math.floor(position.y / Universe.scale);
+    const gasRange = Math.floor(range / Universe.scale / minimapScale);
+    const px = Math.floor(position.x / Universe.scale / minimapScale);
+    const py = Math.floor(position.y / Universe.scale / minimapScale);
 
-    const angInc = 1/gasRange;
+    const angInc = 1 / gasRange;
 
-    const backtrack = Math.ceil(speed / Universe.scale); 
+    const backtrack = Math.ceil(speed / Universe.scale);
     const step = backtrack > 1 ? 0.5 : 1;
 
-    for (let a = 0; a < Math.PI*2; a+=angInc) {
-        for (let range = 0; range < backtrack; range+=step) {
+    for (let a = 0; a < Math.PI * 2; a += angInc) {
+        for (let range = 0; range < backtrack; range += step) {
             let x = Math.floor(Math.cos(a) * (gasRange - range) + px);
             let y = Math.floor(Math.sin(a) * (gasRange - range) + py);
-    
-            if (Universe.scanned.seen[x * Universe.size * Area.size + y] == undefined || Universe.scanned.seen[x * Universe.size * Area.size + y] != Universe.gasMap[x][y]) {
-                Universe.scanned.seen[x * Universe.size * Area.size + y] = Universe.gasMap[x][y];
-                Universe.scanned.gas.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
-                Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
+
+            if (Universe.scanned.seen[x * Universe.size * Area.size / minimapScale + y] == undefined || Universe.scanned.seen[x * Universe.size * Area.size / minimapScale + y] != Universe.gasMap[x * minimapScale][y * minimapScale]) {
+                Universe.scanned.seen[x * Universe.size * Area.size / minimapScale + y] = Universe.gasMap[x * minimapScale][y * minimapScale];
+                Universe.scanned.gas.push({ x: x, y: y, gas: Universe.gasMap[x * minimapScale][y * minimapScale] });
+                Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x * minimapScale][y * minimapScale] });
             }
         }
     }
