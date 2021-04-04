@@ -71,14 +71,19 @@ for (let i = 0; i < fps; i++) { msptavg[i] = 0; }
 function update() {
     dt = (Date.now() - last) / 1000;
     last = Date.now();
-    let msg = updateMessage();
-    let sameIndex = msg.index;
 
-
+    Player.players.forEach(p => {
+        if (p.initialised) {
+            p.ship.update(dt);
+        }
+    });
+    
     Entity.list.forEach(e => {
         e.update(dt);
     });
-
+    
+    let msg = updateMessage();
+    let sameIndex = msg.index;
 
     Player.players.forEach(p => {
         if (p.initialised) {
@@ -262,9 +267,9 @@ function initMessage(p) {
  * @param {Player} player 
  */
 function prepareReplies(inView, player) {
-    if (player.replies == 0) return;
-    inView.setUint8(serverHeaders.actionReply);
+    if (player.replies.length == 0) return;
     player.replies.forEach(r => {
+        inView.setUint8(serverHeaders.actionReply);
         inView.serialize(r, ReplyData[r.id]);
     });
 
