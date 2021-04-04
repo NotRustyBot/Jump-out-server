@@ -306,6 +306,8 @@ Universe.scan = function (position, range) {
     for (let x = Math.max(px - gasRange, 0); x < Math.min(1000, px + gasRange); x++) {
         for (let y = Math.max(py - gasRange, 0); y < Math.min(1000, py + gasRange); y++) {
             if (Universe.scanned.gas.get(x * 1000 + y) == undefined || Universe.scanned.gas.get(x * 1000 + y).gas != Universe.gasMap[x][y]) {
+                let dist = new Vector(px - x, py - y).length();
+                if (dist > gasRange) continue;
                 Universe.scanned.gas.set(x * 1000 + y, { x: x, y: y, gas: Universe.gasMap[x][y] });
                 Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
             }
@@ -1072,7 +1074,7 @@ ShipType.init = function () {
     debugShip.cargoCapacity = 30;
     debugShip.drag = 500;
     debugShip.actionPool = [Action.buildTest, Action.MineRock];
-    debugShip.radarRange = 4000;
+    debugShip.radarRange = 14000;
 
     debugShip.drag = debugShip.drag / 1000;
     ShipType.types["Debug"] = debugShip;
