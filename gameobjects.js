@@ -279,7 +279,7 @@ Universe.gasChange = [];
 
 Universe.scanned = {
     objects: [],
-    gas: new Map(),
+    gas: [],
 };
 
 Universe.scanUpdate = [];
@@ -299,16 +299,15 @@ Universe.scan = function (position, range) {
         }
     });
 
-    let gasRange = Math.floor(range / Universe.scale);
-    let px = Math.floor(position.x / Universe.scale);
-    let py = Math.floor(position.y / Universe.scale);
-
+    const gasRange = Math.floor(range / Universe.scale);
+    const px = Math.floor(position.x / Universe.scale);
+    const py = Math.floor(position.y / Universe.scale);
     for (let x = Math.max(px - gasRange, 0); x < Math.min(1000, px + gasRange); x++) {
         for (let y = Math.max(py - gasRange, 0); y < Math.min(1000, py + gasRange); y++) {
-            if (Universe.scanned.gas.get(x * 1000 + y) == undefined || Universe.scanned.gas.get(x * 1000 + y).gas != Universe.gasMap[x][y]) {
-                let dist = new Vector(px - x, py - y).length();
-                if (dist > gasRange) continue;
-                Universe.scanned.gas.set(x * 1000 + y, { x: x, y: y, gas: Universe.gasMap[x][y] });
+            if (Universe.scanned.gas[x * 1000 + y] == undefined || Universe.scanned.gas[x * 1000 + y].gas != Universe.gasMap[x][y]) {
+
+                if (gasRange * gasRange < Math.pow(px - x, 2) + Math.pow(py - y, 2)) continue;
+                Universe.scanned.gas[x * 1000 + y] = { x: x, y: y, gas: Universe.gasMap[x][y] };
                 Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
             }
         }
