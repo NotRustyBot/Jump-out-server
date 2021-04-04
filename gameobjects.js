@@ -280,6 +280,7 @@ Universe.gasChange = [];
 Universe.scanned = {
     objects: [],
     gas: [],
+    seen: []
 };
 
 Universe.scanUpdate = [];
@@ -312,8 +313,9 @@ Universe.scan = function (position, range, speed) {
             let x = Math.floor(Math.cos(a) * (gasRange - range) + px);
             let y = Math.floor(Math.sin(a) * (gasRange - range) + py);
     
-            if (Universe.scanned.gas[x * 1000 + y] == undefined || Universe.scanned.gas[x * 1000 + y].gas != Universe.gasMap[x][y]) {
-                Universe.scanned.gas[x * 1000 + y] = { x: x, y: y, gas: Universe.gasMap[x][y] };
+            if (Universe.scanned.seen[x * 1000 + y] == undefined || Universe.scanned.seen[x * 1000 + y] != Universe.gasMap[x][y]) {
+                Universe.scanned.seen[x * 1000 + y] = Universe.gasMap[x][y];
+                Universe.scanned.gas.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
                 Universe.scanUpdate.push({ x: x, y: y, gas: Universe.gasMap[x][y] });
             }
         }
