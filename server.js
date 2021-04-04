@@ -215,7 +215,6 @@ function updateMessage() {
         Inventory.changes = [];
     }
 
-    /*
     if(Universe.scanUpdate.length > 0){
         view.setUint8(serverHeaders.gasScan);
         view.setUint16(Universe.scanUpdate.length);
@@ -223,7 +222,7 @@ function updateMessage() {
             view.serialize(i, Datagrams.GasScan);
         });
         Universe.scanUpdate = [];
-    }*/
+    }
 
     return view;
     //return buffer.slice(0, view.index);
@@ -251,7 +250,7 @@ function initMessage(p) {
     });
     view.view.setUint8(sizeGoesHere, count);
 
-    //ScannedGas(view)
+    ScannedGas(view);
 
     return buffer.slice(0, view.index);
 }
@@ -325,7 +324,7 @@ function EntitySetupMessage(inView) {
 
 function ScannedGas(view) {
     view.setUint8(serverHeaders.gasScan);
-    view.setUint16(Universe.scanned.gas);
+    view.setUint16(Universe.scanned.gas.size);
     Universe.scanned.gas.forEach(e => {
         view.serialize(e, Datagrams.GasScan);
     });

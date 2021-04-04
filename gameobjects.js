@@ -1072,7 +1072,7 @@ ShipType.init = function () {
     debugShip.cargoCapacity = 30;
     debugShip.drag = 500;
     debugShip.actionPool = [Action.buildTest, Action.MineRock];
-    debugShip.radarRange = 2000;
+    debugShip.radarRange = 4000;
 
     debugShip.drag = debugShip.drag / 1000;
     ShipType.types["Debug"] = debugShip;
