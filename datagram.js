@@ -306,6 +306,7 @@ shipUpdate.add(types.float32, "rotationSpeed");
 shipUpdate.add(types.vector32, "control");
 shipUpdate.add(types.uint8, "afterBurnerUsed");
 shipUpdate.add(types.float32, "afterBurnerFuel");
+shipUpdate.add(types.float32, "debuff");
 Datagrams.shipUpdate = shipUpdate;
 
 let initPlayer = new Datagram();
