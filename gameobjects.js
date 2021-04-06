@@ -1055,46 +1055,6 @@ function SmartAction(player) {
 
 exports.SmartAction = SmartAction;
 
-
-function ShipType() {
-    this.name;
-    this.speed;
-    this.acceleration;
-    this.reverseAccelreation;
-    this.rotationSpeed;
-    this.afterBurnerBonus;
-    this.afterBurnerCapacity;
-    this.cargoCapacity;
-    this.drag;
-    this.actionPool = [];
-    this.size;
-}
-
-ShipType.init = function () {
-    ShipType.types = [];
-    let debugShip = new ShipType();
-    debugShip.name = "Debug";
-    debugShip.size = 125;
-    debugShip.speed = 1000;
-    debugShip.acceleration = 600;
-    debugShip.reverseAccelreation = 300;
-    debugShip.rotationSpeed = 3;
-    debugShip.afterBurnerSpeedBonus = 1000;
-    debugShip.afterBurnerRotationBonus = 1;
-    debugShip.afterBurnerAccelerationBonus = 800;
-    debugShip.afterBurnerCapacity = 600;
-    debugShip.cargoCapacity = 30;
-    debugShip.drag = 500;
-    debugShip.actionPool = [Action.buildTest, Action.MineRock];
-    debugShip.radarRange = 14000;
-
-    debugShip.drag = debugShip.drag / 1000;
-    ShipType.types["Debug"] = debugShip;
-};
-ShipType.init();
-
-exports.ShipType = ShipType;
-
 /**
  * 
  * @param {number} id 
@@ -1368,6 +1328,7 @@ function Player(connection) {
      * @type {Ship}
      */
     this.ship;
+    this.shipType = Player.defaultShipType;
     this.connection = connection;
     this.id = Player.nextId;
     Player.nextId++;
@@ -1384,7 +1345,7 @@ function Player(connection) {
     };
     this.init = function () {
         this.ship = new Ship(this.id);
-        this.ship.init(ShipType.types["Debug"]);
+        this.ship.init(ShipType.types[this.shipType]);
     };
     /**
      * @returns {Entity[]}
@@ -1416,6 +1377,9 @@ function Player(connection) {
     };
     Player.players.set(this.id, this);
 }
+
+Player.defaultShipType = 0; //#REM
+
 /**
  * @type {Map<number,Player>}
  */
@@ -1435,5 +1399,6 @@ exports.Player = Player;
 //#endregion
 
 const Items = require("./items.js").defineItems();
+const ShipType = require("./shipTypes.js").defineShips(Action);
 const ItemInfo = require("./items.js").defineItemInfo();
 const Buildings = require("./buildings.js").defineBuildings(Building, Universe, Vector, Ship, Entity);

@@ -242,6 +242,7 @@ function initMessage(p) {
 
     view.setUint8(serverHeaders.initResponse);
     view.setUint16(p.id);
+    view.setUint8(p.shipType);
     let sizeGoesHere = view.index;
 
     view.index += 1;
