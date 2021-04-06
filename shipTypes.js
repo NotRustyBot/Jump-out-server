@@ -15,6 +15,23 @@ function ShipType() {
 function defineShips(Action) {
     ShipType.types = [];
 
+    let fuelShip = new ShipType();
+    fuelShip.name = "Fuel";
+    fuelShip.size = 200;
+    fuelShip.speed = 1000;
+    fuelShip.acceleration = 100;
+    fuelShip.reverseAccelreation = 50;
+    fuelShip.rotationSpeed = 1;
+    fuelShip.afterBurnerSpeedBonus = 1000;
+    fuelShip.afterBurnerRotationBonus = 1;
+    fuelShip.afterBurnerAccelerationBonus = 100;
+    fuelShip.afterBurnerCapacity = 600;
+    fuelShip.cargoCapacity = 30;
+    fuelShip.drag = 0.05;
+    fuelShip.actionPool = [Action.buildTest, Action.MineRock];
+    fuelShip.radarRange = 14000;
+    ShipType.types[100] = fuelShip;
+
     let debugShip = new ShipType();
     debugShip.name = "Debug";
     debugShip.size = 125;
