@@ -579,6 +579,9 @@ function Slot(capacity, filter) {
                 if (item.stats.stackable) {
                     taken = Math.min(this.inventory.capacity - this.inventory.used, item.stack);
                 } else {
+                    if (this.item.stack != 0) {
+                        return 0; // unstackable
+                    }
                     taken = Math.min(this.inventory.capacity - this.inventory.used, 1);
                 }
                 this.inventory.used += taken;
@@ -634,11 +637,10 @@ function Inventory(capacity, owner, layout) {
         let request = item.stack;
         for (let i = 0; i < this.slots.length; i++) {
             const slot = this.slots[i];
-            let was = slot.item.stack;
-            item.stack -= slot.addItem(item);
-            let diff = slot.item.stack - was;
-            if (diff > 0) {
-                Inventory.changes.push({ shipId: this.owner, slot: i, item: diff, stack: slot.item.stack });
+            let taken = slot.addItem(item);
+            item.stack -= taken;
+            if (taken > 0) {
+                Inventory.changes.push({ shipId: this.owner, slot: i, item: slot.item.id, stack: taken });
             }
             if (item.stack == 0) break;
         }
@@ -679,11 +681,10 @@ function Inventory(capacity, owner, layout) {
             request = item.stack;
             for (let i = this.slots.length - 1; i >= 0; i--) {
                 const slot = this.slots[i];
-                let was = slot.item.stack;
-                item.stack -= slot.removeItem(item);
-                let diff = slot.item.stack - was;
-                if (diff > 0) {
-                    Inventory.changes.push({ shipId: this.owner, slot: i, item: diff, stack: slot.item.stack });
+                let taken = slot.removeItem(item);
+                item.stack -= taken;
+                if (taken > 0) {
+                    Inventory.changes.push({ shipId: this.owner, slot: i, item: slot.item.id, stack: taken });
                 }
                 if (item.stack == 0) break;
             }
