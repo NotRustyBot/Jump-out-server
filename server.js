@@ -215,6 +215,7 @@ function updateMessage() {
         Inventory.changes.forEach(i => {
             view.setUint8(serverHeaders.inventoryChange);
             view.serialize(i, Datagrams.InventoryChange);
+            console.log(i);
         });
         Inventory.changes = [];
     }

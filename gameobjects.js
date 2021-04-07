@@ -634,8 +634,12 @@ function Inventory(capacity, owner, layout) {
         let request = item.stack;
         for (let i = 0; i < this.slots.length; i++) {
             const slot = this.slots[i];
+            let was = slot.item.stack;
             item.stack -= slot.addItem(item);
-            Inventory.changes.push({ shipId: this.owner, slot: i, item: slot.item.id, stack: slot.item.stack });
+            let diff = slot.item.stack - was;
+            if (diff > 0) {
+                Inventory.changes.push({ shipId: this.owner, slot: i, item: diff, stack: slot.item.stack });
+            }
             if (item.stack == 0) break;
         }
         return item.stack;
@@ -675,8 +679,12 @@ function Inventory(capacity, owner, layout) {
             request = item.stack;
             for (let i = this.slots.length - 1; i >= 0; i--) {
                 const slot = this.slots[i];
+                let was = slot.item.stack;
                 item.stack -= slot.removeItem(item);
-                Inventory.changes.push({ shipId: this.owner, slot: i, item: slot.item.id, stack: slot.item.stack });
+                let diff = slot.item.stack - was;
+                if (diff > 0) {
+                    Inventory.changes.push({ shipId: this.owner, slot: i, item: diff, stack: slot.item.stack });
+                }
                 if (item.stack == 0) break;
             }
             return true;
@@ -1126,7 +1134,6 @@ function Ship(id) {
      * @param {ShipType} type 
      */
     this.init = function (type) {
-        console.log(type);
         this.stats = type;
         for (let i = 0; i < type.actionPool.length; i++) {
             this.cooldowns[i] = 0;
