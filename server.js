@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Inventory } = require("./worldgen");
+const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory } = require("./worldgen");
 
 //#region INIT
 let http = require('http');

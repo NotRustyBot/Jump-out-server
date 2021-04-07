@@ -1075,6 +1075,7 @@ function Ship(id) {
     this.debuff = 0;
     this.action = 0;
     this.cooldowns = [];
+    this.inventory;
 
     /**
      * @type {Inventory}
@@ -1096,10 +1097,14 @@ function Ship(id) {
         }
 
         this.inventory = new Inventory(this.stats.cargoCapacity, this.id);
-        this.inventory.addSlot(new Slot(15, 0));
-        this.inventory.addSlot(new Slot());
-        this.inventory.addSlot(new Slot());
-
+        for (let i = 0; i < this.stats.inventory.length; i++) {
+            const e = this.stats.inventory[i];
+            if (e.unique) {
+                this.inventory.addSlot(new Slot(e.capacity, e.filter));
+            }else{
+                this.inventory.addSlot(new Slot());
+            }
+        }
         Universe.scan(this.position, this.stats.radarRange, this.stats.radarRange);
     };
 
