@@ -296,7 +296,7 @@ fs.writeFileSync('./minimap.png', buffer)
 exports.gasMap = gasMap;
 exports.gasBuffer = gasBuffer;
 
-let i = new ItemDrop(Universe.size * Area.size / 2, Universe.size * Area.size / 2 + 500, new Item(5, 1));
+let i = new ItemDrop(new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2 + 500), new Item(5, 1));
 i.init();
 
 

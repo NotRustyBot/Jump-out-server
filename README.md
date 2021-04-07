@@ -5,3 +5,4 @@ TO-DO:
 - holoubci AI  
 - env gen  
 - možná dva gasy, (stejnej počet, ale různý depth)
+- @hh4 elipsa?

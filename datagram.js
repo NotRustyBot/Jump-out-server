@@ -359,14 +359,15 @@ let InventoryChange = new Datagram();
 InventoryChange.add(types.int16, "shipId");
 InventoryChange.add(types.int8, "slot");
 InventoryChange.add(types.int8, "item");
-InventoryChange.add(types.int16, "stack");
+InventoryChange.add(types.uint16, "stack");
 Datagrams.InventoryChange = InventoryChange;
 
 let ItemCreate = new Datagram();
 ItemCreate.add(types.vector32, "position");
+ItemCreate.add(types.vector32, "source");
 ItemCreate.add(types.uint16, "id");
 ItemCreate.add(types.int16, "item");
-ItemCreate.add(types.int16, "stack");
+ItemCreate.add(types.uint16, "stack");
 Datagrams.ItemCreate = ItemCreate;
 
 let ItemRemove = new Datagram();
@@ -392,7 +393,14 @@ let MineRock = new Datagram();
 SmartActionData.push(MineRock);
 exports.SmartActionData = SmartActionData;
 
-const ActionId = { placeObject: 0, MineRock: 1};
+let DropItem = new Datagram();
+DropItem.add(types.vector32, "position");
+DropItem.add(types.int8, "item");
+DropItem.add(types.uint16, "stack");
+SmartActionData.push(DropItem);
+exports.SmartActionData = SmartActionData;
+
+const ActionId = { placeObject: 0, MineRock: 1, DropItem: 2};
 exports.ActionId = ActionId;
 
 

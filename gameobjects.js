@@ -616,7 +616,7 @@ function Slot(capacity, filter) {
     }
 }
 
-function Inventory(capacity, owner) {
+function Inventory(capacity, owner, layout) {
     /**
      * @type {Slot[]}
      */
@@ -692,6 +692,15 @@ function Inventory(capacity, owner) {
     this.addSlot = function (slot) {
         slot.inventory = this;
         this.slots.push(slot);
+    }
+
+    for (let i = 0; i < layout.length; i++) {
+        const e = layout[i];
+        if (e.unique) {
+            this.addSlot(new Slot(e.capacity, e.filter));
+        } else {
+            this.addSlot(new Slot());
+        }
     }
 }
 
@@ -864,17 +873,23 @@ exports.Building = Building;
 
 /**
  * 
- * @param {number} x 
- * @param {number} y 
+ * @param {Vector} position
  * @param {Item} item 
+ * @param {Vector} source 
  */
-function ItemDrop(x, y, item) {
-    Entity.call(this, x, y, -1);
+function ItemDrop(position, item, source) {
+    Entity.call(this, position.x, position.y, -1);
     this.item = item;
     this.bounds = 125;
     this.collisionPurpose = Entity.CollisionFlags.pickup;
     this.rotatedCollider.push(new Shape().circle(0, 0, 125));
     this.rotatedColliderValid = true;
+
+    if (source == undefined) {
+        this.source = position;
+    } else {
+        this.source = source;
+    }
 
     this.update = function () { };
 
@@ -902,6 +917,7 @@ let Action = {};
 /**
  * 
  * @param {Ship} ship 
+ * @param {SmartAction} action
  */
 Action.test = function (ship, action) {
     action.replyData = {};
@@ -919,6 +935,7 @@ Action.test = function (ship, action) {
 /**
  * 
  * @param {Ship} ship 
+ * @param {SmartAction} action
  */
 Action.buildTest = function (ship, action) {
     action.replyData = {};
@@ -932,6 +949,24 @@ Action.buildTest = function (ship, action) {
     }
 }
 
+/**
+ * 
+ * @param {Ship} ship 
+ * @param {SmartAction} action
+ */
+Action.DropItem = function (ship, action) {
+    action.replyData = {};
+    if (ship.inventory.countItem(ItemInfo[action.item]) >= action.stack) {
+        ship.inventory.removeItem(new Item(action.item, action.stack));
+        let drop = new ItemDrop(action.position, new Item(action.item, action.stack), ship.position);
+        drop.init();
+        action.replyData.id = 0;
+        return 0.1;
+    } else {
+        action.replyData.id = 0;
+        return 0.1;
+    }
+}
 
 /**
  * 
@@ -1091,20 +1126,13 @@ function Ship(id) {
      * @param {ShipType} type 
      */
     this.init = function (type) {
+        console.log(type);
         this.stats = type;
         for (let i = 0; i < type.actionPool.length; i++) {
             this.cooldowns[i] = 0;
         }
 
-        this.inventory = new Inventory(this.stats.cargoCapacity, this.id);
-        for (let i = 0; i < this.stats.inventory.length; i++) {
-            const e = this.stats.inventory[i];
-            if (e.unique) {
-                this.inventory.addSlot(new Slot(e.capacity, e.filter));
-            }else{
-                this.inventory.addSlot(new Slot());
-            }
-        }
+        this.inventory = new Inventory(this.stats.cargoCapacity, this.id, this.stats.inventory);
         Universe.scan(this.position, this.stats.radarRange, this.stats.radarRange);
     };
 
