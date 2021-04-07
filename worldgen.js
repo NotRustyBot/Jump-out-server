@@ -20,6 +20,7 @@ exports.SmartActionData = SmartActionData
 exports.ActionId = ActionId
 exports.ReplyData = ReplyData
 exports.ItemDrop = ItemDrop
+exports.Item = Item
 exports.Inventory = Inventory
 
 function randomSeedParkMiller(seed = 123456) {
