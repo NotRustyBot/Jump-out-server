@@ -78,11 +78,11 @@ function update() {
             p.ship.update(dt);
         }
     });
-    
+
     Entity.list.forEach(e => {
         e.update(dt);
     });
-    
+
     let msg = updateMessage();
     let sameIndex = msg.index;
 
@@ -179,7 +179,7 @@ function updateMessage() {
 
     Entity.remove.forEach(c => {
         view.setUint8(serverHeaders.entityRemove);
-        let temp = {id: c};
+        let temp = { id: c };
         view.serialize(temp, Datagrams.EnitiyRemove);
     });
 
@@ -197,7 +197,7 @@ function updateMessage() {
     if (ItemDrop.create.length > 0) {
         ItemDrop.create.forEach(i => {
             view.setUint8(serverHeaders.itemCreate);
-            let temp = {id: i.id, position: i.position, item: i.item.id, stack: i.item.stack, source: i.source};
+            let temp = { id: i.id, position: i.position, item: i.item.id, stack: i.item.stack, source: i.source };
             view.serialize(temp, Datagrams.ItemCreate);
         });
         ItemDrop.create = [];
@@ -215,12 +215,11 @@ function updateMessage() {
         Inventory.changes.forEach(i => {
             view.setUint8(serverHeaders.inventoryChange);
             view.serialize(i, Datagrams.InventoryChange);
-            console.log(i);
         });
         Inventory.changes = [];
     }
 
-    if(Universe.scanUpdate.length > 0){
+    if (Universe.scanUpdate.length > 0) {
         view.setUint8(serverHeaders.gasScan);
         view.setUint16(Universe.scanUpdate.length);
         Universe.scanUpdate.forEach(i => {
@@ -291,11 +290,11 @@ function AreaInfo(inView, player) {
     let count = 0;
     entities.forEach(entity => {
         if (entity.type != -1) {
-            entity.serialize(inView);    
-            count++;       
+            entity.serialize(inView);
+            count++;
         }
     });
-    inView.view.setUint16(sizeGoesHere,count);
+    inView.view.setUint16(sizeGoesHere, count);
     return buffer.slice(0, inView.index);
 }
 
@@ -312,17 +311,17 @@ function EntitySetupMessage(inView) {
     let count = 0;
     let items = [];
     Entity.list.forEach(e => {
-        if (e.type != -1){
+        if (e.type != -1) {
             view.serialize(e, Datagrams.EntitySetup);
             count++;
-        }else{
+        } else {
             items.push(e);
         }
     });
     view.view.setUint16(sizeGoesHere, count);
     items.forEach(i => {
         view.setUint8(serverHeaders.itemCreate);
-        let temp = {id: i.id, position: i.position, item: i.item.id, stack: i.item.stack, source: i.source};
+        let temp = { id: i.id, position: i.position, item: i.item.id, stack: i.item.stack, source: i.source };
         view.serialize(temp, Datagrams.ItemCreate);
     });
     return buffer.slice(0, view.index);
@@ -335,7 +334,7 @@ function ScannedGas(view) {
     Universe.scanned.gas.forEach(e => {
         view.serialize(e, Datagrams.GasScan);
     });
-    
+
 }
 
 function SendDebugPackets() {
@@ -375,16 +374,16 @@ function parseMessage(buffer, player) {
                 parseSmartAction(view, player);
                 break;
 
-                case clientHeaders.serverConsole:
-                    let temp = {};
-                    view.deserealize(temp, Datagrams.ServerConsole);
-                    console.log("executing: " + temp.command);
-                    try {
-                        eval(temp.command);
-                    } catch (error) {
-                        console.log(error);
-                    }
-                    break;
+            case clientHeaders.serverConsole:
+                let temp = {};
+                view.deserealize(temp, Datagrams.ServerConsole);
+                console.log("executing: " + temp.command);
+                try {
+                    eval(temp.command);
+                } catch (error) {
+                    console.log(error);
+                }
+                break;
 
             default:
                 break;

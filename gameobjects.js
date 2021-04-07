@@ -1283,6 +1283,7 @@ function Ship(id) {
 
         let toHandle = Player.players.get(this.id).actions;
         let replies = Player.players.get(this.id).replies;
+        
         for (let i = 0; i < toHandle.length; i++) {
             const a = toHandle[i];
             if (this.stats.actionPool[a.actionId] != undefined) {

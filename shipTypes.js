@@ -82,7 +82,7 @@ function defineShips(Action) {
     debugShip.cargoCapacity = 30;
     debugShip.inventory = [{unique: true, capacity: 15, filter: 0},{unique: false},{unique: false}],
     debugShip.drag = 0.5;
-    fuelShip.actionPool = [Action.buildTest, Action.MineRock, Action.DropItem];
+    debugShip.actionPool = [Action.buildTest, Action.MineRock, Action.DropItem];
     debugShip.radarRange = 14000;
     debugShip.trails = [
         {
@@ -108,7 +108,7 @@ function defineShips(Action) {
     hackerShip.cargoCapacity = 30;
     hackerShip.inventory = [{unique: true, capacity: 15, filter: 0},{unique: false},{unique: false}],
     hackerShip.drag = 0.5;
-    fuelShip.actionPool = [Action.buildTest, Action.MineRock, Action.DropItem];
+    hackerShip.actionPool = [Action.buildTest, Action.MineRock, Action.DropItem];
     hackerShip.radarRange = 14000;
     hackerShip.trails = [
         {
