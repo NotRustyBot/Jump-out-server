@@ -28,7 +28,7 @@ function defineShips(Action) {
     fuelShip.afterBurnerAccelerationBonus = 100;
     fuelShip.afterBurnerCapacity = 600;
     fuelShip.cargoCapacity = 30;
-    fuelShip.inventory = [{unique: true, capacity: 15, filter: 0},{unique: false},{unique: false}],
+    fuelShip.inventory = [{unique: true, capacity: 15, filter: 0},{unique: false},{unique: false},{unique: false},{unique: false},{unique: false},{unique: false},{unique: false},{unique: false},{unique: false}],
     fuelShip.drag = 0.05;
     fuelShip.actionPool = [Action.buildTest, Action.MineRock, Action.DropItem];
     fuelShip.radarRange = 14000;
