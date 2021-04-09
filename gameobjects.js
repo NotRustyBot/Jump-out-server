@@ -965,7 +965,7 @@ Action.buildTest = function (ship, action) {
  */
 Action.DropItem = function (ship, action) {
     action.replyData = {};
-    if (ship.inventory.countItem(ItemInfo[action.item]) >= action.stack) {
+    if (ship.inventory.countItem(action.item) >= action.stack) {
         ship.inventory.removeItem(new Item(action.item, action.stack));
         let drop = new ItemDrop(action.position, new Item(action.item, action.stack), ship.position);
         drop.init();
