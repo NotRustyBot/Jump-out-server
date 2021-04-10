@@ -294,6 +294,7 @@ let input = new Datagram();
 input.add(types.vector32, "control");
 input.add(types.int8, "afterBurnerActive");
 input.add(types.int8, "action");
+input.add(types.uint8, "packet");
 Datagrams.input = input;
 
 
@@ -395,8 +396,8 @@ exports.SmartActionData = SmartActionData;
 
 let DropItem = new Datagram();
 DropItem.add(types.vector32, "position");
-DropItem.add(types.int8, "item");
 DropItem.add(types.uint16, "stack");
+DropItem.add(types.int8, "slot");
 SmartActionData.push(DropItem);
 exports.SmartActionData = SmartActionData;
 

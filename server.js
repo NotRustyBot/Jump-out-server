@@ -283,6 +283,7 @@ function prepareReplies(inView, player) {
 function AreaInfo(inView, player) {
     inView.setUint8(serverHeaders.proximity);
     let entities = player.proximity();
+    inView.setUint8(player.ship.packet);
     let sizeGoesHere = inView.index;
     inView.setUint16(0);
     let count = 0;

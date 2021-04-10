@@ -591,7 +591,12 @@ function Slot(capacity, filter) {
                 return 0; // filter mismatch
             }
             this.item.id = item.id;
+            this.item.stats = ItemInfo[item.id];
             this.item.stack += taken;
+
+            if (taken > 0) {
+                Inventory.changes.push({ shipId: this.inventory.owner, slot: this.inventory.slots.indexOf(this), item: this.item.id, stack: taken });
+            }
             return taken; // == 0) inventory full
         } else {
             return 0; // item mismatch
@@ -614,6 +619,12 @@ function Slot(capacity, filter) {
             if (this.filter == -1) {
                 this.inventory.used -= taken;
             }
+
+            if (taken > 0) {
+                Inventory.changes.push({ shipId: this.inventory.owner, slot: this.inventory.slots.indexOf(this), item: item.id, stack: -taken });
+            }
+
+           
         }
         return taken;
     }
@@ -639,9 +650,6 @@ function Inventory(capacity, owner, layout) {
             const slot = this.slots[i];
             let taken = slot.addItem(item);
             item.stack -= taken;
-            if (taken > 0) {
-                Inventory.changes.push({ shipId: this.owner, slot: i, item: slot.item.id, stack: taken });
-            }
             if (item.stack == 0) break;
         }
         return item.stack;
@@ -683,9 +691,6 @@ function Inventory(capacity, owner, layout) {
                 const slot = this.slots[i];
                 let taken = slot.removeItem(item);
                 item.stack -= taken;
-                if (taken > 0) {
-                    Inventory.changes.push({ shipId: this.owner, slot: i, item: item.id, stack: -taken });
-                }
                 if (item.stack == 0) break;
             }
             return true;
@@ -966,9 +971,10 @@ Action.buildTest = function (ship, action) {
  */
 Action.DropItem = function (ship, action) {
     action.replyData = {};
-    if (ship.inventory.countItem(action.item) >= action.stack || action.stack > 0) {
-        ship.inventory.removeItem(new Item(action.item, action.stack));
-        let drop = new ItemDrop(action.position, new Item(action.item, action.stack), ship.position);
+    const slot = ship.inventory.slots[action.slot];
+    if (slot.item.stack >= action.stack && action.stack > 0) {
+        let drop = new ItemDrop(action.position, new Item(slot.item.id, action.stack), ship.position);
+        slot.removeItem(new Item(slot.item.id, action.stack));
         drop.init();
         action.replyData.id = 0;
         return 0.1;
