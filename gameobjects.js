@@ -887,6 +887,7 @@ exports.Building = Building;
  * @param {Vector} source 
  */
 function ItemDrop(position, item, source) {
+    if (item.stack <= 0) return;
     Entity.call(this, position.x, position.y, -1);
     this.item = item;
     this.bounds = 125;
@@ -965,7 +966,7 @@ Action.buildTest = function (ship, action) {
  */
 Action.DropItem = function (ship, action) {
     action.replyData = {};
-    if (ship.inventory.countItem(action.item) >= action.stack) {
+    if (ship.inventory.countItem(action.item) >= action.stack || action.stack > 0) {
         ship.inventory.removeItem(new Item(action.item, action.stack));
         let drop = new ItemDrop(action.position, new Item(action.item, action.stack), ship.position);
         drop.init();
