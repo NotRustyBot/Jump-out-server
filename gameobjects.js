@@ -684,7 +684,7 @@ function Inventory(capacity, owner, layout) {
                 let taken = slot.removeItem(item);
                 item.stack -= taken;
                 if (taken > 0) {
-                    Inventory.changes.push({ shipId: this.owner, slot: i, item: slot.item.id, stack: taken });
+                    Inventory.changes.push({ shipId: this.owner, slot: i, item: item.id, stack: -taken });
                 }
                 if (item.stack == 0) break;
             }

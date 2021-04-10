@@ -67,7 +67,7 @@ let mspt = 0;
 let msptavg = [];
 
 for (let i = 0; i < fps; i++) { msptavg[i] = 0; }
-
+let lastn = process.hrtime.bigint();
 function update() {
     dt = (Date.now() - last) / 1000;
     last = Date.now();
@@ -78,7 +78,6 @@ function update() {
             p.ship.update(dt);
         }
     });
-
     Entity.list.forEach(e => {
         e.update(dt);
     });
@@ -91,6 +90,7 @@ function update() {
             prepareReplies(msg, p);
             let toSend = AreaInfo(msg, p);
             msg.index = sameIndex;
+            p.debug = "";
             p.send(toSend);
         }
     });
@@ -101,6 +101,9 @@ function update() {
     msptavg.unshift(mspt);
     msptavg.pop();
     mspt = average(msptavg);
+
+    //console.log(process.hrtime.bigint() - lastn);
+    lastn = process.hrtime.bigint();
 }
 
 /**
