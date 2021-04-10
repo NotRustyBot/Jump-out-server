@@ -89,7 +89,6 @@ function update() {
             prepareReplies(msg, p);
             let toSend = AreaInfo(msg, p);
             msg.index = sameIndex;
-            p.debug = "";
             p.send(toSend);
         }
     });
