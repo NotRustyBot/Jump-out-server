@@ -67,7 +67,6 @@ let mspt = 0;
 let msptavg = [];
 
 for (let i = 0; i < fps; i++) { msptavg[i] = 0; }
-let lastn = process.hrtime.bigint();
 function update() {
     dt = (Date.now() - last) / 1000;
     last = Date.now();
@@ -101,9 +100,6 @@ function update() {
     msptavg.unshift(mspt);
     msptavg.pop();
     mspt = average(msptavg);
-
-    //console.log(process.hrtime.bigint() - lastn);
-    lastn = process.hrtime.bigint();
 }
 
 /**
