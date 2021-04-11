@@ -388,20 +388,23 @@ let SmartActionData = [];
 let PlaceObject = new Datagram();
 PlaceObject.add(types.int8, "structure");
 SmartActionData.push(PlaceObject);
-exports.SmartActionData = SmartActionData;
 
 let MineRock = new Datagram();
 SmartActionData.push(MineRock);
-exports.SmartActionData = SmartActionData;
 
 let DropItem = new Datagram();
 DropItem.add(types.vector32, "position");
 DropItem.add(types.uint16, "stack");
 DropItem.add(types.int8, "slot");
 SmartActionData.push(DropItem);
+
+let SwapSlots = new Datagram();
+DropItem.add(types.int8, "slot1");
+DropItem.add(types.int8, "slot2");
+SmartActionData.push(SwapSlots);
 exports.SmartActionData = SmartActionData;
 
-const ActionId = { placeObject: 0, MineRock: 1, DropItem: 2};
+const ActionId = { placeObject: 0, MineRock: 1, DropItem: 2, SwapSlots: 3};
 exports.ActionId = ActionId;
 
 

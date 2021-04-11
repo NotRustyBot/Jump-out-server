@@ -552,6 +552,10 @@ function Item(id, stack) {
     this.id = id;
     this.stack = stack;
     this.stats = ItemInfo[id];
+
+    this.clone = function() {
+        return new Item(this.id, this.stack);
+    }
 }
 
 exports.Item = Item;
@@ -624,7 +628,7 @@ function Slot(capacity, filter) {
                 Inventory.changes.push({ shipId: this.inventory.owner, slot: this.inventory.slots.indexOf(this), item: item.id, stack: -taken });
             }
 
-           
+
         }
         return taken;
     }
@@ -696,6 +700,42 @@ function Inventory(capacity, owner, layout) {
             return true;
         } else {
             return false;
+        }
+    }
+
+    /**
+     * 
+     * @param {Slot} slot1 
+     * @param {Slot} slot2 
+     */
+    this.swapSlots = function (slot1, slot2) {
+        if (slot1.item.id == slot2.item.id) return; // what
+        if (slot1.filter == -1 && slot2.filter == -1) {
+            let temp = slot1.item.clone();
+            slot1.removeItem(slot1.item.clone());
+            slot1.addItem(slot2.item.clone());
+            slot2.removeItem(slot2.item.clone());
+            slot2.addItem(temp);
+        }else if(slot1.filter == -1 && slot1.item.stats.tag == slot2.filter){
+            let temp = slot2.item.clone();
+            this.removeItem(slot2.item.clone());
+            slot2.addItem(slot1.item.clone());
+            let overflow = this.addItem(temp);
+            if (overflow > 0) {
+                let pos = Player.players.get(this.owner).ship.position;
+                let drop = new ItemDrop(pos, temp, pos);
+                drop.init();
+            }
+        }else if(slot2.filter == -1 && slot2.item.stats.tag == slot1.filter){
+            let temp = slot1.item.clone();
+            this.removeItem(slot1.item.clone());
+            slot1.addItem(slot2.item.clone());
+            let overflow = this.addItem(temp);
+            if (overflow > 0) {
+                let pos = Player.players.get(this.owner).ship.position;
+                let drop = new ItemDrop(pos, temp, pos);
+                drop.init();
+            }
         }
     }
 
@@ -967,26 +1007,6 @@ Action.buildTest = function (ship, action) {
 /**
  * 
  * @param {Ship} ship 
- * @param {SmartAction} action
- */
-Action.DropItem = function (ship, action) {
-    action.replyData = {};
-    const slot = ship.inventory.slots[action.slot];
-    if (slot.item.stack >= action.stack && action.stack > 0) {
-        let drop = new ItemDrop(action.position, new Item(slot.item.id, action.stack), ship.position);
-        slot.removeItem(new Item(slot.item.id, action.stack));
-        drop.init();
-        action.replyData.id = 0;
-        return 0.1;
-    } else {
-        action.replyData.id = 0;
-        return 0.1;
-    }
-}
-
-/**
- * 
- * @param {Ship} ship 
  * @param {SmartAction} action 
  */
 Action.MineRock = function (ship, action) {
@@ -1014,6 +1034,39 @@ Action.MineRock = function (ship, action) {
     }
 
     return 1;
+}
+
+/**
+ * 
+ * @param {Ship} ship 
+ * @param {SmartAction} action
+ */
+ Action.DropItem = function (ship, action) {
+    action.replyData = {};
+    const slot = ship.inventory.slots[action.slot];
+    if (slot.item.stack >= action.stack && action.stack > 0) {
+        let drop = new ItemDrop(action.position, new Item(slot.item.id, action.stack), ship.position);
+        slot.removeItem(new Item(slot.item.id, action.stack));
+        drop.init();
+        action.replyData.id = 0;
+        return 0.1;
+    } else {
+        action.replyData.id = 0;
+        return 0.1;
+    }
+}
+
+
+/**
+ * 
+ * @param {Ship} ship 
+ * @param {SmartAction} action 
+ */
+ Action.SwapSlots = function (ship, action) {
+    action.replyData = {};
+    ship.inventory.swapSlots(action.slot1, action.slot2);
+    action.replyData.id = 0;
+    return 0.1;
 }
 
 /**
@@ -1290,7 +1343,7 @@ function Ship(id) {
 
         let toHandle = Player.players.get(this.id).actions;
         let replies = Player.players.get(this.id).replies;
-        
+
         for (let i = 0; i < toHandle.length; i++) {
             const a = toHandle[i];
             if (this.stats.actionPool[a.actionId] != undefined) {

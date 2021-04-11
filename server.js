@@ -68,12 +68,14 @@ let msptavg = [];
 
 for (let i = 0; i < fps; i++) { msptavg[i] = 0; }
 function update() {
+
     dt = (Date.now() - last) / 1000;
     last = Date.now();
 
     Player.players.forEach(p => {
         if (p.initialised) {
-            p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
+            //p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
+            p.debug = "     DT: " + (dt*1000).toFixed(2) + "\n";
             p.ship.update(dt);
         }
     });
