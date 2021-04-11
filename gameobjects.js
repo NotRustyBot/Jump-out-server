@@ -1064,7 +1064,7 @@ Action.MineRock = function (ship, action) {
  */
  Action.SwapSlots = function (ship, action) {
     action.replyData = {};
-    ship.inventory.swapSlots(action.slot1, action.slot2);
+    ship.inventory.swapSlots(ship.inventory.slots[action.slot1], ship.inventory.slots[action.slot2]);
     action.replyData.id = 0;
     return 0.1;
 }

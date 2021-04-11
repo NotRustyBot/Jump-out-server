@@ -399,8 +399,8 @@ DropItem.add(types.int8, "slot");
 SmartActionData.push(DropItem);
 
 let SwapSlots = new Datagram();
-DropItem.add(types.int8, "slot1");
-DropItem.add(types.int8, "slot2");
+SwapSlots.add(types.int8, "slot1");
+SwapSlots.add(types.int8, "slot2");
 SmartActionData.push(SwapSlots);
 exports.SmartActionData = SmartActionData;
 
