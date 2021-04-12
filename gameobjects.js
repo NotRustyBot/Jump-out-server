@@ -550,7 +550,7 @@ function Item(id, stack) {
     this.stack = stack;
     this.stats = ItemInfo[id];
 
-    this.clone = function() {
+    this.clone = function () {
         return new Item(this.id, this.stack);
     }
 }
@@ -650,7 +650,7 @@ function Inventory(capacity, owner, layout) {
         let request = item.stack;
         for (let i = 0; i < this.slots.length; i++) {
             const slot = this.slots[i];
-            if(slot.item.id != item.id) continue;
+            if (slot.item.id != item.id) continue;
             let taken = slot.addItem(item);
             item.stack -= taken;
             if (item.stack == 0) break;
@@ -718,17 +718,17 @@ function Inventory(capacity, owner, layout) {
     this.swapSlots = function (slot1, slot2) {
         if (slot1.item.id == slot2.item.id) return; // what
         if (slot1.filter != -1 && slot2.item.stack == 0 ||
-             slot2.filter != -1 && slot2.item.stack == 0) {
+            slot2.filter != -1 && slot2.item.stack == 0) {
             return; // cant swap these slots! >:[
         }
 
         if (slot1.filter == -1 && slot2.filter == -1) {
             let temp = slot1.item.clone();
-            if(slot1.item.id != 0) slot1.removeItem(slot1.item.clone());
-            if(slot2.item.id != 0) slot1.addItem(slot2.item.clone());
-            if(slot2.item.id != 0) slot2.removeItem(slot2.item.clone());
-            if(temp.id != 0) slot2.addItem(temp);
-        }else if(slot1.filter == -1 && slot1.item.stats.tag == slot2.filter){
+            if (slot1.item.id != 0) slot1.removeItem(slot1.item.clone());
+            if (slot2.item.id != 0) slot1.addItem(slot2.item.clone());
+            if (slot2.item.id != 0) slot2.removeItem(slot2.item.clone());
+            if (temp.id != 0) slot2.addItem(temp);
+        } else if (slot1.filter == -1 && slot1.item.stats.tag == slot2.filter) {
             let temp = slot2.item.clone();
             this.removeItem(slot2.item.clone());
             slot2.addItem(slot1.item.clone());
@@ -738,7 +738,7 @@ function Inventory(capacity, owner, layout) {
                 let drop = new ItemDrop(pos, temp, pos);
                 drop.init();
             }
-        }else if(slot2.filter == -1 && slot2.item.stats.tag == slot1.filter){
+        } else if (slot2.filter == -1 && slot2.item.stats.tag == slot1.filter) {
             let temp = slot1.item.clone();
             this.removeItem(slot1.item.clone());
             slot1.addItem(slot2.item.clone());
@@ -753,19 +753,23 @@ function Inventory(capacity, owner, layout) {
         this.sort();
     }
 
-    this.sort = function(){
-        for (let i = 0; i < this.slots.length-1; i++) {
+    this.sort = function () {
+        for (let i = 0; i < this.slots.length - 1; i++) {
             const slot1 = this.slots[i];
-            for (let j = i+1; j < this.slots.length; j++) {
+            for (let j = i + 1; j < this.slots.length; j++) {
                 const slot2 = this.slots[j];
-                if (slot1.item.stack == 0 || slot2.item.stack == 0) continue;
+                if (slot2.item.stack == 0) continue;
 
                 if (slot1.item.id == slot2.item.id) {
                     if (slot1.filter == -1 || slot1.capacity > slot1.item.stack) {
                         let temp = slot2.item.clone();
-                        slot2.removeItem(slot2.item.clone());
-                        slot1.addItem(temp);
+                        temp.stack = slot1.addItem(temp);
+                        slot2.removeItem(temp);
                     }
+                } if (slot1.filter == slot2.item.stats.tag) {
+                    let temp = slot2.item.clone();
+                    temp.stack = slot1.addItem(temp);
+                    slot2.removeItem(temp);
                 }
             }
         }
@@ -1073,7 +1077,7 @@ Action.MineRock = function (ship, action) {
  * @param {Ship} ship 
  * @param {SmartAction} action
  */
- Action.DropItem = function (ship, action) {
+Action.DropItem = function (ship, action) {
     action.replyData = {};
     const slot = ship.inventory.slots[action.slot];
     if (slot.item.stack >= action.stack && action.stack > 0) {
@@ -1095,7 +1099,7 @@ Action.MineRock = function (ship, action) {
  * @param {Ship} ship 
  * @param {SmartAction} action 
  */
- Action.SwapSlots = function (ship, action) {
+Action.SwapSlots = function (ship, action) {
     action.replyData = {};
     ship.inventory.swapSlots(ship.inventory.slots[action.slot1], ship.inventory.slots[action.slot2]);
     action.replyData.id = 0;
