@@ -74,8 +74,8 @@ function update() {
 
     Player.players.forEach(p => {
         if (p.initialised) {
-            //p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
-            p.debug = "     DT: " + (dt*1000).toFixed(2) + "\n";
+            p.debug = "   MSPT: " + mspt.toFixed(2) + "\n";
+            //p.debug = "     DT: " + (dt*1000).toFixed(2) + "\n";
             p.ship.update(dt);
         }
     });
