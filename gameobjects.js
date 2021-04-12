@@ -594,11 +594,12 @@ function Slot(capacity, filter) {
             } else {
                 return 0; // filter mismatch
             }
-            this.item.id = item.id;
-            this.item.stats = ItemInfo[item.id];
-            this.item.stack += taken;
 
             if (taken > 0) {
+                this.item.id = item.id;
+                this.item.stats = ItemInfo[this.item.id];
+                this.item.stack += taken;
+
                 Inventory.changes.push({ shipId: this.inventory.owner, slot: this.inventory.slots.indexOf(this), item: this.item.id, stack: taken });
             }
             return taken; // == 0) inventory full
@@ -710,12 +711,17 @@ function Inventory(capacity, owner, layout) {
      */
     this.swapSlots = function (slot1, slot2) {
         if (slot1.item.id == slot2.item.id) return; // what
+        if (slot1.filter != -1 && slot.item2.stack == 0 ||
+             slot2.filter != -1 && slot2.item.stack == 0) {
+            return; // cant swap these slots! >:[
+        }
+
         if (slot1.filter == -1 && slot2.filter == -1) {
             let temp = slot1.item.clone();
-            slot1.removeItem(slot1.item.clone());
-            slot1.addItem(slot2.item.clone());
-            slot2.removeItem(slot2.item.clone());
-            slot2.addItem(temp);
+            if(slot1.item.id != 0) slot1.removeItem(slot1.item.clone());
+            if(slot2.item.id != 0) slot1.addItem(slot2.item.clone());
+            if(slot2.item.id != 0) slot2.removeItem(slot2.item.clone());
+            if(temp.id != 0) slot2.addItem(temp);
         }else if(slot1.filter == -1 && slot1.item.stats.tag == slot2.filter){
             let temp = slot2.item.clone();
             this.removeItem(slot2.item.clone());
@@ -735,6 +741,19 @@ function Inventory(capacity, owner, layout) {
                 let pos = Player.players.get(this.owner).ship.position;
                 let drop = new ItemDrop(pos, temp, pos);
                 drop.init();
+            }
+        }
+    }
+
+    this.sort = function(){
+        for (let i = 0; i < array.length; i++) {
+            const e = this.slots[i];
+            for (let j = 0; j < array.length; j++) {
+                const f = this.slots[j];
+                if (i == j) {
+                    
+                }
+                
             }
         }
     }
