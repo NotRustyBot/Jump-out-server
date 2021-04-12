@@ -720,7 +720,7 @@ function Inventory(capacity, owner, layout) {
      */
     this.swapSlots = function (slot1, slot2) {
         if (slot1.item.id == slot2.item.id) return; // what
-        if (slot1.filter != -1 && slot.item2.stack == 0 ||
+        if (slot1.filter != -1 && slot2.item.stack == 0 ||
              slot2.filter != -1 && slot2.item.stack == 0) {
             return; // cant swap these slots! >:[
         }
@@ -1029,8 +1029,8 @@ Action.test = function (ship, action) {
  */
 Action.buildTest = function (ship, action) {
     action.replyData = {};
-    if (/*ship.inventory.countItem(Items.ore) >= 3 && */construct(ship, Buildings.navBeacon)) {
-        //ship.inventory.removeItem(new Item(Items.ore, 3));
+    if (ship.inventory.countItem(Items.naviBeacon) >= 1 && construct(ship.position.result().add(Vector.fromAngle(ship.rotation).mult(500)), Buildings.navBeacon)) {
+        ship.inventory.removeItem(new Item(Items.naviBeacon, 1));
         action.replyData.id = 0;
         return 0.1;
     } else {
@@ -1114,9 +1114,7 @@ Building.navBeacons = [];
  * @param {Ship} ship 
  * @param {*} building 
  */
-function construct(ship, building) {
-    let position = ship.position.result();
-    position.add(Vector.fromAngle(ship.rotation).mult(500));
+function construct(position, building) {
     if (isAvalible(position, building.size)) {
         let build = new Building(position.x, position.y, building.type);
         build.collider.push(new Shape().circle(0, 0, building.size));
