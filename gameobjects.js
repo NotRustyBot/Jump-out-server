@@ -653,10 +653,18 @@ function Inventory(capacity, owner, layout) {
         let request = item.stack;
         for (let i = 0; i < this.slots.length; i++) {
             const slot = this.slots[i];
+            if(slot.item.id != item.id) continue;
             let taken = slot.addItem(item);
             item.stack -= taken;
             if (item.stack == 0) break;
         }
+        for (let i = 0; i < this.slots.length; i++) {
+            const slot = this.slots[i];
+            let taken = slot.addItem(item);
+            item.stack -= taken;
+            if (item.stack == 0) break;
+        }
+        this.sort();
         return item.stack;
     }
 
@@ -698,6 +706,7 @@ function Inventory(capacity, owner, layout) {
                 item.stack -= taken;
                 if (item.stack == 0) break;
             }
+            this.sort();
             return true;
         } else {
             return false;
@@ -743,17 +752,24 @@ function Inventory(capacity, owner, layout) {
                 drop.init();
             }
         }
+
+        this.sort();
     }
 
     this.sort = function(){
-        for (let i = 0; i < array.length; i++) {
-            const e = this.slots[i];
-            for (let j = 0; j < array.length; j++) {
-                const f = this.slots[j];
-                if (i == j) {
-                    
+        for (let i = 0; i < this.slots.length-1; i++) {
+            const slot1 = this.slots[i];
+            for (let j = i+1; j < this.slots.length; j++) {
+                const slot2 = this.slots[j];
+                if (slot1.item.stack == 0 || slot2.item.stack == 0) continue;
+
+                if (slot1.item.id == slot2.item.id) {
+                    if (slot1.filter == -1 || slot1.capacity > slot1.item.stack) {
+                        let temp = slot2.item.clone();
+                        slot2.removeItem(slot2.item.clone());
+                        slot1.addItem(temp);
+                    }
                 }
-                
             }
         }
     }
