@@ -284,20 +284,17 @@ Universe.scanned = {
 };
 
 Universe.scanUpdate = [];
-
+const minimapScale = 2;
 /**
  * 
  * @param {Vector} position 
  * @param {number} range 
  */
-
-
-const minimapScale = 2;
 Universe.scan = function (position, range, speed) {
     let nearby = Universe.entitiesInRange(position, range);
 
     nearby.forEach(e => {
-        if (!Universe.scanned.objects.includes(e)) {
+        if (!Universe.scanned.objects.includes(e) && position.distance(e) <= range) {
             Universe.scanned.objects.push(e);
         }
     });
@@ -1082,6 +1079,7 @@ Action.MineRock = function (ship, action) {
     if (slot.item.stack >= action.stack && action.stack > 0) {
         let drop = new ItemDrop(action.position, new Item(slot.item.id, action.stack), ship.position);
         slot.removeItem(new Item(slot.item.id, action.stack));
+        ship.inventory.sort();
         drop.init();
         action.replyData.id = 0;
         return 0.1;

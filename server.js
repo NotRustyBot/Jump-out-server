@@ -360,7 +360,8 @@ function sendAll(data) {
 
 
 function parseMessage(buffer, player) {
-    const view = new AutoView(buffer);
+    try {
+        const view = new AutoView(buffer);
     while (view.index < view.view.byteLength) {
         let head = view.getUint8();
         switch (head) {
@@ -390,7 +391,9 @@ function parseMessage(buffer, player) {
                 break;
         }
     }
-
+    } catch (error) {
+        console.warn("parse error: " + error);
+    }
 }
 
 /**
