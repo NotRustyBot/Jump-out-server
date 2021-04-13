@@ -277,8 +277,22 @@ Universe.setGas = function (position, value) {
 
 Universe.gasChange = [];
 
+Universe.unscan = function (e) {
+    if (e.velocity != undefined) {
+        Universe.scanned.mobile.set(e.id, { id: e.id, position: e.position, type: 0 });
+    } else {
+        Universe.scanned.objects.set(e.id, { id: e.id, position: e.position, type: 0 });
+    }
+    Universe.scanned.allObjects.delete(e.id);
+}
+
 Universe.scanned = {
-    objects: [],
+    /**@type {Entity} */
+    static: [],
+    /**@type {Mobile} */
+    mobile: [],
+    objects: new Map(),
+    allObjects: new Map(),
     gas: [],
     seen: []
 };
@@ -292,10 +306,19 @@ const minimapScale = 2;
  */
 Universe.scan = function (position, range, speed) {
     let nearby = Universe.entitiesInRange(position, range);
-
     nearby.forEach(e => {
-        if (!Universe.scanned.objects.includes(e) && position.distance(e) <= range) {
-            Universe.scanned.objects.push(e);
+        if (!(Universe.scanned.static.includes(e) || Universe.scanned.mobile.includes(e)) && position.distance(e.position) <= range) {
+            let obj;
+            if (e.velocity != undefined) {
+                Universe.scanned.mobile.push(e);
+                obj = { id: e.id, position: e.position, type: 2 };
+                Universe.scanned.objects.set(e.id, obj);
+            } else {
+                Universe.scanned.static.push(e);
+                obj = { id: e.id, position: e.position, type: 1 };
+                Universe.scanned.objects.set(e.id, obj);
+            }
+            Universe.scanned.allObjects.set(e.id, obj);
         }
     });
 
@@ -1064,6 +1087,7 @@ Action.MineRock = function (ship, action) {
     if (closest != undefined) {
         ship.inventory.addItem(new Item(Items.ore, 10));
         action.replyData.id = 0;
+        Universe.unscan(closest);
         closest.delete();
     } else {
         action.replyData.id = 0;
@@ -1419,6 +1443,7 @@ function Ship(id) {
                                 if (left > 0) {
                                     e.item.stack = left;
                                 } else {
+                                    Universe.unscan(e);
                                     e.delete();
                                 }
                             }

@@ -381,6 +381,12 @@ GasScan.add(types.int16, "y");
 GasScan.add(types.uint8, "gas");
 Datagrams.GasScan = GasScan;
 
+let ObjectScan = new Datagram();
+ObjectScan.add(types.uint16, "id");
+ObjectScan.add(types.vector32, "position");
+ObjectScan.add(types.uint8, "type");
+Datagrams.ObjectScan = ObjectScan;
+
 exports.Datagrams = Datagrams;
 
 let SmartActionData = [];
@@ -431,7 +437,7 @@ exports.ReplyData = ReplyData;
 const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
 exports.ReplyId = ReplyId;
 
-const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15};
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15, objectScan: 16};
 exports.serverHeaders = serverHeaders;
 const clientHeaders = { init: 0, control: 1, smartAction: 2, serverConsole: 3 };
 exports.clientHeaders = clientHeaders;

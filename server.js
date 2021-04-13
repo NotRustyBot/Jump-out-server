@@ -228,6 +228,16 @@ function updateMessage() {
         Universe.scanUpdate = [];
     }
 
+    if (Universe.scanned.objects.size > 0) {
+        view.setUint8(serverHeaders.objectScan);
+        view.setUint16(Universe.scanned.objects.size);
+        Universe.scanned.objects.forEach(i => {
+            view.serialize(i, Datagrams.ObjectScan);
+        });
+        Universe.scanned.objects = new Map();
+        Universe.scanned.mobile = [];
+    }
+
     return view;
     //return buffer.slice(0, view.index);
 }
@@ -255,7 +265,7 @@ function initMessage(p) {
     });
     view.view.setUint8(sizeGoesHere, count);
 
-    ScannedGas(view);
+    Scanned(view);
 
     return buffer.slice(0, view.index);
 }
@@ -329,12 +339,21 @@ function EntitySetupMessage(inView) {
 }
 
 
-function ScannedGas(view) {
+function Scanned(view) {
     view.setUint8(serverHeaders.gasScan);
     view.setUint16(Universe.scanned.gas.length);
     Universe.scanned.gas.forEach(e => {
         view.serialize(e, Datagrams.GasScan);
     });
+
+    if (Universe.scanned.allObjects.size > 0) {
+        view.setUint8(serverHeaders.objectScan);
+        view.setUint16(Universe.scanned.allObjects.size);
+        Universe.scanned.allObjects.forEach(i => {
+            view.serialize(i, Datagrams.ObjectScan);
+        });
+    }
+
 
 }
 
@@ -362,35 +381,35 @@ function sendAll(data) {
 function parseMessage(buffer, player) {
     try {
         const view = new AutoView(buffer);
-    while (view.index < view.view.byteLength) {
-        let head = view.getUint8();
-        switch (head) {
-            case clientHeaders.init:
-                parseInit(view, player);
-                break;
-            case clientHeaders.control:
-                parseInput(view, player);
-                break;
+        while (view.index < view.view.byteLength) {
+            let head = view.getUint8();
+            switch (head) {
+                case clientHeaders.init:
+                    parseInit(view, player);
+                    break;
+                case clientHeaders.control:
+                    parseInput(view, player);
+                    break;
 
-            case clientHeaders.smartAction:
-                parseSmartAction(view, player);
-                break;
+                case clientHeaders.smartAction:
+                    parseSmartAction(view, player);
+                    break;
 
-            case clientHeaders.serverConsole:
-                let temp = {};
-                view.deserealize(temp, Datagrams.ServerConsole);
-                console.log("executing: " + temp.command);
-                try {
-                    eval(temp.command);
-                } catch (error) {
-                    console.log(error);
-                }
-                break;
+                case clientHeaders.serverConsole:
+                    let temp = {};
+                    view.deserealize(temp, Datagrams.ServerConsole);
+                    console.log("executing: " + temp.command);
+                    try {
+                        eval(temp.command);
+                    } catch (error) {
+                        console.log(error);
+                    }
+                    break;
 
-            default:
-                break;
+                default:
+                    break;
+            }
         }
-    }
     } catch (error) {
         console.warn("parse error: " + error);
     }
