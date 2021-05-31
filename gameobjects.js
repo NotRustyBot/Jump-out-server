@@ -1111,8 +1111,8 @@ Action.DropItem = function (ship, action) {
             dropPosition = ship.position.result().add(Vector.fromAngle(angle).mult(1000))
         }
 
-        dropPosition.x = Math.max(Math.min(dropPosition.x ,Universe.size * Area.size - 1), 1);
-        dropPosition.y = Math.max(Math.min(dropPosition.y ,Universe.size * Area.size - 1), 1);
+        dropPosition.x = Math.max(Math.min(dropPosition.x, Universe.size * Area.size - 130), 130);
+        dropPosition.y = Math.max(Math.min(dropPosition.y, Universe.size * Area.size - 130), 130);
 
         let drop = new ItemDrop(dropPosition, new Item(slot.item.id, action.stack), ship.position);
         slot.removeItem(new Item(slot.item.id, action.stack));
