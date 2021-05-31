@@ -1372,7 +1372,7 @@ function Ship(id) {
             if (this.velocity.length() < targetSpeed) this.velocity.normalize(targetSpeed);
         }
 
-        Player.players.get(this.id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "/" + targetSpeed.toFixed(2) + "\n";
+        //Player.players.get(this.id).debug += "  Speed: " + this.velocity.length().toFixed(2) + "/" + targetSpeed.toFixed(2) + "\n";
         for (let i = 0; i < this.inventory.slots.length; i++) {
             Player.players.get(this.id).debug += "      " + i + ": [" + this.inventory.slots[i].filter + "] " + this.inventory.slots[i].item.id + " x" + this.inventory.slots[i].item.stack + " / " + this.inventory.slots[i].capacity + "\n";
         }
