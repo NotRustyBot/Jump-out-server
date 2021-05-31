@@ -112,34 +112,40 @@ Area.checkIn = function (entity) {
     let x = Math.floor((position.x + entity.bounds) / Area.size);
     let y = Math.floor((position.y + entity.bounds) / Area.size);
     let area = Area.list[x][y];
-    area.entities.push(entity);
-
-    position = entity.position;
-    x = Math.floor((position.x - entity.bounds) / Area.size);
-    y = Math.floor((position.y + entity.bounds) / Area.size);
-    area = Area.list[x][y];
-
-    if (!area.entities.includes(entity)) {
+    try {
         area.entities.push(entity);
+
+        position = entity.position;
+        x = Math.floor((position.x - entity.bounds) / Area.size);
+        y = Math.floor((position.y + entity.bounds) / Area.size);
+    
+        area = Area.list[x][y];
+    
+        if (!area.entities.includes(entity)) {
+            area.entities.push(entity);
+        }
+    
+        position = entity.position;
+        x = Math.floor((position.x + entity.bounds) / Area.size);
+        y = Math.floor((position.y - entity.bounds) / Area.size);
+        area = Area.list[x][y];
+    
+        if (!area.entities.includes(entity)) {
+            area.entities.push(entity);
+        }
+    
+        position = entity.position;
+        x = Math.floor((position.x - entity.bounds) / Area.size);
+        y = Math.floor((position.y - entity.bounds) / Area.size);
+        area = Area.list[x][y];
+    
+        if (!area.entities.includes(entity)) {
+            area.entities.push(entity);
+        }
+    } catch (error) {
+        console.log("entity out of bounds : \n" + error);
     }
 
-    position = entity.position;
-    x = Math.floor((position.x + entity.bounds) / Area.size);
-    y = Math.floor((position.y - entity.bounds) / Area.size);
-    area = Area.list[x][y];
-
-    if (!area.entities.includes(entity)) {
-        area.entities.push(entity);
-    }
-
-    position = entity.position;
-    x = Math.floor((position.x - entity.bounds) / Area.size);
-    y = Math.floor((position.y - entity.bounds) / Area.size);
-    area = Area.list[x][y];
-
-    if (!area.entities.includes(entity)) {
-        area.entities.push(entity);
-    }
 };
 
 /**
