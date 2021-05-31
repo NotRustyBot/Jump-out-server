@@ -1105,7 +1105,16 @@ Action.DropItem = function (ship, action) {
     action.replyData = {};
     const slot = ship.inventory.slots[action.slot];
     if (slot.item.stack >= action.stack && action.stack > 0) {
-        let drop = new ItemDrop(action.position, new Item(slot.item.id, action.stack), ship.position);
+        let dropPosition = action.position;
+        if(ship.position.distance(dropPosition) > 1000){
+            let angle = ship.position.result().sub(dropPosition).toAngle();
+            dropPosition = ship.position.result().add(Vector.fromAngle(angle).mult(1000))
+        }
+
+        dropPosition.x = Math.max(Math.min(dropPosition.x ,Universe.size * Area.size - 1), 1);
+        dropPosition.y = Math.max(Math.min(dropPosition.y ,Universe.size * Area.size - 1), 1);
+
+        let drop = new ItemDrop(dropPosition, new Item(slot.item.id, action.stack), ship.position);
         slot.removeItem(new Item(slot.item.id, action.stack));
         ship.inventory.sort();
         drop.init();
