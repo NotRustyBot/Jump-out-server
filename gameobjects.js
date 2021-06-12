@@ -362,8 +362,9 @@ Universe.scan = function (position, range, speed) {
 
 Universe.entitiesInRange = function (position, range) {
     let proximity = [];
-    for (let y = -1; y <= 1; y++) {
-        for (let x = -1; x <= 1; x++) {
+    let areaRange = Math.ceil(range/2/Area.size)+1;
+    for (let y = -areaRange; y <= areaRange; y++) {
+        for (let x = -areaRange; x <= areaRange; x++) {
             let adjusted = position.result();
             adjusted.x += x * Area.size;
             adjusted.y += y * Area.size;
