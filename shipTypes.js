@@ -80,7 +80,7 @@ function defineShips(Action) {
     debugShip.afterBurnerAccelerationBonus = 800;
     debugShip.afterBurnerCapacity = 600;
     debugShip.cargoCapacity = 30;
-    debugShip.inventory = [{unique: true, capacity: 15, filter: 0},{unique: false},{unique: false}],
+    debugShip.inventory = [{unique: true, capacity: 15, filter: 1},{unique: false},{unique: false}],
     debugShip.drag = 0.5;
     debugShip.actionPool = [Action.buildTest, Action.MineRock, Action.DropItem, Action.SwapSlots, Action.CreateMarker];
     debugShip.radarRange = 14000;
