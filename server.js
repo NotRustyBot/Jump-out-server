@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory } = require("./worldgen");
+const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory, Marker } = require("./worldgen");
 
 //#region INIT
 let http = require('http');
@@ -81,6 +81,10 @@ function update() {
     });
     Entity.list.forEach(e => {
         e.update(dt);
+    });
+
+    Universe.comms.markers.forEach(m => {
+        m.update(dt);
     });
 
     let msg = updateMessage();
@@ -237,6 +241,20 @@ function updateMessage() {
         Universe.scanned.objects = new Map();
         Universe.scanned.mobile = [];
     }
+
+    Universe.comms.markers.forEach(m => {
+        if (!m.broadcasted) {
+            if (m.remove) {
+                view.setUint8(serverHeaders.markerRemove);
+                view.setUint16(m.id);
+                m.broadcasted = true;
+            }else{
+                view.setUint8(serverHeaders.markerCreate);
+                view.serialize(m, Datagrams.MarkerCreate);
+                m.broadcasted = true;
+            }
+        }
+    });
 
     return view;
     //return buffer.slice(0, view.index);

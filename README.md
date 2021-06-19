@@ -3,6 +3,5 @@
 TO-DO:
 - entity additional data  
 - holoubci AI  
-- env gen  
-- možná dva gasy, (stejnej počet, ale různý depth)
+- env gen  ((co??))
 - @hh4 elipsa?

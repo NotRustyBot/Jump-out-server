@@ -118,27 +118,27 @@ Area.checkIn = function (entity) {
         position = entity.position;
         x = Math.floor((position.x - entity.bounds) / Area.size);
         y = Math.floor((position.y + entity.bounds) / Area.size);
-    
+
         area = Area.list[x][y];
-    
+
         if (!area.entities.includes(entity)) {
             area.entities.push(entity);
         }
-    
+
         position = entity.position;
         x = Math.floor((position.x + entity.bounds) / Area.size);
         y = Math.floor((position.y - entity.bounds) / Area.size);
         area = Area.list[x][y];
-    
+
         if (!area.entities.includes(entity)) {
             area.entities.push(entity);
         }
-    
+
         position = entity.position;
         x = Math.floor((position.x - entity.bounds) / Area.size);
         y = Math.floor((position.y - entity.bounds) / Area.size);
         area = Area.list[x][y];
-    
+
         if (!area.entities.includes(entity)) {
             area.entities.push(entity);
         }
@@ -362,7 +362,7 @@ Universe.scan = function (position, range, speed) {
 
 Universe.entitiesInRange = function (position, range) {
     let proximity = [];
-    let areaRange = Math.ceil(range/2/Area.size)+1;
+    let areaRange = Math.ceil(range / 2 / Area.size) + 1;
     for (let y = -areaRange; y <= areaRange; y++) {
         for (let x = -areaRange; x <= areaRange; x++) {
             let adjusted = position.result();
@@ -386,6 +386,12 @@ Universe.entitiesInRange = function (position, range) {
     return nearby;
 }
 
+Universe.comms = {};
+/**
+ * @type {Map<number,Marker>}
+ */
+Universe.comms.markers = new Map();
+
 exports.Universe = Universe;
 
 for (let x = 0; x < Universe.size; x++) {
@@ -394,6 +400,39 @@ for (let x = 0; x < Universe.size; x++) {
         Area.list[x][y] = new Area(x, y);
     }
 }
+
+function Marker(position, type, playerId, parameter) {
+    this.position = position;
+    this.parameter = parameter;
+    this.type = type;
+    this.broadcasted = false;
+    this.remove = false;
+    this.hasTimer = false;
+    this.timer = 0;
+    this.playerId = playerId;
+
+    this.update = function (dt) {
+        if (this.remove && this.broadcasted) {
+            Universe.comms.markers.delete(this.id);
+        }
+        if (this.hasTimer) {
+            this.timer -= dt;
+            if (this.timer < 0) {
+                this.broadcasted = false;
+                this.remove = true;
+            }
+        }
+    }
+    this.id = Marker.nextId();
+    Universe.comms.markers.set(this.id, this);
+}
+Marker.id = 0;
+Marker.nextId = function () {
+    this.id++;
+    return this.id;
+};
+
+exports.Marker = Marker;
 
 /**
  * 
@@ -1113,7 +1152,7 @@ Action.DropItem = function (ship, action) {
     const slot = ship.inventory.slots[action.slot];
     if (slot.item.stack >= action.stack && action.stack > 0) {
         let dropPosition = action.position;
-        if(ship.position.distance(dropPosition) > 1000){
+        if (ship.position.distance(dropPosition) > 1000) {
             let angle = ship.position.result().sub(dropPosition).toAngle();
             dropPosition = ship.position.result().add(Vector.fromAngle(angle).mult(1000))
         }
@@ -1142,6 +1181,20 @@ Action.DropItem = function (ship, action) {
 Action.SwapSlots = function (ship, action) {
     action.replyData = {};
     ship.inventory.swapSlots(ship.inventory.slots[action.slot1], ship.inventory.slots[action.slot2]);
+    action.replyData.id = 0;
+    return 0.1;
+}
+
+/**
+ * 
+ * @param {Ship} ship 
+ * @param {SmartAction} action 
+ */
+ Action.CreateMarker = function (ship, action) {
+    action.replyData = {};
+    let marker = new Marker(action.position, action.type, ship.id, action.parameter);
+    marker.hasTimer = true;
+    marker.timer = 10;
     action.replyData.id = 0;
     return 0.1;
 }

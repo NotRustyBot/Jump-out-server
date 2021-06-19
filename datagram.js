@@ -387,6 +387,17 @@ ObjectScan.add(types.vector32, "position");
 ObjectScan.add(types.uint8, "type");
 Datagrams.ObjectScan = ObjectScan;
 
+let MarkerCreate = new Datagram();
+MarkerCreate.add(types.uint16, "id");
+MarkerCreate.add(types.uint8, "type");
+MarkerCreate.add(types.vector32, "position");
+MarkerCreate.add(types.vector32, "parameter");
+Datagrams.MarkerCreate = MarkerCreate;
+
+let MarkerRemove = new Datagram();
+MarkerRemove.add(types.uint16, "id");
+Datagrams.MarkerRemove = MarkerRemove;
+
 exports.Datagrams = Datagrams;
 
 let SmartActionData = [];
@@ -408,9 +419,15 @@ let SwapSlots = new Datagram();
 SwapSlots.add(types.int8, "slot1");
 SwapSlots.add(types.int8, "slot2");
 SmartActionData.push(SwapSlots);
+
+let CreateMarker = new Datagram();
+CreateMarker.add(types.vector32, "position");
+CreateMarker.add(types.vector32, "parameter");
+CreateMarker.add(types.uint8, "type");
+SmartActionData.push(CreateMarker);
 exports.SmartActionData = SmartActionData;
 
-const ActionId = { placeObject: 0, MineRock: 1, DropItem: 2, SwapSlots: 3};
+const ActionId = { placeObject: 0, MineRock: 1, DropItem: 2, SwapSlots: 3, CreateMarker: 4};
 exports.ActionId = ActionId;
 
 
@@ -437,7 +454,7 @@ exports.ReplyData = ReplyData;
 const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
 exports.ReplyId = ReplyId;
 
-const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15, objectScan: 16};
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15, objectScan: 16, markerCreate: 17, markerRemove: 18};
 exports.serverHeaders = serverHeaders;
 const clientHeaders = { init: 0, control: 1, smartAction: 2, serverConsole: 3 };
 exports.clientHeaders = clientHeaders;

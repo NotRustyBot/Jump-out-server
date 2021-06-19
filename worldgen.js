@@ -1,4 +1,4 @@
-const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile } = require("./gameobjects.js");
+const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile, Marker } = require("./gameobjects.js");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 
@@ -22,6 +22,7 @@ exports.ReplyData = ReplyData
 exports.ItemDrop = ItemDrop
 exports.Item = Item
 exports.Inventory = Inventory
+exports.Marker = Marker
 
 function randomSeedParkMiller(seed = 123456) {
 	// doesn't repeat b4 JS dies.
@@ -122,7 +123,6 @@ function distance(x1, y1, x2, y2) {
 
 function voidCircle(x1, y1, r, p) {
 	let dMode = (p == 0);
-	p = Math.min(p, 1);
 	for (let y = Math.floor(y1 - r); y < y1 + r; y += subres) {
 		for (let x = Math.floor(x1 - r); x < x1 + r; x += subres) {
 			let dist = distance(x, y, x1, y1);
@@ -130,7 +130,7 @@ function voidCircle(x1, y1, r, p) {
 				if (dMode) {
 					p = Math.pow(dist / r, 4);
 				}
-				gasMap[x / subres][y / subres] = Math.floor(gasMap[x / subres][y / subres] * p);
+				gasMap[x / subres][y / subres] = gasMap[x / subres][y / subres] * Math.min(1,p + Math.pow(dist / r, 4));
 			}
 		}
 	}
@@ -161,7 +161,7 @@ for (let x = 0; x < w; x += subres) {
 		}
 
 		level = level - shift;
-		
+
 		if (level < 0) {
 			level = 0;
 		}
@@ -184,11 +184,17 @@ for (let c = 0; c < 20; c++) {
 	for (let t = 0; t < 1000; t++) {
 		let v = 1 + (Math.abs(obj.dx) + Math.abs(obj.dy)) / 10;
 		v = 1 / v;
-		voidCircle(obj.x, obj.y, Math.max(Math.min(20, 100 / (1 + t / 10)), 2), 0.98);
+		voidCircle(obj.x, obj.y, Math.max(Math.min(20, 100 / (1 + t / 10)), 2), 0.9999*v);
 		obj.x += obj.dx;
 		obj.y += obj.dy;
 		obj.dx = obj.dx * 0.995;
 		obj.dy = obj.dy * 0.995;
+	}
+}
+
+for (let x = 0; x < w; x += subres) {
+	for (let y = 0; y < w; y += subres) {
+		gasMap[x / subres][y / subres] = Math.floor(gasMap[x / subres][y / subres]);
 	}
 }
 
@@ -302,42 +308,42 @@ i.init();
 
 process.env.HOLOUBCI = process.env.HOLOUBCI || 0;
 for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
-    let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
-    m1.collider.push(new Shape().circle(0, 0, 125));
-    m1.calculateBounds();
-    m1.collisionPurpose = Entity.CollisionFlags.projectile;
-    m1.init();
-    m1.control = function (dt) {
-        if (this.startPos == undefined) {
-            this.startPos = this.position.result();
-        }
+	let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
+	m1.collider.push(new Shape().circle(0, 0, 125));
+	m1.calculateBounds();
+	m1.collisionPurpose = Entity.CollisionFlags.projectile;
+	m1.init();
+	m1.control = function (dt) {
+		if (this.startPos == undefined) {
+			this.startPos = this.position.result();
+		}
 
-        let closest = 1500;
-        let target = undefined;
-        Player.players.forEach(p => {
-            let dist = p.ship.position.distance(this.position);
-            if (dist < closest) {
-                target = p.ship;
-                closest = dist;
-            }
-        });
-        if (target != undefined) {
-            if (closest < 500) {
-                this.velocity = Vector.zero();
-            } else {
-                this.velocity = target.position.result().sub(this.position);
-                this.velocity.normalize(dt * 600);
-            }
-        } else {
-            if (Vector.sub(this.startPos, this.position).length() > 3000) {
-                this.velocity = Vector.sub(this.startPos, this.position);
-                this.velocity.normalize(dt * 300);
-            } else if (Math.random() < 0.01) {
-                this.velocity = new Vector(Math.random(), Math.random());
-                this.velocity.normalize(dt * 300);
-            }
-        }
-        this.rotation = this.velocity.toAngle();
-    }
+		let closest = 1500;
+		let target = undefined;
+		Player.players.forEach(p => {
+			let dist = p.ship.position.distance(this.position);
+			if (dist < closest) {
+				target = p.ship;
+				closest = dist;
+			}
+		});
+		if (target != undefined) {
+			if (closest < 500) {
+				this.velocity = Vector.zero();
+			} else {
+				this.velocity = target.position.result().sub(this.position);
+				this.velocity.normalize(dt * 600);
+			}
+		} else {
+			if (Vector.sub(this.startPos, this.position).length() > 3000) {
+				this.velocity = Vector.sub(this.startPos, this.position);
+				this.velocity.normalize(dt * 300);
+			} else if (Math.random() < 0.01) {
+				this.velocity = new Vector(Math.random(), Math.random());
+				this.velocity.normalize(dt * 300);
+			}
+		}
+		this.rotation = this.velocity.toAngle();
+	}
 }
 
