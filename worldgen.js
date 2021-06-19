@@ -130,7 +130,7 @@ function voidCircle(x1, y1, r, p) {
 				if (dMode) {
 					p = Math.pow(dist / r, 4);
 				}
-				gasMap[x / subres][y / subres] = gasMap[x / subres][y / subres] * Math.min(1,p + Math.pow(dist / r, 4));
+				gasMap[x / subres][y / subres] = gasMap[x / subres][y / subres] * Math.min(1, p + Math.pow(dist / r, 4));
 			}
 		}
 	}
@@ -184,7 +184,7 @@ for (let c = 0; c < 20; c++) {
 	for (let t = 0; t < 1000; t++) {
 		let v = 1 + (Math.abs(obj.dx) + Math.abs(obj.dy)) / 10;
 		v = 1 / v;
-		voidCircle(obj.x, obj.y, Math.max(Math.min(20, 100 / (1 + t / 10)), 2), 0.9999*v);
+		voidCircle(obj.x, obj.y, Math.max(Math.min(20, 100 / (1 + t / 10)), 2), 0.9999 * v);
 		obj.x += obj.dx;
 		obj.y += obj.dy;
 		obj.dx = obj.dx * 0.995;
@@ -226,9 +226,27 @@ Universe.init = function () {
 		for (let b = 0; b < clusterSize; b++) {
 			let offset = new Vector(Math.random() * SpawnRules.asteroids.area + SpawnRules.asteroids.area / 2, Math.random() * SpawnRules.asteroids.area + SpawnRules.asteroids.area / 2);
 			let pos = clusterPos.result().add(offset);
-			let asteroid = new Entity(pos.x, pos.y, 1);
-			//asteroid.collider.push(new Shape().circle(0, 0, 200));
-			asteroid.colliderFromFile("hitboxes/asteroid.json");
+			let asteroid;
+
+			switch (Math.floor(Math.random() * 4)) {
+				case 0:
+					asteroid = new Entity(pos.x, pos.y, 1);
+					asteroid.colliderFromFile("hitboxes/asteroid1.json");
+					break;
+				case 1:
+					asteroid = new Entity(pos.x, pos.y, 2);
+					asteroid.colliderFromFile("hitboxes/asteroid2.json");
+					break;
+				case 2:
+					asteroid = new Entity(pos.x, pos.y, 3);
+					asteroid.colliderFromFile("hitboxes/asteroid3.json");
+					break;
+				case 3:
+					asteroid = new Entity(pos.x, pos.y, 4);
+					asteroid.colliderFromFile("hitboxes/asteroid4.json");
+					break;
+			}
+
 
 			//asteroid.calculateBounds();
 			asteroid.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
@@ -256,23 +274,28 @@ Universe.init = function () {
 	}
 	Entity.remove = [];
 	let e1 = new Entity(mid.x + 1000, mid.y, 1);
-	e1.colliderFromFile("hitboxes/asteroid.json");
+	e1.colliderFromFile("hitboxes/asteroid1.json");
 	e1.calculateBounds();
 	e1.init();
 	e1.collisionPurpose = Entity.CollisionFlags.player;
 
-	let dim = new Entity(mid.x + 1000, mid.y, 1,1);
-	dim.colliderFromFile("hitboxes/asteroid.json");
+	let dim = new Entity(mid.x + 1000, mid.y, 2, 1);
+	dim.colliderFromFile("hitboxes/asteroid2.json");
 	dim.calculateBounds();
 	dim.init();
 	dim.collisionPurpose = Entity.CollisionFlags.player;
 
-	let e2 = new Entity(mid.x - 1000, mid.y, 1);
-	//e2.colliderFromFile("hitboxes/plane.json");
-	e2.collider.push(new Shape().circle(0, 0, 200));
+	let e2 = new Entity(mid.x - 1000, mid.y, 3);
+	e2.colliderFromFile("hitboxes/asteroid3.json");
 	e2.calculateBounds();
 	e2.init();
 	e2.collisionPurpose = Entity.CollisionFlags.player;
+
+	let dim2 = new Entity(mid.x - 1000, mid.y, 4, 1);
+	dim2.colliderFromFile("hitboxes/asteroid4.json");
+	dim2.calculateBounds();
+	dim2.init();
+	dim2.collisionPurpose = Entity.CollisionFlags.player;
 }
 Universe.init();
 
