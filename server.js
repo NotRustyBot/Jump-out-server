@@ -201,7 +201,7 @@ function updateMessage() {
     if (ItemDrop.create.length > 0) {
         ItemDrop.create.forEach(i => {
             view.setUint8(serverHeaders.itemCreate);
-            let temp = { id: i.id, position: i.position, item: i.item.id, stack: i.item.stack, source: i.source };
+            let temp = { id: i.id, position: i.position, item: i.item.id, stack: i.item.stack, source: i.source, level: i.level };
             view.serialize(temp, Datagrams.ItemCreate);
         });
         ItemDrop.create = [];
@@ -350,7 +350,7 @@ function EntitySetupMessage(inView) {
     view.view.setUint16(sizeGoesHere, count);
     items.forEach(i => {
         view.setUint8(serverHeaders.itemCreate);
-        let temp = { id: i.id, position: i.position, item: i.item.id, stack: i.item.stack, source: i.source };
+        let temp = { id: i.id, position: i.position, item: i.item.id, stack: i.item.stack, source: i.source, level: i.level };
         view.serialize(temp, Datagrams.ItemCreate);
     });
     return buffer.slice(0, view.index);

@@ -91,12 +91,15 @@ exports.Vector = Vector;
 init(Vector);
 
 function Area(x, y) {
-    this.coordinates = new Vector(x, y);
-    this.position = new Vector(Area.size * x, Area.size * y);
-    /**
+        /**
      * @type {Entity[]}
      */
     this.entities = [];
+    if (y == undefined) {
+        this.level = x;
+    }
+    this.coordinates = new Vector(x, y);
+    this.position = new Vector(Area.size * x, Area.size * y);
 }
 Area.size = 5000;
 /**
@@ -104,10 +107,21 @@ Area.size = 5000;
  */
 Area.list = [];
 /**
+ * @type {Area[]}
+ */
+Area.levels = [];
+/**
  * 
  * @param {Entity} entity 
  */
-Area.checkIn = function (entity) {
+Area.checkIn = function (entity, level) {
+    level = level || 0;
+
+    if (level != 0) {
+        Area.levels[level].entities.push(entity);
+        return;
+    }
+
     let position = entity.position;
     let x = Math.floor((position.x + entity.bounds) / Area.size);
     let y = Math.floor((position.y + entity.bounds) / Area.size);
@@ -152,7 +166,17 @@ Area.checkIn = function (entity) {
  * 
  * @param {Entity} entity 
  */
-Area.checkOut = function (entity) {
+Area.checkOut = function (entity, level) {
+    level = level || 0;
+
+    if (level != 0) {
+        let area = Area.levels[level];
+        if (area.entities.includes(entity)) {
+            area.entities.splice(area.entities.indexOf(entity), 1);
+        }
+        return;
+    }
+
     let position = entity.position;
     let x = Math.floor((position.x + entity.bounds) / Area.size);
     let y = Math.floor((position.y + entity.bounds) / Area.size);
@@ -194,7 +218,13 @@ Area.checkOut = function (entity) {
  * 
  * @param {Mobile} mobile 
  */
-Area.moveMe = function (mobile) {
+Area.moveMe = function (mobile, level) {
+    level = level || 0;
+    if (level != 0) {
+        mobile.position = position.result().add(mobile.velocity);
+        return;
+    }
+
     let position = mobile.position;
     let newPosition = position.result().add(mobile.velocity);
     let x = Math.floor((position.x + mobile.bounds) / Area.size);
@@ -240,12 +270,18 @@ exports.Area = Area;
  * @param {Vector} position 
  * @returns {Area}
  */
-Area.getLocalArea = function (position) {
-    let x = Math.floor(position.x / Area.size);
-    let y = Math.floor(position.y / Area.size);
+Area.getLocalArea = function (position, level) {
+    level = level || 0;
 
-    if (Area.list[x] != undefined && Area.list[x][y] != undefined) {
-        return Area.list[x][y];
+    if (level == 0) {
+        let x = Math.floor(position.x / Area.size);
+        let y = Math.floor(position.y / Area.size);
+
+        if (Area.list[x] != undefined && Area.list[x][y] != undefined) {
+            return Area.list[x][y];
+        }
+    } else {
+        return Area.levels[level];
     }
 }
 
@@ -256,7 +292,10 @@ Universe.size = 80; // area v jedné ose
  * 
  * @param {Vector} vector position to check
  */
-Universe.getGas = function (vector) {
+Universe.getGas = function (vector, level) {
+    if (level) {
+        return 0;
+    }
     let x = Math.floor(vector.x / Universe.scale);
     let y = Math.floor(vector.y / Universe.scale);
     if (isNaN(x) || isNaN(y)) {
@@ -278,7 +317,6 @@ Universe.setGas = function (position, value) {
     Universe.gasChange.push({ position: new Vector(x, y), value: value });
     let view = new DataView(Universe.gasBuffer);
     view.setInt8(7 + x * Universe.size * Area.size + y, value);
-
 }
 
 Universe.gasChange = [];
@@ -310,8 +348,8 @@ const minimapScale = 2;
  * @param {Vector} position 
  * @param {number} range 
  */
-Universe.scan = function (position, range, speed) {
-    let nearby = Universe.entitiesInRange(position, range);
+Universe.scan = function (position, range, speed, level) {
+    let nearby = Universe.entitiesInRange(position, range, level);
     nearby.forEach(e => {
         if (!(Universe.scanned.static.includes(e) || Universe.scanned.mobile.includes(e)) && position.distance(e.position) <= range) {
             let obj;
@@ -327,6 +365,10 @@ Universe.scan = function (position, range, speed) {
             Universe.scanned.allObjects.set(e.id, obj);
         }
     });
+
+    if (level > 0){
+        return;
+    }
 
     const gasRange = Math.floor(range / Universe.scale / minimapScale);
     const px = Math.floor(position.x / Universe.scale / minimapScale);
@@ -360,17 +402,23 @@ Universe.scan = function (position, range, speed) {
  * @returns {Entity[]}
  */
 
-Universe.entitiesInRange = function (position, range) {
+Universe.entitiesInRange = function (position, range, level) {
+    level = level || 0;
     let proximity = [];
-    let areaRange = Math.ceil(range / 2 / Area.size) + 1;
-    for (let y = -areaRange; y <= areaRange; y++) {
-        for (let x = -areaRange; x <= areaRange; x++) {
-            let adjusted = position.result();
-            adjusted.x += x * Area.size;
-            adjusted.y += y * Area.size;
-            let area = Area.getLocalArea(adjusted);
-            if (area != undefined) proximity.push(area);
+    if (level == 0) {
+        let areaRange = Math.ceil(range / 2 / Area.size) + 1;
+        for (let y = -areaRange; y <= areaRange; y++) {
+            for (let x = -areaRange; x <= areaRange; x++) {
+                let adjusted = position.result();
+                adjusted.x += x * Area.size;
+                adjusted.y += y * Area.size;
+                let area = Area.getLocalArea(adjusted);
+                if (area != undefined) proximity.push(area);
+            }
         }
+    } else {
+        let area = Area.getLocalArea(position, level);
+        proximity.push(area);
     }
 
     let nearby = [];
@@ -804,7 +852,8 @@ function Inventory(capacity, owner, layout) {
             let overflow = this.addItem(temp);
             if (overflow > 0) {
                 let pos = Player.players.get(this.owner).ship.position;
-                let drop = new ItemDrop(pos, temp, pos);
+                let level = Player.players.get(this.owner).level;
+                let drop = new ItemDrop(pos, temp, pos, level);
                 drop.init();
             }
         } else if (slot2.filter == -1 && slot2.item.stats.tag == slot1.filter) {
@@ -814,7 +863,8 @@ function Inventory(capacity, owner, layout) {
             let overflow = this.addItem(temp);
             if (overflow > 0) {
                 let pos = Player.players.get(this.owner).ship.position;
-                let drop = new ItemDrop(pos, temp, pos);
+                let level = Player.players.get(this.owner).level;
+                let drop = new ItemDrop(pos, temp, pos, level);
                 drop.init();
             }
         }
@@ -872,8 +922,9 @@ exports.Inventory = Inventory;
  * @param {number} y 
  * @param {number} type 
  */
-function Entity(x, y, type) {
+function Entity(x, y, type, level) {
     this.position = new Vector(x, y);
+    this.level = level || 0;
     this.rotation = 0;
     this.rotationSpeed = 0;
     this.collisionPurpose = 0;
@@ -895,12 +946,13 @@ function Entity(x, y, type) {
         this.id = Entity.next_id;
         Entity.next_id++;
         Entity.list.push(this);
-        Area.checkIn(this);
+        Area.checkIn(this, this.level);
+
     }
 
     this.delete = function () {
         Entity.remove.push(this.id);
-        Area.checkOut(this);
+        Area.checkOut(this, this.level);
         Entity.list.splice(Entity.list.indexOf(this), 1);
     }
 
@@ -993,8 +1045,8 @@ exports.Entity = Entity;
 
 const maxInteractionRange = 600 + 60; //max resource size
 
-function Mobile(x, y, type) {
-    Entity.call(this, x, y, type);
+function Mobile(x, y, type, level) {
+    Entity.call(this, x, y, type, level);
     this.velocity = new Vector(0, 0);
     this.timer = 0;
     this.control = function (dt) { };
@@ -1014,8 +1066,8 @@ function Mobile(x, y, type) {
 
 exports.Mobile = Mobile;
 
-function Building(x, y, type) {
-    Entity.call(this, x, y, type);
+function Building(x, y, type, level) {
+    Entity.call(this, x, y, type, level);
     this.control = function (dt) { }
     this.update = function (dt) {
         this.rotatedColliderValid = false;
@@ -1036,9 +1088,9 @@ exports.Building = Building;
  * @param {Item} item 
  * @param {Vector} source 
  */
-function ItemDrop(position, item, source) {
+function ItemDrop(position, item, source, level) {
     if (item.stack <= 0) return;
-    Entity.call(this, position.x, position.y, -1);
+    Entity.call(this, position.x, position.y, -1, level);
     this.item = item;
     this.bounds = 125;
     this.collisionPurpose = Entity.CollisionFlags.pickup;
@@ -1057,12 +1109,12 @@ function ItemDrop(position, item, source) {
         this.id = Entity.next_id;
         Entity.next_id++;
         Entity.list.push(this);
-        Area.checkIn(this);
+        Area.checkIn(this, this.level);
         ItemDrop.create.push(this);
     }
 
     this.delete = function () {
-        Area.checkOut(this);
+        Area.checkOut(this, this.level);
         Entity.list.splice(Entity.list.indexOf(this), 1);
         ItemDrop.remove.push(this);
     }
@@ -1099,7 +1151,7 @@ Action.test = function (ship, action) {
  */
 Action.buildTest = function (ship, action) {
     action.replyData = {};
-    if (ship.inventory.countItem(Items.naviBeacon) >= 1 && construct(ship.position.result().add(Vector.fromAngle(ship.rotation).mult(500)), Buildings.navBeacon)) {
+    if (ship.inventory.countItem(Items.naviBeacon) >= 1 && construct(ship.position.result().add(Vector.fromAngle(ship.rotation).mult(500)),ship.level, Buildings.navBeacon)) {
         ship.inventory.removeItem(new Item(Items.naviBeacon, 1));
         action.replyData.id = 0;
         return 0.1;
@@ -1115,7 +1167,7 @@ Action.buildTest = function (ship, action) {
  * @param {SmartAction} action 
  */
 Action.MineRock = function (ship, action) {
-    let localArea = Area.getLocalArea(ship.position);
+    let localArea = Area.getLocalArea(ship.position, ship.level);
 
     let closestDist = 500;
     let closest = undefined;
@@ -1160,7 +1212,7 @@ Action.DropItem = function (ship, action) {
         dropPosition.x = Math.max(Math.min(dropPosition.x, Universe.size * Area.size - 130), 130);
         dropPosition.y = Math.max(Math.min(dropPosition.y, Universe.size * Area.size - 130), 130);
 
-        let drop = new ItemDrop(dropPosition, new Item(slot.item.id, action.stack), ship.position);
+        let drop = new ItemDrop(dropPosition, new Item(slot.item.id, action.stack), ship.position, ship.level);
         slot.removeItem(new Item(slot.item.id, action.stack));
         ship.inventory.sort();
         drop.init();
@@ -1190,7 +1242,7 @@ Action.SwapSlots = function (ship, action) {
  * @param {Ship} ship 
  * @param {SmartAction} action 
  */
- Action.CreateMarker = function (ship, action) {
+Action.CreateMarker = function (ship, action) {
     action.replyData = {};
     let marker = new Marker(action.position, action.type, ship.id, action.parameter);
     marker.hasTimer = true;
@@ -1209,9 +1261,9 @@ Building.navBeacons = [];
  * @param {Ship} ship 
  * @param {*} building 
  */
-function construct(position, building) {
-    if (isAvalible(position, building.size)) {
-        let build = new Building(position.x, position.y, building.type);
+function construct(position, level, building) {
+    if (isAvalible(position,level, building.size)) {
+        let build = new Building(position.x, position.y, building.type, level);
         build.collider.push(new Shape().circle(0, 0, building.size));
         build.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
         build.calculateBounds();
@@ -1224,9 +1276,9 @@ function construct(position, building) {
     return false;
 }
 
-function isAvalible(position, size) {
+function isAvalible(position, level, size) {
     let out = true;
-    let localArea = Area.getLocalArea(position);
+    let localArea = Area.getLocalArea(position, level);
 
     if (localArea != undefined) {
         for (let i = 0; i < localArea.entities.length; i++) {
@@ -1252,7 +1304,7 @@ function isAvalible(position, size) {
 
     let collisionShape = new Shape().circle(position.x, position.y, size);
     Player.players.forEach(p => {
-        let s = new Shape().circle(p.ship.position.x, p.ship.position.y, 60);
+        let s = new Shape().circle(p.ship.position.x, p.ship.position.y, p.ship.stats.size);
         res = collisionShape.checkCollision(s);
         if (res.result) {
             out = false;
@@ -1297,6 +1349,7 @@ function Ship(id) {
      */
     this.stats;
     this.position = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
+    this.level = 0;
     this.velocity = new Vector(0, 0);
     this.rotation = 0;
     this.rotationSpeed = 0;
@@ -1329,13 +1382,15 @@ function Ship(id) {
         }
 
         this.inventory = new Inventory(this.stats.cargoCapacity, this.id, this.stats.inventory);
-        Universe.scan(this.position, this.stats.radarRange, this.stats.radarRange);
+        Universe.scan(this.position, this.stats.radarRange, this.stats.radarRange, 0);
     };
 
     this.update = function (dt) {
         let stats = this.stats;
         let afterBurnerUsed = false;
-        let gas = Universe.getGas(this.position);
+        let gas = 0;
+
+        if(this.level == 0) gas = Universe.getGas(this.position);
 
         if (this.debuff != gas) {
             if (this.debuff > gas) {
@@ -1401,6 +1456,9 @@ function Ship(id) {
         let navBoost = 0;
         for (let i = 0; i < Building.navBeacons.length; i++) {
             const beacon = Building.navBeacons[i];
+            if (beacon.level != this.level) {
+                continue;
+            }
             let diff = beacon.position.result().sub(this.position);
 
             if (diff.length() > Buildings.navBeacon._range) continue;
@@ -1457,7 +1515,7 @@ function Ship(id) {
         }
         this.handleAction(dt);
         this.checkCollision(dt);
-        Universe.scan(this.position, this.stats.radarRange, speed);
+        Universe.scan(this.position, this.stats.radarRange, speed, this.level);
     };
 
     this.handleAction = function (dt) {
@@ -1493,7 +1551,7 @@ function Ship(id) {
 
     this.checkCollision = function (dt) {
         let size = this.stats.size;
-        let localArea = Area.getLocalArea(this.position);
+        let localArea = Area.getLocalArea(this.position, this.level);
 
         if (localArea != undefined) {
             for (let i = 0; i < localArea.entities.length; i++) {
@@ -1590,7 +1648,7 @@ function Player(connection) {
                 let adjusted = coords.result();
                 adjusted.x += x * Area.size;
                 adjusted.y += y * Area.size;
-                let area = Area.getLocalArea(adjusted);
+                let area = Area.getLocalArea(adjusted, this.level);
                 if (area != undefined) proximity.push(area);
             }
         }
@@ -1628,6 +1686,8 @@ Player.leftPlayers = [];
 exports.Player = Player;
 
 //#endregion
+
+Area.levels[1] = new Area(1);
 
 const Items = require("./items.js").defineItems();
 const ShipType = require("./shipTypes.js").defineShips(Action);

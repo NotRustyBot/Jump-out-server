@@ -261,6 +261,12 @@ Universe.init = function () {
 	e1.init();
 	e1.collisionPurpose = Entity.CollisionFlags.player;
 
+	let dim = new Entity(mid.x + 1000, mid.y, 1,1);
+	dim.colliderFromFile("hitboxes/asteroid.json");
+	dim.calculateBounds();
+	dim.init();
+	dim.collisionPurpose = Entity.CollisionFlags.player;
+
 	let e2 = new Entity(mid.x - 1000, mid.y, 1);
 	//e2.colliderFromFile("hitboxes/plane.json");
 	e2.collider.push(new Shape().circle(0, 0, 200));

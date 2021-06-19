@@ -301,6 +301,7 @@ Datagrams.input = input;
 let shipUpdate = new Datagram();
 
 shipUpdate.add(types.vector32, "position");
+shipUpdate.add(types.uint8, "level");
 shipUpdate.add(types.vector32, "velocity");
 shipUpdate.add(types.float32, "rotation");
 shipUpdate.add(types.float32, "rotationSpeed");
@@ -324,6 +325,7 @@ let EntitySetup = new Datagram();
 EntitySetup.add(types.uint16, "id");
 EntitySetup.add(types.int16, "type");
 EntitySetup.add(types.vector32, "position");
+EntitySetup.add(types.uint8, "level");
 EntitySetup.add(types.float32, "rotation");
 EntitySetup.add(types.float32, "rotationSpeed");
 Datagrams.EntitySetup = EntitySetup;
@@ -336,6 +338,7 @@ let CollisionEvent = new Datagram();
 CollisionEvent.add(types.uint16, "shipId");
 CollisionEvent.add(types.uint16, "entityId");
 CollisionEvent.add(types.vector32, "position");
+CollisionEvent.add(types.uint8, "level");
 Datagrams.CollisionEvent = CollisionEvent;
 
 let DebugPacket = new Datagram();
@@ -365,6 +368,7 @@ Datagrams.InventoryChange = InventoryChange;
 
 let ItemCreate = new Datagram();
 ItemCreate.add(types.vector32, "position");
+ItemCreate.add(types.uint8, "level");
 ItemCreate.add(types.vector32, "source");
 ItemCreate.add(types.uint16, "id");
 ItemCreate.add(types.int16, "item");
@@ -384,11 +388,13 @@ Datagrams.GasScan = GasScan;
 let ObjectScan = new Datagram();
 ObjectScan.add(types.uint16, "id");
 ObjectScan.add(types.vector32, "position");
+ObjectScan.add(types.uint8, "level");
 ObjectScan.add(types.uint8, "type");
 Datagrams.ObjectScan = ObjectScan;
 
 let MarkerCreate = new Datagram();
 MarkerCreate.add(types.uint16, "id");
+MarkerCreate.add(types.uint16, "playerId");
 MarkerCreate.add(types.uint8, "type");
 MarkerCreate.add(types.vector32, "position");
 MarkerCreate.add(types.vector32, "parameter");
