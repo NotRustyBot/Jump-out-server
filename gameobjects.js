@@ -1040,6 +1040,14 @@ Entity.CollisionFlags = {
     pickup: 4,
 }
 
+Entity.properties = [
+    {canMine: true},
+    {canMine: true},
+    {canMine: true},
+    {canMine: true},
+];
+
+
 exports.Entity = Entity;
 
 
@@ -1169,12 +1177,12 @@ Action.buildTest = function (ship, action) {
 Action.MineRock = function (ship, action) {
     let localArea = Area.getLocalArea(ship.position, ship.level);
 
-    let closestDist = 500;
+    let closestDist = 600;
     let closest = undefined;
     if (localArea != undefined) {
         for (let i = 0; i < localArea.entities.length; i++) {
             const e = localArea.entities[i];
-            if (closestDist > ship.position.distance(e.position) && e.type == 1) {
+            if (closestDist > ship.position.distance(e.position) && Entity.properties[e.type].canMine) {
                 closestDist = ship.position.distance(e.position);
                 closest = e;
             }
