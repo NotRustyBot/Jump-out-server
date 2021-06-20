@@ -296,6 +296,9 @@ Universe.init = function () {
 	dim2.calculateBounds();
 	dim2.init();
 	dim2.collisionPurpose = Entity.CollisionFlags.player;
+
+	let velka = new Entity(mid.x - 15000, mid.y+5000, 5);
+	velka.init();
 }
 Universe.init();
 
