@@ -1,4 +1,4 @@
-const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile, Marker } = require("./gameobjects.js");
+const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action } = require("./gameobjects.js");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 
@@ -23,6 +23,8 @@ exports.ItemDrop = ItemDrop
 exports.Item = Item
 exports.Inventory = Inventory
 exports.Marker = Marker
+exports.Projectile = Projectile
+exports.Action = Action
 
 function randomSeedParkMiller(seed = 123456) {
 	// doesn't repeat b4 JS dies.
@@ -277,25 +279,25 @@ Universe.init = function () {
 	e1.colliderFromFile("hitboxes/asteroid1.json");
 	e1.calculateBounds();
 	e1.init();
-	e1.collisionPurpose = Entity.CollisionFlags.player;
+	e1.collisionPurpose =  Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 
 	let dim = new Entity(mid.x + 1000, mid.y, 2, 1);
 	dim.colliderFromFile("hitboxes/asteroid2.json");
 	dim.calculateBounds();
 	dim.init();
-	dim.collisionPurpose = Entity.CollisionFlags.player;
+	dim.collisionPurpose =  Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 
 	let e2 = new Entity(mid.x - 1000, mid.y, 3);
 	e2.colliderFromFile("hitboxes/asteroid3.json");
 	e2.calculateBounds();
 	e2.init();
-	e2.collisionPurpose = Entity.CollisionFlags.player;
+	e2.collisionPurpose =  Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 
 	let dim2 = new Entity(mid.x - 1000, mid.y, 4, 1);
 	dim2.colliderFromFile("hitboxes/asteroid4.json");
 	dim2.calculateBounds();
 	dim2.init();
-	dim2.collisionPurpose = Entity.CollisionFlags.player;
+	dim2.collisionPurpose =  Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 
 	let velka = new Entity(mid.x - 15000, mid.y+5000, 5);
 	velka.init();

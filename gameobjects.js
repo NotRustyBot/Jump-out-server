@@ -91,9 +91,9 @@ exports.Vector = Vector;
 init(Vector);
 
 function Area(x, y) {
-        /**
-     * @type {Entity[]}
-     */
+    /**
+ * @type {Entity[]}
+ */
     this.entities = [];
     if (y == undefined) {
         this.level = x;
@@ -366,7 +366,7 @@ Universe.scan = function (position, range, speed, level) {
         }
     });
 
-    if (level > 0){
+    if (level > 0) {
         return;
     }
 
@@ -498,15 +498,17 @@ function CollisionResult(result, position, overlap) {
 
 /**
  * 
- * @param {Ship} ship 
- * @param {Entity} entity 
+ * @param {Ship|Entity|Projectile} first 
+ * @param {Entity} second 
  * @param {CollisionResult} result 
  */
-function CollisionEvent(ship, entity, result) {
-    this.shipId = ship.id;
-    this.entityId = entity.id;
-    let temp = result.position.mult(0.5)
-    this.position = ship.position.result().sub(temp);
+function CollisionEvent(first, second, result, mode) {
+    this.firstId = first.id;
+    this.secondId = second.id;
+    this.type = mode;
+    let temp = result.position.mult(0.5);
+
+    this.position = first.position.result().sub(temp);
 }
 CollisionEvent.list = [];
 
@@ -590,9 +592,10 @@ function Shape() {
                 let d = new Vector(this.x2 - this.x1, this.y2 - this.y1);
                 let f = new Vector(this.x1 - shape.x, this.y1 - shape.y);
 
+                let r = shape.r / 2;
                 let a = Vector.dot(d, d);
                 let b = 2 * Vector.dot(d, f);
-                let c = Vector.dot(f, f) - shape.r * shape.r;
+                let c = Vector.dot(f, f) - r * r;
                 let discriminant = b * b - 4 * a * c;
                 if (discriminant < 0) {
                     return new CollisionResult(false);
@@ -1041,10 +1044,11 @@ Entity.CollisionFlags = {
 }
 
 Entity.properties = [
-    {canMine: true},
-    {canMine: true},
-    {canMine: true},
-    {canMine: true},
+    { canMine: true },
+    { canMine: true },
+    { canMine: true },
+    { canMine: true },
+    { canMine: true },
 ];
 
 
@@ -1132,8 +1136,117 @@ ItemDrop.create = [];
 ItemDrop.remove = [];
 exports.ItemDrop = ItemDrop;
 
-let Action = {};
+/**
+ * @param {Vector} position
+ * @param {number} level
+ * @param {number} rotation
+ * @param {number} type
+ */
+function Projectile(position, level, rotation, type) {
+    this.position = position.result();
+    this.level = level;
+    this.rotation = rotation;
+    this.type = type;
+    this.stats = Projectile.stats[type];
+    this.time = this.stats.time;
+    this.id = Projectile.nextId();
 
+    this.velocity = Vector.fromAngle(this.rotation).normalize(this.stats.speed);
+
+    if (this.stats.update) {
+        this.update = this.stats.update;
+    } else {
+        this.update = function (dt) {
+            if (this.time < 0) {
+                Projectile.removed.push(this);
+                Projectile.list.delete(this.id);
+            } else {
+                let nearby = Area.getLocalArea(this.position, this.level);
+                if (!nearby) {
+                    Projectile.removed.push(this);
+                    Projectile.list.delete(this.id);
+                    return;
+                }
+                /**
+                 * @type {CollisionResult[]}
+                 */
+                let hits = [];
+                nearby.entities.forEach(e => {
+                    if (flag(e.collisionPurpose, Entity.CollisionFlags.projectile)) {
+                        let relativePos = this.position.result();
+                        relativePos.x = e.position.x - relativePos.x;
+                        relativePos.y = e.position.y - relativePos.y;
+                        let collisionShape = new Shape().line(relativePos.x, relativePos.y, relativePos.x + this.velocity.x, relativePos.y + this.velocity.y);
+                        let res;
+                        if (!e.rotatedColliderValid) {
+                            e.rotateCollider();
+                        }
+                        e.rotatedCollider.forEach(s => {
+                            res = collisionShape.checkCollision(s);
+                            if (res.result) {
+                                if (e.damage) {
+                                    e.damage();
+                                }
+                                res.entity = e;
+                                hits.push(res);
+                            }
+                        });
+                    }
+                });
+
+                if (hits.length > 0) {
+                    let closest = maxInteractionRange;
+                    let hit = hits[0];
+                    hits.forEach(h => {
+                        let dist = h.position.length();
+                        if (dist < closest) {
+                            hit = h;
+                            closest = dist;
+                        }
+                    });
+                    CollisionEvent.list.push(new CollisionEvent(this, hit.entity, hit, 1));
+                    console.log(hit.position);
+                    Projectile.removed.push(this);
+                    Projectile.list.delete(this.id);
+                    return;
+                }
+
+                this.position.add(this.velocity.result().mult(dt));
+                this.time -= dt;
+
+            }
+        }
+    }
+
+    Projectile.created.push(this);
+    Projectile.list.set(this.id, this);
+}
+
+/**
+ * @type {Map<number, Projectile>}
+ */
+Projectile.list = new Map();
+Projectile.id = 0;
+Projectile.nextId = function () {
+    Projectile.id++;
+    return Projectile.id;
+}
+Projectile.created = [];
+Projectile.removed = [];
+
+Projectile.stats = [
+    { time: 50, speed: 1000, cooldown: 500 }
+];
+
+exports.Projectile = Projectile;
+
+
+function flag(source, flag) {
+    return (source & flag) == flag;
+}
+
+let Action = {};
+exports.Action = Action;
 /**
  * 
  * @param {Ship} ship 
@@ -1159,7 +1272,7 @@ Action.test = function (ship, action) {
  */
 Action.buildTest = function (ship, action) {
     action.replyData = {};
-    if (ship.inventory.countItem(Items.naviBeacon) >= 1 && construct(ship.position.result().add(Vector.fromAngle(ship.rotation).mult(500)),ship.level, Buildings.navBeacon)) {
+    if (ship.inventory.countItem(Items.naviBeacon) >= 1 && construct(ship.position.result().add(Vector.fromAngle(ship.rotation).mult(500)), ship.level, Buildings.navBeacon)) {
         ship.inventory.removeItem(new Item(Items.naviBeacon, 1));
         action.replyData.id = 0;
         return 0.1;
@@ -1260,6 +1373,59 @@ Action.CreateMarker = function (ship, action) {
 }
 
 /**
+ * 
+ * @param {Ship} ship 
+ * @param {SmartAction} action 
+ */
+Action.Shoot = function (ship, action) {
+    action.replyData = {};
+    //new Projectile(ship.position, ship.level, ship.rotation, 0);
+    let nearby = Area.getLocalArea(ship.position, ship.level);
+    /**
+     * @type {CollisionResult[]}
+     */
+    let hits = [];
+    nearby.entities.forEach(e => {
+
+        let vec = Vector.fromAngle(ship.rotation).normalize(1000);
+        if (flag(e.collisionPurpose, Entity.CollisionFlags.projectile)) {
+            let relativePos = ship.position.result();
+            relativePos.x -= e.position.x;
+            relativePos.y -= e.position.y;
+            let collisionShape = new Shape().line(relativePos.x, relativePos.y, relativePos.x + vec.x, relativePos.y + vec.y);
+            let res;
+            if (!e.rotatedColliderValid) {
+                e.rotateCollider();
+            }
+            e.rotatedCollider.forEach(s => {
+                res = collisionShape.checkCollision(s);
+                if (res.result) {
+                    res.entity = e;
+                    res.position.sub(relativePos);
+                    hits.push(res);
+                }
+            });
+        }
+    });
+
+    if (hits.length > 0) {
+        let closest = maxInteractionRange;
+        let hit = hits[0];
+        hits.forEach(h => {
+            let dist = h.position.length();
+            if (dist < closest) {
+                hit = h;
+                closest = dist;
+            }
+        });
+        //hit.position.mult(-2);
+        CollisionEvent.list.push(new CollisionEvent(ship, hit.entity, hit, 1));
+    }
+    action.replyData.id = 0;
+    return 0.1 //Projectile.stats[0].cooldown / 1000;
+}
+
+/**
  * @type {Entity[],Building[]}
  */
 Building.navBeacons = [];
@@ -1270,7 +1436,7 @@ Building.navBeacons = [];
  * @param {*} building 
  */
 function construct(position, level, building) {
-    if (isAvalible(position,level, building.size)) {
+    if (isAvalible(position, level, building.size)) {
         let build = new Building(position.x, position.y, building.type, level);
         build.collider.push(new Shape().circle(0, 0, building.size));
         build.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
@@ -1398,7 +1564,7 @@ function Ship(id) {
         let afterBurnerUsed = false;
         let gas = 0;
 
-        if(this.level == 0) gas = Universe.getGas(this.position);
+        if (this.level == 0) gas = Universe.getGas(this.position);
 
         if (this.debuff != gas) {
             if (this.debuff > gas) {
@@ -1564,8 +1730,8 @@ function Ship(id) {
         if (localArea != undefined) {
             for (let i = 0; i < localArea.entities.length; i++) {
                 const e = localArea.entities[i];
-                if ((e.collisionPurpose & Entity.CollisionFlags.player) != Entity.CollisionFlags.player) {
-                    if ((e.collisionPurpose & Entity.CollisionFlags.pickup) == Entity.CollisionFlags.pickup) {
+                if (!flag(e.collisionPurpose, Entity.CollisionFlags.player)) {
+                    if (flag(e.collisionPurpose, Entity.CollisionFlags.pickup)) {
                         let relativePos = this.position.result();
                         relativePos.x -= e.position.x;
                         relativePos.y -= e.position.y;
@@ -1608,7 +1774,7 @@ function Ship(id) {
                         relativePos.y -= e.position.y;
                         collisionShape.x = relativePos.x;
                         collisionShape.y = relativePos.y;
-                        CollisionEvent.list.push(new CollisionEvent(this, e, res));
+                        CollisionEvent.list.push(new CollisionEvent(this, e, res, 0));
                     }
                 });
             }

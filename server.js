@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory, Marker } = require("./worldgen");
+const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory, Marker, Projectile, Action } = require("./worldgen");
 
 //#region INIT
 let http = require('http');
@@ -85,6 +85,10 @@ function update() {
 
     Universe.comms.markers.forEach(m => {
         m.update(dt);
+    });
+
+    Projectile.list.forEach(p => {
+        p.update(dt);
     });
 
     let msg = updateMessage();
@@ -248,13 +252,29 @@ function updateMessage() {
                 view.setUint8(serverHeaders.markerRemove);
                 view.setUint16(m.id);
                 m.broadcasted = true;
-            }else{
+            } else {
                 view.setUint8(serverHeaders.markerCreate);
                 view.serialize(m, Datagrams.MarkerCreate);
                 m.broadcasted = true;
             }
         }
     });
+
+    if (Projectile.created.length > 0) {
+        Projectile.created.forEach(p => {
+            view.setUint8(serverHeaders.createProjectile);
+            view.serialize(p, Datagrams.CreateProjectile);
+        });
+        Projectile.created = [];
+    }
+
+    if (Projectile.removed.length > 0) {
+        Projectile.removed.forEach(p => {
+            view.setUint8(serverHeaders.removeProjectile);
+            view.serialize(p, Datagrams.RemoveProjectile);
+        });
+        Projectile.removed = [];
+    }
 
     return view;
     //return buffer.slice(0, view.index);
