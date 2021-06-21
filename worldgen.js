@@ -1,4 +1,4 @@
-const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action } = require("./gameobjects.js");
+const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level } = require("./gameobjects.js");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 
@@ -25,6 +25,7 @@ exports.Inventory = Inventory
 exports.Marker = Marker
 exports.Projectile = Projectile
 exports.Action = Action
+exports.Level = Level
 
 function randomSeedParkMiller(seed = 123456) {
 	// doesn't repeat b4 JS dies.

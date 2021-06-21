@@ -285,6 +285,48 @@ Area.getLocalArea = function (position, level) {
     }
 }
 
+
+function Level(enterance) {
+    this.enterance = enterance;
+    this.level = Level.nextId();
+
+    Area.levels[this.level] = new Area(this.level);
+
+    Level.list.set(this.level, this);
+
+    /**
+     * @param {Ship} ship
+     */
+    this.enter = function (ship) {
+        if (ship.position.result().sub(this.enterance).inbound(1000)) {
+            ship.level = this.level;
+            ship.position = new Vector(0, 0);
+        }
+    }
+
+    /**
+    * @param {Ship} ship
+    */
+    this.exit = function (ship) {
+        if (ship.position.inbound(1000)) {
+            ship.level = 0;
+            ship.position = this.enterance;
+        }
+    }
+}
+
+/**
+ * @type {Map<number,Level>}
+ */
+Level.list = new Map();
+Level.id = 0;
+Level.nextId = function () {
+    Level.id++;
+    return Level.id;
+}
+
+exports.Level = Level;
+
 let Universe = {};
 Universe.size = 80; // area v jedné ose
 
@@ -1426,6 +1468,27 @@ Action.Shoot = function (ship, action) {
 }
 
 /**
+ * 
+ * @param {Ship} ship 
+ * @param {SmartAction} action 
+ */
+Action.LevelMove = function (ship, action) {
+    action.replyData = {};
+    if (ship.level == 0) {
+        Level.list.forEach(l => {
+            l.enter(ship);
+        });
+    } else {
+        Level.list.forEach(l => {
+            l.exit(ship);
+        });
+    }
+
+    action.replyData.id = 0;
+    return 0.5;
+}
+
+/**
  * @type {Entity[],Building[]}
  */
 Building.navBeacons = [];
@@ -1675,18 +1738,22 @@ function Ship(id) {
             this.afterBurnerFuel = Math.max(0, this.afterBurnerFuel);
             this.afterBurnerUsed = 1;
         }
-        if (this.position.x < 0) {
-            this.position.x = 0;
+
+        if(this.level == 0){
+            if (this.position.x < 0) {
+                this.position.x = 0;
+            }
+            if (this.position.y < 0) {
+                this.position.y = 0;
+            }
+            if (this.position.x > Universe.size * Area.size) {
+                this.position.x = Universe.size * Area.size - 1;
+            }
+            if (this.position.y > Universe.size * Area.size) {
+                this.position.y = Universe.size * Area.size - 1;
+            }
         }
-        if (this.position.y < 0) {
-            this.position.y = 0;
-        }
-        if (this.position.x > Universe.size * Area.size) {
-            this.position.x = Universe.size * Area.size - 1;
-        }
-        if (this.position.y > Universe.size * Area.size) {
-            this.position.y = Universe.size * Area.size - 1;
-        }
+
         this.handleAction(dt);
         this.checkCollision(dt);
         Universe.scan(this.position, this.stats.radarRange, speed, this.level);
@@ -1861,7 +1928,7 @@ exports.Player = Player;
 
 //#endregion
 
-Area.levels[1] = new Area(1);
+new Level(new Vector(210300, 192600));
 
 const Items = require("./items.js").defineItems();
 const ShipType = require("./shipTypes.js").defineShips(Action);

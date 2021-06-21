@@ -417,6 +417,11 @@ let RemoveProjectile = new Datagram();
 RemoveProjectile.add(types.uint16, "id");
 Datagrams.RemoveProjectile = RemoveProjectile;
 
+let SetupEnterance = new Datagram();
+SetupEnterance.add(types.uint8, "id");
+SetupEnterance.add(types.vector32, "position");
+Datagrams.SetupEnterance = SetupEnterance;
+
 exports.Datagrams = Datagrams;
 
 let SmartActionData = [];
@@ -448,9 +453,12 @@ SmartActionData.push(CreateMarker);
 let Shoot = new Datagram();
 SmartActionData.push(Shoot);
 
+let LevelMove = new Datagram();
+SmartActionData.push(LevelMove);
+
 exports.SmartActionData = SmartActionData;
 
-const ActionId = { placeObject: 0, MineRock: 1, DropItem: 2, SwapSlots: 3, CreateMarker: 4, Shoot: 5};
+const ActionId = { placeObject: 0, MineRock: 1, DropItem: 2, SwapSlots: 3, CreateMarker: 4, Shoot: 5, LevelMove: 6 };
 exports.ActionId = ActionId;
 
 
@@ -477,7 +485,7 @@ exports.ReplyData = ReplyData;
 const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
 exports.ReplyId = ReplyId;
 
-const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15, objectScan: 16, markerCreate: 17, markerRemove: 18, createProjectile: 19, removeProjectile: 20};
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15, objectScan: 16, markerCreate: 17, markerRemove: 18, createProjectile: 19, removeProjectile: 20, setupEnterance: 21};
 exports.serverHeaders = serverHeaders;
 const clientHeaders = { init: 0, control: 1, smartAction: 2, serverConsole: 3 };
 exports.clientHeaders = clientHeaders;
