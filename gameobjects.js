@@ -310,7 +310,7 @@ function Level(enterance) {
     this.exit = function (ship) {
         if (ship.position.inbound(1000)) {
             ship.level = 0;
-            ship.position = this.enterance;
+            ship.position = this.enterance.result();
         }
     }
 }
