@@ -635,7 +635,7 @@ function Shape() {
                 let d = new Vector(this.x2 - this.x1, this.y2 - this.y1);
                 let f = new Vector(this.x1 - shape.x, this.y1 - shape.y);
 
-                let r = shape.r / 2;
+                let r = shape.r;
                 let a = Vector.dot(d, d);
                 let b = 2 * Vector.dot(d, f);
                 let c = Vector.dot(f, f) - r * r;
@@ -1210,16 +1210,19 @@ function Projectile(position, level, rotation, type) {
                     Projectile.list.delete(this.id);
                     return;
                 }
+
                 /**
                  * @type {CollisionResult[]}
                  */
                 let hits = [];
                 nearby.entities.forEach(e => {
+
+                    let vec = this.velocity.result().mult(dt);
                     if (flag(e.collisionPurpose, Entity.CollisionFlags.projectile)) {
                         let relativePos = this.position.result();
-                        relativePos.x = e.position.x - relativePos.x;
-                        relativePos.y = e.position.y - relativePos.y;
-                        let collisionShape = new Shape().line(relativePos.x, relativePos.y, relativePos.x + this.velocity.x, relativePos.y + this.velocity.y);
+                        relativePos.x -= e.position.x;
+                        relativePos.y -= e.position.y;
+                        let collisionShape = new Shape().line(relativePos.x, relativePos.y, relativePos.x + vec.x, relativePos.y + vec.y);
                         let res;
                         if (!e.rotatedColliderValid) {
                             e.rotateCollider();
@@ -1227,10 +1230,8 @@ function Projectile(position, level, rotation, type) {
                         e.rotatedCollider.forEach(s => {
                             res = collisionShape.checkCollision(s);
                             if (res.result) {
-                                if (e.damage) {
-                                    e.damage();
-                                }
                                 res.entity = e;
+                                res.relative = relativePos;
                                 hits.push(res);
                             }
                         });
@@ -1241,17 +1242,15 @@ function Projectile(position, level, rotation, type) {
                     let closest = maxInteractionRange;
                     let hit = hits[0];
                     hits.forEach(h => {
-                        let dist = h.position.length();
+                        let dist = h.relative.sub(h.position).length();
                         if (dist < closest) {
                             hit = h;
                             closest = dist;
                         }
                     });
                     CollisionEvent.list.push(new CollisionEvent(this, hit.entity, hit, 1));
-                    console.log(hit.position);
                     Projectile.removed.push(this);
                     Projectile.list.delete(this.id);
-                    return;
                 }
 
                 this.position.add(this.velocity.result().mult(dt));
@@ -1278,7 +1277,7 @@ Projectile.created = [];
 Projectile.removed = [];
 
 Projectile.stats = [
-    { time: 50, speed: 1000, cooldown: 500 }
+    { time: 1, speed: 9000, cooldown: 500 }
 ];
 
 exports.Projectile = Projectile;
@@ -1423,48 +1422,10 @@ Action.CreateMarker = function (ship, action) {
  */
 Action.Shoot = function (ship, action) {
     action.replyData = {};
-    //new Projectile(ship.position, ship.level, ship.rotation, 0);
-    let nearby = Area.getLocalArea(ship.position, ship.level);
-    /**
-     * @type {CollisionResult[]}
-     */
-    let hits = [];
-    nearby.entities.forEach(e => {
+    new Projectile(ship.position, ship.level, ship.rotation, 0);
 
-        let vec = Vector.fromAngle(ship.rotation).normalize(1000);
-        if (flag(e.collisionPurpose, Entity.CollisionFlags.projectile)) {
-            let relativePos = ship.position.result();
-            relativePos.x -= e.position.x;
-            relativePos.y -= e.position.y;
-            let collisionShape = new Shape().line(relativePos.x, relativePos.y, relativePos.x + vec.x, relativePos.y + vec.y);
-            let res;
-            if (!e.rotatedColliderValid) {
-                e.rotateCollider();
-            }
-            e.rotatedCollider.forEach(s => {
-                res = collisionShape.checkCollision(s);
-                if (res.result) {
-                    res.entity = e;
-                    hits.push(res);
-                }
-            });
-        }
-    });
-
-    if (hits.length > 0) {
-        let closest = maxInteractionRange;
-        let hit = hits[0];
-        hits.forEach(h => {
-            let dist = h.position.length();
-            if (dist < closest) {
-                hit = h;
-                closest = dist;
-            }
-        });
-        CollisionEvent.list.push(new CollisionEvent(ship, hit.entity, hit, 1));
-    }
     action.replyData.id = 0;
-    return 0.1 //Projectile.stats[0].cooldown / 1000;
+    return Projectile.stats[0].cooldown / 1000;
 }
 
 /**
@@ -1739,7 +1700,7 @@ function Ship(id) {
             this.afterBurnerUsed = 1;
         }
 
-        if(this.level == 0){
+        if (this.level == 0) {
             if (this.position.x < 0) {
                 this.position.x = 0;
             }
