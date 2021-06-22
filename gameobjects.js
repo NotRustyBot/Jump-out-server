@@ -1445,7 +1445,6 @@ Action.Shoot = function (ship, action) {
                 res = collisionShape.checkCollision(s);
                 if (res.result) {
                     res.entity = e;
-                    res.position.sub(relativePos);
                     hits.push(res);
                 }
             });
