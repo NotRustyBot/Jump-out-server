@@ -550,7 +550,8 @@ function CollisionEvent(first, second, result, mode) {
     this.type = mode;
     //let temp = result.position.mult(0.5);
 
-    this.position = first.position.result().sub(result.position);
+    //this.position = first.position.result().sub(result.position);
+    this.position = second.position.result().add(result.position);
 }
 CollisionEvent.list = [];
 
