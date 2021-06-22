@@ -1337,7 +1337,8 @@ Action.MineRock = function (ship, action) {
     if (localArea != undefined) {
         for (let i = 0; i < localArea.entities.length; i++) {
             const e = localArea.entities[i];
-            if (closestDist > ship.position.distance(e.position) && Entity.properties[e.type].canMine) {
+            const stats = Entity.properties[e.type] || {};
+            if (closestDist > ship.position.distance(e.position) && stats.canMine) {
                 closestDist = ship.position.distance(e.position);
                 closest = e;
             }
