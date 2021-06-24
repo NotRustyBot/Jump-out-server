@@ -218,39 +218,37 @@ Area.checkOut = function (entity, level) {
  * 
  * @param {Mobile} mobile 
  */
-Area.moveMe = function (mobile, level) {
-    level = level || 0;
+Area.moveMe = function (mobile, dt) {
+    let level = mobile.level || 0;
+    let position = mobile.position;
     if (level != 0) {
-        mobile.position = position.result().add(mobile.velocity);
+        mobile.position = position.result().add(mobile.velocity.result().mult(dt));
         return;
     }
 
-    let position = mobile.position;
-    let newPosition = position.result().add(mobile.velocity);
+    let newPosition = position.result().add(mobile.velocity.result().mult(dt));
     let x = Math.floor((position.x + mobile.bounds) / Area.size);
     let y = Math.floor((position.y + mobile.bounds) / Area.size);
     let nx = Math.floor((newPosition.x + mobile.bounds) / Area.size);
     let ny = Math.floor((newPosition.y + mobile.bounds) / Area.size);
 
     if (x == nx && y == ny) {
-        mobile.position = newPosition;
         x = Math.floor((position.x - mobile.bounds) / Area.size);
         y = Math.floor((position.y + mobile.bounds) / Area.size);
         nx = Math.floor((newPosition.x - mobile.bounds) / Area.size);
         ny = Math.floor((newPosition.y + mobile.bounds) / Area.size);
         if (x == nx && y == ny) {
-            mobile.position = newPosition;
             x = Math.floor((position.x + mobile.bounds) / Area.size);
             y = Math.floor((position.y - mobile.bounds) / Area.size);
             nx = Math.floor((newPosition.x + mobile.bounds) / Area.size);
             ny = Math.floor((newPosition.y - mobile.bounds) / Area.size);
             if (x == nx && y == ny) {
-                mobile.position = newPosition;
                 x = Math.floor((position.x - mobile.bounds) / Area.size);
                 y = Math.floor((position.y - mobile.bounds) / Area.size);
                 nx = Math.floor((newPosition.x - mobile.bounds) / Area.size);
                 ny = Math.floor((newPosition.y - mobile.bounds) / Area.size);
                 if (x == nx && y == ny) {
+                    mobile.position = newPosition;
                     return;
                 }
             }
@@ -299,8 +297,10 @@ function Level(enterance) {
      */
     this.enter = function (ship) {
         if (ship.position.result().sub(this.enterance).inbound(1000)) {
+            Area.checkOut(ship, ship.level);
             ship.level = this.level;
             ship.position = new Vector(0, 0);
+            Area.checkIn(ship, ship.level);
         }
     }
 
@@ -309,8 +309,11 @@ function Level(enterance) {
     */
     this.exit = function (ship) {
         if (ship.position.inbound(1000)) {
+            Area.checkOut(ship, ship.level);
             ship.level = 0;
             ship.position = this.enterance.result();
+            Area.checkIn(ship, ship.level);
+
         }
     }
 }
@@ -393,7 +396,7 @@ const minimapScale = 2;
 Universe.scan = function (position, range, speed, level) {
     let nearby = Universe.entitiesInRange(position, range, level);
     nearby.forEach(e => {
-        if (!(Universe.scanned.static.includes(e) || Universe.scanned.mobile.includes(e)) && position.distance(e.position) <= range) {
+        if (!e.noScan  && (!(Universe.scanned.static.includes(e) || Universe.scanned.mobile.includes(e)) && position.distance(e.position) <= range)) {
             let obj;
             if (e.velocity != undefined) {
                 Universe.scanned.mobile.push(e);
@@ -1111,8 +1114,8 @@ function Mobile(x, y, type, level) {
         this.timer++;
         this.timer = this.timer % 100;
         this.control(dt);
-        Area.moveMe(this);
-        this.position.add(this.velocity.result().mult(dt));
+        Area.moveMe(this, dt);
+        //this.position.add(this.velocity.result().mult(dt));
 
         this.rotation += this.rotationSpeed * dt;
         this.rotation = this.rotation % (Math.PI * 2);
@@ -1185,14 +1188,15 @@ exports.ItemDrop = ItemDrop;
  * @param {number} rotation
  * @param {number} type
  */
-function Projectile(position, level, rotation, type) {
+function Projectile(position, level, rotation, shooter, type) {
     this.position = position.result();
     this.level = level;
-    this.rotation = rotation;
     this.type = type;
     this.stats = Projectile.stats[type];
+    this.rotation = rotation-this.stats.spread/2+Math.random()*this.stats.spread;
     this.time = this.stats.time;
     this.id = Projectile.nextId();
+    this.shooter = shooter;
 
     this.velocity = Vector.fromAngle(this.rotation).normalize(this.stats.speed);
 
@@ -1218,7 +1222,7 @@ function Projectile(position, level, rotation, type) {
                 nearby.entities.forEach(e => {
 
                     let vec = this.velocity.result().mult(dt);
-                    if (flag(e.collisionPurpose, Entity.CollisionFlags.projectile)) {
+                    if (e != this.shooter && flag(e.collisionPurpose, Entity.CollisionFlags.projectile)) {
                         let relativePos = this.position.result();
                         relativePos.x -= e.position.x;
                         relativePos.y -= e.position.y;
@@ -1277,7 +1281,7 @@ Projectile.created = [];
 Projectile.removed = [];
 
 Projectile.stats = [
-    { time: 1, speed: 9000, cooldown: 500 }
+    { time: 1, speed: 9000, cooldown: 100, spread: 0.2 }
 ];
 
 exports.Projectile = Projectile;
@@ -1422,7 +1426,7 @@ Action.CreateMarker = function (ship, action) {
  */
 Action.Shoot = function (ship, action) {
     action.replyData = {};
-    new Projectile(ship.position, ship.level, ship.rotation, 0);
+    new Projectile(ship.position, ship.level, ship.rotation, ship, 0);
 
     action.replyData.id = 0;
     return Projectile.stats[0].cooldown / 1000;
@@ -1560,10 +1564,16 @@ function Ship(id) {
     this.cooldowns = [];
     this.inventory;
 
-    /**
-     * @type {Inventory}
-     */
-    this.inventory;
+    this.collider = [];
+    this.collisionPurpose = Entity.CollisionFlags.projectile;
+    this.bounds = 0;
+    this.rotatedColliderValid = false;
+    this.noScan = true;
+
+        /**
+         * @type {Inventory}
+         */
+        this.inventory;
     /**
     * @type {number} id of the player who owns this ship
     */
@@ -1575,6 +1585,9 @@ function Ship(id) {
      */
     this.init = function (type) {
         this.stats = type;
+        this.collider.push(new Shape().circle(0,0,this.stats.size));
+        this.calculateBounds();
+        Area.checkIn(this);
         for (let i = 0; i < type.actionPool.length; i++) {
             this.cooldowns[i] = 0;
         }
@@ -1689,7 +1702,7 @@ function Ship(id) {
 
         Player.players.get(this.id).debug += "  Cargo: " + this.inventory.used + "/" + this.inventory.capacity;
 
-        this.position.add(this.velocity.result().mult(dt));
+        Area.moveMe(this, dt);
         this.afterBurnerUsed = 0;
         if (
             this.afterBurnerActive == 1 &&
@@ -1758,6 +1771,7 @@ function Ship(id) {
         if (localArea != undefined) {
             for (let i = 0; i < localArea.entities.length; i++) {
                 const e = localArea.entities[i];
+                if (e == this) continue;
                 if (!flag(e.collisionPurpose, Entity.CollisionFlags.player)) {
                     if (flag(e.collisionPurpose, Entity.CollisionFlags.pickup)) {
                         let relativePos = this.position.result();
@@ -1807,6 +1821,30 @@ function Ship(id) {
                 });
             }
         }
+    }
+    
+    this.calculateBounds = function () {
+        this.collider.forEach(s => {
+            let dist = 0;
+            if (s.type == 2) {
+                dist = Math.max(new Vector(s.x1, s.y1).length(), new Vector(s.x2, s.y2).length());
+            } else {
+                dist = new Vector(s.x, s.y).length() + s.r;
+            }
+            this.bounds = Math.max(dist, this.bounds);
+        });
+
+        this.bounds += maxInteractionRange;
+    }
+
+    this.rotateCollider = function () {
+        this.rotatedCollider = [];
+        this.collider.forEach(s => {
+            let r = s.copy();
+            r.rotate(this.rotation);
+            this.rotatedCollider.push(r);
+        });
+        this.rotatedColliderValid = true;
     }
 }
 
@@ -1866,6 +1904,11 @@ function Player(connection) {
 
         return nearby;
     };
+
+    this.exit = function() {
+        Area.checkOut(this.ship,this.ship.level);
+        Player.players.delete(this.id);
+    }
     Player.players.set(this.id, this);
 }
 

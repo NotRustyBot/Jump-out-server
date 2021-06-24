@@ -51,7 +51,7 @@ function onClose(event, player) {
     console.log("Closed connection " + player.id + " Reason: " + event);
     player.open = false;
     Player.leftPlayers.push(player);
-    Player.players.delete(player.id);
+    Player.players.get(player.id).exit();
 }
 
 
@@ -338,7 +338,7 @@ function AreaInfo(inView, player) {
     inView.setUint16(0);
     let count = 0;
     entities.forEach(entity => {
-        if (entity.type != -1) {
+        if (!entity.noScan && entity.type != -1) {
             entity.serialize(inView);
             count++;
         }
