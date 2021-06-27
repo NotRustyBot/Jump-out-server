@@ -1039,7 +1039,7 @@ Room.stats = [
                 if (!this.ready) {
                     this.startPos = this.position.result();
                     this.cooldown = 0;
-                    this.projectileType = 0;
+                    this.projectileType = 1;
                     this.ready = true;
                 }
         
@@ -1413,7 +1413,8 @@ Projectile.created = [];
 Projectile.removed = [];
 
 Projectile.stats = [
-    { time: 1, speed: 9000, cooldown: 100, spread: 0.2 }
+    { time: 0.5, speed: 9000, cooldown: 100, spread: 0.2 },
+    { time: 1, speed: 4000, cooldown: 500, spread: 0.1 },
 ];
 
 exports.Projectile = Projectile;
