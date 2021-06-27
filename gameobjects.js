@@ -396,7 +396,7 @@ const minimapScale = 2;
 Universe.scan = function (position, range, speed, level) {
     let nearby = Universe.entitiesInRange(position, range, level);
     nearby.forEach(e => {
-        if (!e.noScan  && (!(Universe.scanned.static.includes(e) || Universe.scanned.mobile.includes(e)) && position.distance(e.position) <= range)) {
+        if (!e.noScan && (!(Universe.scanned.static.includes(e) || Universe.scanned.mobile.includes(e)) && position.distance(e.position) <= range)) {
             let obj;
             if (e.velocity != undefined) {
                 Universe.scanned.mobile.push(e);
@@ -965,6 +965,138 @@ function Inventory(capacity, owner, layout) {
 Inventory.changes = [];
 exports.Inventory = Inventory;
 
+/** */
+function Room(position, level, rotation, type) {
+    this.position = position;
+    this.level = level;
+    this.rotation = rotation;
+    this.type = type;
+    this.stats = Room.stats[this.type];
+    this.noScan = true;
+
+    this.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+    this.rotatedCollider = [];
+    this.rotatedColliderValid = false;
+
+    this.init = function () {
+        this.colliderFromFile("hitboxes/rooms/" + this.stats.hitbox);
+        this.rotateCollider();
+        Area.checkIn(this, this.level);
+        if(this.stats.setup){
+            this.stats.setup(this);
+        }
+
+    };
+
+    this.colliderFromFile = function (file) {
+        this.collider = [];
+        this.bounds = 0;
+        let str = fs.readFileSync(file, "utf8");
+        let shapes = JSON.parse(str);
+        shapes.forEach(s => {
+            let shape;
+            let dist = 0;
+            if (s.type == 2) {
+                shape = new Shape().line(s.x1, s.y1, s.x2, s.y2);
+                dist = Math.max(new Vector(s.x1, s.y1).length(), new Vector(s.x2, s.y2).length());
+            } else {
+                shape = new Shape().circle(s.x, s.y, s.r);
+                dist = new Vector(s.x, s.y).length() + s.r;
+            }
+            this.bounds = Math.max(dist, this.bounds);
+            this.collider.push(shape);
+        });
+        this.bounds += maxInteractionRange;
+    }
+
+    this.rotateCollider = function () {
+        this.rotatedCollider = [];
+        this.collider.forEach(s => {
+            let r = s.copy();
+            r.rotate(this.rotation);
+            this.rotatedCollider.push(r);
+        });
+        this.rotatedColliderValid = true;
+    }
+}
+
+Room.list = [];
+
+Room.stats = [
+    { hitbox: "room-0u.json", },
+    { hitbox: "room-0i.json", },
+    { hitbox: "room-0t.json", },
+    { hitbox: "room-0x.json", },
+    {
+        hitbox: "room-0main.json", setup: function (room) {
+            let pos = room.position;
+            let guard = new Mobile(pos.x, pos.y, 20, room.level);
+            guard.collider.push(new Shape().circle(0, 0, 125));
+            guard.calculateBounds();
+            guard.collisionPurpose = Entity.CollisionFlags.projectile;
+            guard.init();
+            guard.control = function (dt) {
+                if (!this.ready) {
+                    this.startPos = this.position.result();
+                    this.cooldown = 0;
+                    this.projectileType = 0;
+                    this.ready = true;
+                }
+        
+                let closest = 5000;
+                let target = undefined;
+                Player.players.forEach(p => {
+                    let dist = p.ship.position.distance(this.position);
+                    if (dist < closest) {
+                        target = p.ship;
+                        closest = dist;
+                    }
+                });
+                if (target != undefined) {
+                    this.cooldown -= dt;
+                    if (this.cooldown < 0) {
+                        this.cooldown = Projectile.stats[this.projectileType].cooldown/1000;
+                        new Projectile(this.position, this.level, this.rotation, this, this.projectileType);
+                    }
+                    this.rotation = target.position.result().sub(this.position).toAngle();
+                }
+            }
+        }
+    },
+];
+
+Room.arrange = function (entry, level) {
+    let rooms = [
+        [0, 0, 0, 0, 0],
+        [0, 1, 3, 5, 0],
+        [0, 0, 2, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0],
+    ];
+
+    let rotation = [
+        [0, 0, 0, 0, 0],
+        [0, 3, 0, 1, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 2, 0, 0],
+        [0, 0, 0, 0, 0],
+    ];
+
+    let enterRoom = new Vector(2, 3);
+
+    for (let x = 0; x < 5; x++) {
+        for (let y = 0; y < 5; y++) {
+            if (rooms[y][x] != 0) {
+                let room = new Room(new Vector((x - enterRoom.x) * 6000, (y - enterRoom.y) * 6000), level, rotation[y][x] * Math.PI / 2, rooms[y][x] - 1);
+                Room.list.push(room);
+                room.init();
+            }
+        }
+    }
+}
+
+exports.Room = Room
+
 /**
  * 
  * @param {number} x 
@@ -1193,7 +1325,7 @@ function Projectile(position, level, rotation, shooter, type) {
     this.level = level;
     this.type = type;
     this.stats = Projectile.stats[type];
-    this.rotation = rotation-this.stats.spread/2+Math.random()*this.stats.spread;
+    this.rotation = rotation - this.stats.spread / 2 + Math.random() * this.stats.spread;
     this.time = this.stats.time;
     this.id = Projectile.nextId();
     this.shooter = shooter;
@@ -1246,7 +1378,7 @@ function Projectile(position, level, rotation, shooter, type) {
                     let closest = maxInteractionRange;
                     let hit = hits[0];
                     hits.forEach(h => {
-                        let dist = h.relative.sub(h.position).length();
+                        let dist = (h.relative.sub(h.position)).length();
                         if (dist < closest) {
                             hit = h;
                             closest = dist;
@@ -1570,10 +1702,10 @@ function Ship(id) {
     this.rotatedColliderValid = false;
     this.noScan = true;
 
-        /**
-         * @type {Inventory}
-         */
-        this.inventory;
+    /**
+     * @type {Inventory}
+     */
+    this.inventory;
     /**
     * @type {number} id of the player who owns this ship
     */
@@ -1585,7 +1717,7 @@ function Ship(id) {
      */
     this.init = function (type) {
         this.stats = type;
-        this.collider.push(new Shape().circle(0,0,this.stats.size));
+        this.collider.push(new Shape().circle(0, 0, this.stats.size));
         this.calculateBounds();
         Area.checkIn(this);
         for (let i = 0; i < type.actionPool.length; i++) {
@@ -1822,7 +1954,7 @@ function Ship(id) {
             }
         }
     }
-    
+
     this.calculateBounds = function () {
         this.collider.forEach(s => {
             let dist = 0;
@@ -1880,33 +2012,11 @@ function Player(connection) {
      * @returns {Entity[]}
      */
     this.proximity = function () {
-        let proximity = [];
-        let coords = this.ship.position.result();
-
-        for (let y = -1; y <= 1; y++) {
-            for (let x = -1; x <= 1; x++) {
-                let adjusted = coords.result();
-                adjusted.x += x * Area.size;
-                adjusted.y += y * Area.size;
-                let area = Area.getLocalArea(adjusted, this.level);
-                if (area != undefined) proximity.push(area);
-            }
-        }
-
-        let nearby = [];
-        proximity.forEach(a => {
-            a.entities.forEach(e => {
-                if (!nearby.includes(e)) {
-                    nearby.push(e);
-                }
-            });
-        });
-
-        return nearby;
+        return Universe.entitiesInRange(this.ship.position, Area.size*2, this.ship.level);
     };
 
-    this.exit = function() {
-        Area.checkOut(this.ship,this.ship.level);
+    this.exit = function () {
+        Area.checkOut(this.ship, this.ship.level);
         Player.players.delete(this.id);
     }
     Player.players.set(this.id, this);
@@ -1932,7 +2042,6 @@ exports.Player = Player;
 
 //#endregion
 
-new Level(new Vector(210300, 192600));
 
 const Items = require("./items.js").defineItems();
 const ShipType = require("./shipTypes.js").defineShips(Action);

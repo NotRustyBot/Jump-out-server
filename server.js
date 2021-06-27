@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory, Marker, Projectile, Action, Level } = require("./worldgen");
+const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory, Marker, Projectile, Action, Level, Room } = require("./worldgen");
 
 //#region INIT
 let http = require('http');
@@ -378,6 +378,11 @@ function EntitySetupMessage(inView) {
         view.setUint8(serverHeaders.setupEnterance);
         let temp = {id: l.level, position: l.enterance};
         view.serialize(temp, Datagrams.SetupEnterance);
+    });
+
+    Room.list.forEach(r => {
+        view.setUint8(serverHeaders.setupRoom);
+        view.serialize(r, Datagrams.SetupRoom);
     });
     return buffer.slice(0, view.index);
 }

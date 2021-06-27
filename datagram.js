@@ -422,6 +422,13 @@ SetupEnterance.add(types.uint8, "id");
 SetupEnterance.add(types.vector32, "position");
 Datagrams.SetupEnterance = SetupEnterance;
 
+let SetupRoom = new Datagram();
+SetupRoom.add(types.vector32, "position");
+SetupRoom.add(types.float32, "rotation");
+SetupRoom.add(types.uint8, "level");
+SetupRoom.add(types.uint8, "type");
+Datagrams.SetupRoom = SetupRoom;
+
 exports.Datagrams = Datagrams;
 
 let SmartActionData = [];
@@ -485,7 +492,7 @@ exports.ReplyData = ReplyData;
 const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
 exports.ReplyId = ReplyId;
 
-const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15, objectScan: 16, markerCreate: 17, markerRemove: 18, createProjectile: 19, removeProjectile: 20, setupEnterance: 21};
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15, objectScan: 16, markerCreate: 17, markerRemove: 18, createProjectile: 19, removeProjectile: 20, setupEnterance: 21, setupRoom: 22};
 exports.serverHeaders = serverHeaders;
 const clientHeaders = { init: 0, control: 1, smartAction: 2, serverConsole: 3 };
 exports.clientHeaders = clientHeaders;

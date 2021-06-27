@@ -1,4 +1,4 @@
-const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level } = require("./gameobjects.js");
+const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level, Room } = require("./gameobjects.js");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 
@@ -26,6 +26,7 @@ exports.Marker = Marker
 exports.Projectile = Projectile
 exports.Action = Action
 exports.Level = Level
+exports.Room = Room
 
 function randomSeedParkMiller(seed = 123456) {
 	// doesn't repeat b4 JS dies.
@@ -223,6 +224,9 @@ Universe.init = function () {
 	Universe.gasMap = gasMap;
 	let mid = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
 
+	new Level(new Vector(210300, 192600));
+	Room.arrange(0, 1);
+
 	for (let i = 0; i < SpawnRules.asteroids.count;) {
 		let clusterPos = new Vector(Math.random() * (Area.size * (Universe.size - 2)) + Area.size, Math.random() * (Area.size * (Universe.size - 2)) + Area.size);
 		let clusterSize = Math.floor(Math.min(SpawnRules.asteroids.count - i, Math.random() * SpawnRules.asteroids.clusterSize / 2 + SpawnRules.asteroids.clusterSize / 2 + 1));
@@ -280,27 +284,27 @@ Universe.init = function () {
 	e1.colliderFromFile("hitboxes/asteroid1.json");
 	e1.calculateBounds();
 	e1.init();
-	e1.collisionPurpose =  Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+	e1.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 
 	let dim = new Entity(mid.x + 1000, mid.y, 2, 1);
 	dim.colliderFromFile("hitboxes/asteroid2.json");
 	dim.calculateBounds();
 	dim.init();
-	dim.collisionPurpose =  Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+	dim.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 
 	let e2 = new Entity(mid.x - 1000, mid.y, 3);
 	e2.colliderFromFile("hitboxes/asteroid3.json");
 	e2.calculateBounds();
 	e2.init();
-	e2.collisionPurpose =  Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+	e2.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 
 	let dim2 = new Entity(mid.x - 1000, mid.y, 4, 1);
 	dim2.colliderFromFile("hitboxes/asteroid4.json");
 	dim2.calculateBounds();
 	dim2.init();
-	dim2.collisionPurpose =  Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+	dim2.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
 
-	let velka = new Entity(mid.x - 15000, mid.y+5000, 5);
+	let velka = new Entity(mid.x - 15000, mid.y + 5000, 5);
 	velka.init();
 }
 Universe.init();
@@ -341,44 +345,40 @@ let i = new ItemDrop(new Vector(Universe.size * Area.size / 2, Universe.size * A
 i.init();
 
 
-process.env.HOLOUBCI = process.env.HOLOUBCI || 0;
-for (let index = 0; index < parseInt(process.env.HOLOUBCI); index++) {
-	let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 3);
+for (let index = 0; index < 0; index++) {
+	let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 20);
 	m1.collider.push(new Shape().circle(0, 0, 125));
 	m1.calculateBounds();
 	m1.collisionPurpose = Entity.CollisionFlags.projectile;
 	m1.init();
+
 	m1.control = function (dt) {
-		if (this.startPos == undefined) {
+		if (!this.ready) {
 			this.startPos = this.position.result();
+			this.cooldown = 0;
+			this.projectileType = 0;
+			this.ready = true;
 		}
 
-		let closest = 1500;
+		let closest = 5000;
 		let target = undefined;
-		Player.players.forEach(p => {
-			let dist = p.ship.position.distance(this.position);
-			if (dist < closest) {
-				target = p.ship;
-				closest = dist;
-			}
-		});
+		if (this.tracking) {
+			Player.players.forEach(p => {
+				let dist = p.ship.position.distance(this.position);
+				if (dist < closest) {
+					target = p.ship;
+					closest = dist;
+				}
+			});
+		}
 		if (target != undefined) {
-			if (closest < 500) {
-				this.velocity = Vector.zero();
-			} else {
-				this.velocity = target.position.result().sub(this.position);
-				this.velocity.normalize(dt * 600);
-			}
-		} else {
-			if (Vector.sub(this.startPos, this.position).length() > 3000) {
-				this.velocity = Vector.sub(this.startPos, this.position);
-				this.velocity.normalize(dt * 300);
-			} else if (Math.random() < 0.01) {
-				this.velocity = new Vector(Math.random(), Math.random());
-				this.velocity.normalize(dt * 300);
+			this.cooldown -= dt;
+			if (this.cooldown < 0) {
+				this.cooldown = Projectile.stats[this.projectileType].cooldown/1000;
+				new Projectile(this.position, this.level, this.rotation, this, this.projectileType);
 			}
 		}
-		this.rotation = this.velocity.toAngle();
+		this.rotation = target.position.result().sub(this.position).toAngle();
 	}
 }
 
