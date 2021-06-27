@@ -170,6 +170,14 @@ function updateMessage() {
         Player.leftPlayers = [];
     }
 
+    if (Projectile.created.length > 0) {
+        Projectile.created.forEach(p => {
+            view.setUint8(serverHeaders.createProjectile);
+            view.serialize(p, Datagrams.CreateProjectile);
+        });
+        Projectile.created = [];
+    }
+
     CollisionEvent.list.forEach(c => {
         view.setUint8(serverHeaders.collisionEvent);
         view.serialize(c, Datagrams.CollisionEvent);
@@ -259,14 +267,6 @@ function updateMessage() {
             }
         }
     });
-
-    if (Projectile.created.length > 0) {
-        Projectile.created.forEach(p => {
-            view.setUint8(serverHeaders.createProjectile);
-            view.serialize(p, Datagrams.CreateProjectile);
-        });
-        Projectile.created = [];
-    }
 
     if (Projectile.removed.length > 0) {
         Projectile.removed.forEach(p => {

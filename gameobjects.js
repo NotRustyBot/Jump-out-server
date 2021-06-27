@@ -551,6 +551,7 @@ function CollisionEvent(first, second, result, mode) {
     this.firstId = first.id;
     this.secondId = second.id;
     this.type = mode;
+    this.level = first.level;
     //let temp = result.position.mult(0.5);
 
     //this.position = first.position.result().sub(result.position);
