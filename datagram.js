@@ -411,6 +411,7 @@ CreateProjectile.add(types.uint8, "type");
 CreateProjectile.add(types.vector32, "position");
 CreateProjectile.add(types.uint8, "level");
 CreateProjectile.add(types.float32, "rotation");
+CreateProjectile.add(types.vector32, "velocity");
 Datagrams.CreateProjectile = CreateProjectile;
 
 let RemoveProjectile = new Datagram();

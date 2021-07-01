@@ -1057,7 +1057,7 @@ Room.stats = [
                     this.cooldown -= dt;
                     if (this.cooldown < 0) {
                         this.cooldown = Projectile.stats[this.projectileType].cooldown/1000;
-                        new Projectile(this.position, this.level, this.rotation, this, this.projectileType);
+                        Projectile.from(this, this.projectileType);
                     }
                     this.rotation = target.position.result().sub(this.position).toAngle();
                 }
@@ -1319,9 +1319,11 @@ exports.ItemDrop = ItemDrop;
  * @param {Vector} position
  * @param {number} level
  * @param {number} rotation
+ * @param {Vector} velocity
+ * @param {Ship|Entity} shooter
  * @param {number} type
  */
-function Projectile(position, level, rotation, shooter, type) {
+function Projectile(position, level, rotation, velocity, shooter, type) {
     this.position = position.result();
     this.level = level;
     this.type = type;
@@ -1331,7 +1333,7 @@ function Projectile(position, level, rotation, shooter, type) {
     this.id = Projectile.nextId();
     this.shooter = shooter;
 
-    this.velocity = Vector.fromAngle(this.rotation).normalize(this.stats.speed);
+    this.velocity = Vector.fromAngle(this.rotation).normalize(this.stats.speed).add(velocity);
 
     if (this.stats.update) {
         this.update = this.stats.update;
@@ -1410,6 +1412,14 @@ Projectile.nextId = function () {
     Projectile.id++;
     return Projectile.id;
 }
+
+/**
+ * @type {Ship|Entity}
+ */
+Projectile.from = function(shooter, type){
+    return new Projectile(shooter.position, shooter.level, shooter.rotation, shooter.velocity, shooter, type);
+}
+
 Projectile.created = [];
 Projectile.removed = [];
 
@@ -1560,7 +1570,7 @@ Action.CreateMarker = function (ship, action) {
  */
 Action.Shoot = function (ship, action) {
     action.replyData = {};
-    new Projectile(ship.position, ship.level, ship.rotation, ship, 0);
+    Projectile.from(ship,0);
 
     action.replyData.id = 0;
     return Projectile.stats[0].cooldown / 1000;
