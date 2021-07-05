@@ -309,6 +309,7 @@ shipUpdate.add(types.vector32, "control");
 shipUpdate.add(types.uint8, "afterBurnerUsed");
 shipUpdate.add(types.float32, "afterBurnerFuel");
 shipUpdate.add(types.float32, "debuff");
+shipUpdate.add(types.float32, "hull");
 Datagrams.shipUpdate = shipUpdate;
 
 let initPlayer = new Datagram();
@@ -430,6 +431,12 @@ SetupRoom.add(types.uint8, "level");
 SetupRoom.add(types.uint8, "type");
 Datagrams.SetupRoom = SetupRoom;
 
+let SetupInteractable = new Datagram();
+SetupInteractable.add(types.vector32, "position");
+SetupInteractable.add(types.float32, "bounds");
+SetupInteractable.add(types.uint8, "level");
+Datagrams.SetupInteractable = SetupInteractable;
+
 exports.Datagrams = Datagrams;
 
 let SmartActionData = [];
@@ -464,9 +471,14 @@ SmartActionData.push(Shoot);
 let LevelMove = new Datagram();
 SmartActionData.push(LevelMove);
 
+let Interact = new Datagram();
+Interact.add(types.uint16, "id");
+Interact.add(types.uint8, "option");
+SmartActionData.push(Interact);
+
 exports.SmartActionData = SmartActionData;
 
-const ActionId = { placeObject: 0, MineRock: 1, DropItem: 2, SwapSlots: 3, CreateMarker: 4, Shoot: 5, LevelMove: 6 };
+const ActionId = { placeObject: 0, MineRock: 1, DropItem: 2, SwapSlots: 3, CreateMarker: 4, Shoot: 5, LevelMove: 6, Interact: 7 };
 exports.ActionId = ActionId;
 
 
@@ -493,7 +505,7 @@ exports.ReplyData = ReplyData;
 const ReplyId = { success: 0, invalidAction: 1, cooldown: 2 };
 exports.ReplyId = ReplyId;
 
-const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15, objectScan: 16, markerCreate: 17, markerRemove: 18, createProjectile: 19, removeProjectile: 20, setupEnterance: 21, setupRoom: 22};
+const serverHeaders = { initResponse: 0, update: 1, newPlayers: 2, playerLeft: 3, entitySetup: 4, collisionEvent: 5, debugPacket: 6, gasData: 7, proximity: 8, actionReply: 9, entityRemove: 10, gasUpdate: 11, itemCreate: 12, itemRemove: 13, inventoryChange: 14, gasScan: 15, objectScan: 16, markerCreate: 17, markerRemove: 18, createProjectile: 19, removeProjectile: 20, setupEnterance: 21, setupRoom: 22, setupInteractable: 23};
 exports.serverHeaders = serverHeaders;
 const clientHeaders = { init: 0, control: 1, smartAction: 2, serverConsole: 3 };
 exports.clientHeaders = clientHeaders;

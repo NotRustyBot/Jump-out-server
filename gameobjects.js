@@ -974,6 +974,7 @@ function Room(position, level, rotation, type) {
     this.type = type;
     this.stats = Room.stats[this.type];
     this.noScan = true;
+    this.noUpdate = true;
 
     this.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
     this.rotatedCollider = [];
@@ -983,7 +984,7 @@ function Room(position, level, rotation, type) {
         this.colliderFromFile("hitboxes/rooms/" + this.stats.hitbox);
         this.rotateCollider();
         Area.checkIn(this, this.level);
-        if(this.stats.setup){
+        if (this.stats.setup) {
             this.stats.setup(this);
         }
 
@@ -1019,22 +1020,36 @@ function Room(position, level, rotation, type) {
         });
         this.rotatedColliderValid = true;
     }
+
+    /**
+     * @param {Vector} vector
+     */
+    this.toGlobal = function (vector) {
+        let angle = vector.toAngle();
+        let global = Vector.fromAngle(angle + this.rotation).normalize(vector.length());
+        global.add(this.position);
+        return global;
+    }
 }
 
 Room.list = [];
 
 Room.stats = [
     { hitbox: "room-0u.json", },
-    { hitbox: "room-0i.json", },
-    { hitbox: "room-0t.json", },
-    { hitbox: "room-0x.json", },
     {
-        hitbox: "room-0main.json", setup: function (room) {
-            let pos = room.position;
+        hitbox: "room-0i.json", setup:/**@param {Room} room */ function (room) {
+            let pos = room.toGlobal(new Vector(2000, -2000));
             let guard = new Mobile(pos.x, pos.y, 20, room.level);
             guard.collider.push(new Shape().circle(0, 0, 125));
             guard.calculateBounds();
             guard.collisionPurpose = Entity.CollisionFlags.projectile;
+            guard.hull = 100;
+            guard.damage = function(projectile){
+                guard.hull -= projectile.stats.damage;
+                if (guard.hull <= 0) {
+                    guard.delete();
+                }
+            }
             guard.init();
             guard.control = function (dt) {
                 if (!this.ready) {
@@ -1043,7 +1058,7 @@ Room.stats = [
                     this.projectileType = 1;
                     this.ready = true;
                 }
-        
+
                 let closest = 5000;
                 let target = undefined;
                 Player.players.forEach(p => {
@@ -1056,17 +1071,28 @@ Room.stats = [
                 if (target != undefined) {
                     this.cooldown -= dt;
                     if (this.cooldown < 0) {
-                        this.cooldown = Projectile.stats[this.projectileType].cooldown/1000;
-                        Projectile.from(this, this.projectileType);
+                        this.cooldown = Projectile.stats[this.projectileType].cooldown / 1000;
+                        for (let index = 0; index < 5; index++) {
+                            Projectile.from(this, this.projectileType);
+                        }
                     }
                     this.rotation = target.position.result().sub(this.position).toAngle();
                 }
             }
         }
     },
+    { hitbox: "room-0t.json", },
+    { hitbox: "room-0x.json", },
+    {
+        hitbox: "room-0main.json",setup:/**@param {Room} room */ function (room) {
+            let pos = room.toGlobal(new Vector(0, 0));
+            let item = new ItemDrop(pos, new Item(5, 10), pos, room.level);
+            item.init();
+        }
+    },
 ];
 
-Room.arrange = function (entry, level) {
+Room.arrange = function (entry, level, angle) {
     let rooms = [
         [0, 0, 0, 0, 0],
         [0, 1, 3, 5, 0],
@@ -1083,12 +1109,46 @@ Room.arrange = function (entry, level) {
         [0, 0, 0, 0, 0],
     ];
 
+    let traps = [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0],
+    ];
+
     let enterRoom = new Vector(2, 3);
+
+    let hardcode = {
+        /** @param {Room} room */
+        1:  function (room) {
+            let controlPos = room.toGlobal(new Vector(-1000, -2500));
+            let doorControl = new Interactable(controlPos, room.level, 500);
+            let doorPos = room.toGlobal(new Vector(0, 3050));
+            let door = new Entity(doorPos.x, doorPos.y, 6, room.level);
+            door.colliderFromFile("hitboxes/rooms/door.json");
+            door.rotation = room.rotation;
+            door.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+            door.init();
+            door.noScan = true;
+            doorControl.activate = function(ship, option){
+                let doorOpenPos = room.toGlobal(new Vector(-1000, 3050));
+                door.position = doorOpenPos;
+            }
+        }
+    };
 
     for (let x = 0; x < 5; x++) {
         for (let y = 0; y < 5; y++) {
             if (rooms[y][x] != 0) {
-                let room = new Room(new Vector((x - enterRoom.x) * 6000, (y - enterRoom.y) * 6000), level, rotation[y][x] * Math.PI / 2, rooms[y][x] - 1);
+                let roomPosition = new Vector((x - enterRoom.x) * 6000, (y - enterRoom.y) * 6000);
+                let roomAngle = roomPosition.toAngle();
+                roomAngle += angle;
+                roomPosition = Vector.fromAngle(roomAngle).normalize(roomPosition.length());
+                let room = new Room(roomPosition, level, rotation[y][x] * Math.PI / 2 + angle, rooms[y][x] - 1);
+                if (traps[y][x] != 0) {
+                    hardcode[traps[y][x]](room);
+                }
                 Room.list.push(room);
                 room.init();
             }
@@ -1097,6 +1157,23 @@ Room.arrange = function (entry, level) {
 }
 
 exports.Room = Room
+
+function Interactable(position, level, bounds) {
+    this.position = position;
+    this.level = level;
+    this.bounds = bounds;
+
+    /**@param {Ship} ship */
+    this.activate = function (ship, option) {
+
+    }
+
+    Interactable.list.push(this);
+}
+
+Interactable.list = [];
+
+exports.Interactable = Interactable
 
 /**
  * 
@@ -1287,6 +1364,8 @@ function ItemDrop(position, item, source, level) {
     this.collisionPurpose = Entity.CollisionFlags.pickup;
     this.rotatedCollider.push(new Shape().circle(0, 0, 125));
     this.rotatedColliderValid = true;
+    this.noScan = true;
+    this.noUpdate = true;
 
     if (source == undefined) {
         this.source = position;
@@ -1361,19 +1440,21 @@ function Projectile(position, level, rotation, velocity, shooter, type) {
                         let relativePos = this.position.result();
                         relativePos.x -= e.position.x;
                         relativePos.y -= e.position.y;
-                        let collisionShape = new Shape().line(relativePos.x, relativePos.y, relativePos.x + vec.x, relativePos.y + vec.y);
-                        let res;
-                        if (!e.rotatedColliderValid) {
-                            e.rotateCollider();
-                        }
-                        e.rotatedCollider.forEach(s => {
-                            res = collisionShape.checkCollision(s);
-                            if (res.result) {
-                                res.entity = e;
-                                res.relative = relativePos;
-                                hits.push(res);
+                        if (relativePos.inbound(Math.abs(this.velocity.x) + Math.abs(this.velocity.y) + e.bounds / 2)) {
+                            let collisionShape = new Shape().line(relativePos.x, relativePos.y, relativePos.x + vec.x, relativePos.y + vec.y);
+                            let res;
+                            if (!e.rotatedColliderValid) {
+                                e.rotateCollider();
                             }
-                        });
+                            e.rotatedCollider.forEach(s => {
+                                res = collisionShape.checkCollision(s);
+                                if (res.result) {
+                                    res.entity = e;
+                                    res.relative = relativePos;
+                                    hits.push(res);
+                                }
+                            });
+                        }
                     }
                 });
 
@@ -1387,6 +1468,9 @@ function Projectile(position, level, rotation, velocity, shooter, type) {
                             closest = dist;
                         }
                     });
+
+                    if (hit.entity.damage) hit.entity.damage(this);
+
                     CollisionEvent.list.push(new CollisionEvent(this, hit.entity, hit, 1));
                     Projectile.removed.push(this);
                     Projectile.list.delete(this.id);
@@ -1416,7 +1500,7 @@ Projectile.nextId = function () {
 /**
  * @type {Ship|Entity}
  */
-Projectile.from = function(shooter, type){
+Projectile.from = function (shooter, type) {
     return new Projectile(shooter.position, shooter.level, shooter.rotation, shooter.velocity, shooter, type);
 }
 
@@ -1424,8 +1508,8 @@ Projectile.created = [];
 Projectile.removed = [];
 
 Projectile.stats = [
-    { time: 0.5, speed: 9000, cooldown: 100, spread: 0.2 },
-    { time: 1, speed: 4000, cooldown: 500, spread: 0.1 },
+    { time: 0.5, speed: 9000, cooldown: 100, spread: 0.2, damage: 5 },
+    { time: 1, speed: 4000, cooldown: 500, spread: 0.5, damage: 1 },
 ];
 
 exports.Projectile = Projectile;
@@ -1570,7 +1654,7 @@ Action.CreateMarker = function (ship, action) {
  */
 Action.Shoot = function (ship, action) {
     action.replyData = {};
-    Projectile.from(ship,0);
+    Projectile.from(ship, 0);
 
     action.replyData.id = 0;
     return Projectile.stats[0].cooldown / 1000;
@@ -1596,6 +1680,21 @@ Action.LevelMove = function (ship, action) {
     action.replyData.id = 0;
     return 0.5;
 }
+
+/**
+ * 
+ * @param {Ship} ship 
+ * @param {SmartAction} action 
+ */
+ Action.Interact = function (ship, action) {
+    action.replyData = {};
+    Interactable.list[action.id].activate(ship, action.option)
+
+    action.replyData.id = 0;
+    return 0.5;
+}
+
+
 
 /**
  * @type {Entity[],Building[]}
@@ -1704,6 +1803,8 @@ function Ship(id) {
     this.afterBurnerUsed = 0;
     this.afterBurnerFuel = 600;
     this.debuff = 0;
+    /** @type {number} */
+    this.hull = 100;
     this.action = 0;
     this.cooldowns = [];
     this.inventory;
@@ -1713,6 +1814,7 @@ function Ship(id) {
     this.bounds = 0;
     this.rotatedColliderValid = false;
     this.noScan = true;
+    this.noUpdate = true;
 
     /**
      * @type {Inventory}
@@ -1876,6 +1978,14 @@ function Ship(id) {
         this.checkCollision(dt);
         Universe.scan(this.position, this.stats.radarRange, speed, this.level);
     };
+    /**
+     * @param {Projectile} projectile
+     */
+    this.damage = function (projectile) {
+        if (true) {
+            this.hull -= projectile.stats.damage;
+        }
+    }
 
     this.handleAction = function (dt) {
         for (let i = 0; i < this.cooldowns.length; i++) {
@@ -2024,7 +2134,7 @@ function Player(connection) {
      * @returns {Entity[]}
      */
     this.proximity = function () {
-        return Universe.entitiesInRange(this.ship.position, Area.size*2, this.ship.level);
+        return Universe.entitiesInRange(this.ship.position, Area.size * 2, this.ship.level);
     };
 
     this.exit = function () {

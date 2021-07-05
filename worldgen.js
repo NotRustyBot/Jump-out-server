@@ -1,4 +1,4 @@
-const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level, Room } = require("./gameobjects.js");
+const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level, Room, Interactable } = require("./gameobjects.js");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 
@@ -27,6 +27,7 @@ exports.Projectile = Projectile
 exports.Action = Action
 exports.Level = Level
 exports.Room = Room
+exports.Interactable = Interactable
 
 function randomSeedParkMiller(seed = 123456) {
 	// doesn't repeat b4 JS dies.
@@ -225,7 +226,7 @@ Universe.init = function () {
 	let mid = new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2);
 
 	new Level(new Vector(210300, 192600));
-	Room.arrange(0, 1);
+	Room.arrange(0, 1, 1);
 
 	for (let i = 0; i < SpawnRules.asteroids.count;) {
 		let clusterPos = new Vector(Math.random() * (Area.size * (Universe.size - 2)) + Area.size, Math.random() * (Area.size * (Universe.size - 2)) + Area.size);

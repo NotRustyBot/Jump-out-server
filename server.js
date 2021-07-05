@@ -1,4 +1,4 @@
-const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory, Marker, Projectile, Action, Level, Room } = require("./worldgen");
+const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory, Marker, Projectile, Action, Level, Room, Interactable } = require("./worldgen");
 
 //#region INIT
 let http = require('http');
@@ -338,7 +338,7 @@ function AreaInfo(inView, player) {
     inView.setUint16(0);
     let count = 0;
     entities.forEach(entity => {
-        if (!entity.noScan && entity.type != -1) {
+        if (!entity.noUpdate) {
             entity.serialize(inView);
             count++;
         }
@@ -384,6 +384,12 @@ function EntitySetupMessage(inView) {
         view.setUint8(serverHeaders.setupRoom);
         view.serialize(r, Datagrams.SetupRoom);
     });
+
+    Interactable.list.forEach(i => {
+        view.setUint8(serverHeaders.setupInteractable);
+        view.serialize(i, Datagrams.SetupInteractable);
+    });
+
     return buffer.slice(0, view.index);
 }
 
