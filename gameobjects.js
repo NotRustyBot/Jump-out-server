@@ -1111,7 +1111,7 @@ Room.arrange = function (entry, level, angle) {
 
     let traps = [
         [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
+        [0, 2, 0, 0, 0],
         [0, 0, 0, 0, 0],
         [0, 0, 1, 0, 0],
         [0, 0, 0, 0, 0],
@@ -1131,9 +1131,34 @@ Room.arrange = function (entry, level, angle) {
             door.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
             door.init();
             door.noScan = true;
+            door.move = 1;
+            door.enabled = false;
+            door.update = function (dt) {
+                this.bytesValid = false;
+                this.rotatedColliderValid = false;
+                this.rotation += this.rotationSpeed * dt;
+                this.rotation = this.rotation % (Math.PI * 2);
+                if (this.enabled) {
+                    if (this.move > 0) {
+                        this.move -= dt;
+                        this.position.add(this.velocity.result().mult(dt));
+                    }else{
+                        this.velocity = 0;
+                    }
+                }
+            }
             doorControl.activate = function(ship, option){
+                if (door.enabled) return;
+                door.enabled = true;
                 let doorOpenPos = room.toGlobal(new Vector(-1000, 3050));
-                door.position = doorOpenPos;
+                door.velocity = doorOpenPos.sub(door.position);
+            }
+        },
+        2: function (room) {
+            let controlPos = room.toGlobal(new Vector(0, -2500));
+            let restartServer = new Interactable(controlPos, room.level, 500);
+            restartServer.activate = function(ship, option){
+                throw 'restarting';
             }
         }
     };
