@@ -1,10 +1,5 @@
-let Vector;
+const {Vector} = require("./gameobjects/vector");
 
-function init(vec){
-    Vector = vec;
-}
-
-exports.init = init;
 
 function Datagram() {
     this.structure = [];

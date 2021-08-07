@@ -1,4 +1,8 @@
-const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, Datagram, Datagrams, AutoView, serverHeaders, clientHeaders, SmartActionData, ActionId, ReplyData, ItemDrop, Item, Inventory, Marker, Projectile, Action, Level, Room, Interactable } = require("./worldgen");
+const { Vector, ShipType, Ship, Player, Buildings, Entity, CollisionEvent, Universe, Area, SmartAction, ItemDrop, Item, Inventory, Marker, Projectile, Action, Level, Room, Interactable } = require("./gameobjects");
+const {serverHeaders, clientHeaders, Datagrams, Datagram, ActionId, AutoView, SmartActionData, ReplyData} = require("./datagram");
+require("./worldgen");
+
+ShipType.initTypes();
 
 //#region INIT
 let http = require('http');
