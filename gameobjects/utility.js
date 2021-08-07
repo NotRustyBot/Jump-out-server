@@ -1,3 +1,6 @@
+const { Area } = require("./area");
+const { Shape } = require("./collision");
+
 
 const maxInteractionRange = 600 + 60; //max resource size
 
@@ -7,30 +10,14 @@ function flag(source, flag) {
     return (source & flag) == flag;
 }
 
-exports.flag = flag;
-
-
-/**
- * 
- * @param {Ship} ship 
- * @param {*} building 
- */
-function construct(position, level, building) {
-    if (isAvalible(position, level, building.size)) {
-        let build = new Building(position.x, position.y, building.type, level);
-        build.collider.push(new Shape().circle(0, 0, building.size));
-        build.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
-        build.calculateBounds();
-        build.setup = building.setup || build.setup;
-        build.setup();
-        build.control = building.control || build.control;
-        Entity.create.push(build);
-        return true;
-    }
-    return false;
+flag.CollisionFlags = {
+    player: 1,
+    projectile: 2,
+    pickup: 4,
 }
 
-exports.construct = construct;
+exports.flag = flag;
+
 
 function isAvalible(position, level, size) {
     let out = true;
@@ -58,6 +45,7 @@ function isAvalible(position, level, size) {
         }
     }
 
+    /*
     let collisionShape = new Shape().circle(position.x, position.y, size);
     Player.players.forEach(p => {
         let s = new Shape().circle(p.ship.position.x, p.ship.position.y, p.ship.stats.size);
@@ -66,7 +54,7 @@ function isAvalible(position, level, size) {
             out = false;
             return;
         }
-    });
+    });*/
 
     return out;
 }

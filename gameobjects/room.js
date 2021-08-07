@@ -6,7 +6,8 @@ const {Shape} = require("./collision");
 const {Entity} = require("./entity");
 const {ItemDrop, Item} = require("./inventory");
 const {Player} = require("./player");
-const {maxInteractionRange} = require("./utility");
+const {Projectile} = require("./projectile");
+const {maxInteractionRange, flag} = require("./utility");
 
 
 
@@ -21,7 +22,7 @@ function Room(position, level, rotation, type) {
     this.noScan = true;
     this.noUpdate = true;
 
-    this.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+    this.collisionPurpose = flag.CollisionFlags.player + flag.CollisionFlags.projectile;
     this.rotatedCollider = [];
     this.rotatedColliderValid = false;
 
@@ -87,7 +88,7 @@ Room.stats = [
             let guard = new Mobile(pos.x, pos.y, 20, room.level);
             guard.collider.push(new Shape().circle(0, 0, 125));
             guard.calculateBounds();
-            guard.collisionPurpose = Entity.CollisionFlags.projectile;
+            guard.collisionPurpose = flag.CollisionFlags.projectile;
             guard.hull = 100;
             guard.damage = function(projectile){
                 guard.hull -= projectile.stats.damage;
@@ -173,7 +174,7 @@ Room.arrange = function (entry, level, angle) {
             let door = new Entity(doorPos.x, doorPos.y, 6, room.level);
             door.colliderFromFile("hitboxes/rooms/door.json");
             door.rotation = room.rotation;
-            door.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+            door.collisionPurpose = flag.CollisionFlags.player + flag.CollisionFlags.projectile;
             door.init();
             door.noScan = true;
             door.move = 1;

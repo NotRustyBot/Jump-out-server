@@ -1,6 +1,5 @@
 const {Area} = require("./area");
-
-
+const {Vector} = require("./vector");
 
 function Level(enterance) {
     this.enterance = enterance;

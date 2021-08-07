@@ -1,5 +1,13 @@
 const {Item, ItemDrop} = require("./inventory");
+const {Vector} = require("./vector");
+const {Buildings, construct} = require("./building");
+const {Interactable} = require("./interactable");
+const {Items} = require("./items");
+const {Projectile} = require("./projectile");
+const {Entity} = require("./entity");
 const {Universe} = require("./universe");
+const {Area} = require("./area");
+const {Level} = require("./level");
 
 let Action = {};
 
@@ -197,6 +205,9 @@ Action.LevelMove = function (ship, action) {
 
     }
 }
+
+
+
 
 exports.SmartAction = SmartAction;
 exports.Action = Action;

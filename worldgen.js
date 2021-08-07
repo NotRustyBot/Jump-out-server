@@ -1,4 +1,4 @@
-const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level, Room, Interactable } = require("./gameobjects.js");
+const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level, Room, Interactable, flag } = require("./gameobjects.js");
 const {serverHeaders, clientHeaders, Datagrams, Datagram, ActionId, AutoView, SmartActionData, ReplyData} = require("./datagram");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
@@ -233,7 +233,7 @@ Universe.init = function () {
 
 
 			//asteroid.calculateBounds();
-			asteroid.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+			asteroid.collisionPurpose = flag.CollisionFlags.player + flag.CollisionFlags.projectile;
 			let area = Area.getLocalArea(pos);
 			let colliding = false;
 			area.entities.forEach(e => {
@@ -261,25 +261,25 @@ Universe.init = function () {
 	e1.colliderFromFile("hitboxes/asteroid1.json");
 	e1.calculateBounds();
 	e1.init();
-	e1.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+	e1.collisionPurpose = flag.CollisionFlags.player + flag.CollisionFlags.projectile;
 
 	let dim = new Entity(mid.x + 1000, mid.y, 2, 1);
 	dim.colliderFromFile("hitboxes/asteroid2.json");
 	dim.calculateBounds();
 	dim.init();
-	dim.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+	dim.collisionPurpose = flag.CollisionFlags.player + flag.CollisionFlags.projectile;
 
 	let e2 = new Entity(mid.x - 1000, mid.y, 3);
 	e2.colliderFromFile("hitboxes/asteroid3.json");
 	e2.calculateBounds();
 	e2.init();
-	e2.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+	e2.collisionPurpose = flag.CollisionFlags.player + flag.CollisionFlags.projectile;
 
 	let dim2 = new Entity(mid.x - 1000, mid.y, 4, 1);
 	dim2.colliderFromFile("hitboxes/asteroid4.json");
 	dim2.calculateBounds();
 	dim2.init();
-	dim2.collisionPurpose = Entity.CollisionFlags.player + Entity.CollisionFlags.projectile;
+	dim2.collisionPurpose = flag.CollisionFlags.player + flag.CollisionFlags.projectile;
 
 	let velka = new Entity(mid.x - 15000, mid.y + 5000, 5);
 	velka.init();
@@ -326,7 +326,7 @@ for (let index = 0; index < 0; index++) {
 	let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 20);
 	m1.collider.push(new Shape().circle(0, 0, 125));
 	m1.calculateBounds();
-	m1.collisionPurpose = Entity.CollisionFlags.projectile;
+	m1.collisionPurpose = flag.CollisionFlags.projectile;
 	m1.init();
 
 	m1.control = function (dt) {

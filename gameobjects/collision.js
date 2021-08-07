@@ -1,5 +1,4 @@
 const {Vector} = require("./vector");
-const {Projectile} = require("./projectile");
 
 /**
  * 
@@ -17,7 +16,7 @@ function CollisionResult(result, position, overlap) {
 
 /**
  * 
- * @param {import("./ship").Ship|Entity|Projectile} first 
+ * @param {import("./ship").Ship|import("./entity").Entity|import("./projectile").Projectile} first 
  * @param {import("./entity").Entity} second 
  * @param {CollisionResult} result 
  */

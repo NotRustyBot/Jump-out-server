@@ -14,6 +14,8 @@ const {Room} = require("./gameobjects/room");
 const {Ship, ShipType} = require("./gameobjects/ship");
 const {Universe} = require("./gameobjects/universe");
 const {Vector} = require("./gameobjects/vector");
+const {maxInteractionRange, flag} = require("./gameobjects/utility");
+
 
 
 exports.Vector = Vector
@@ -34,3 +36,5 @@ exports.Action = Action
 exports.Level = Level
 exports.Room = Room
 exports.Interactable = Interactable
+exports.maxInteractionRange = maxInteractionRange
+exports.flag = flag

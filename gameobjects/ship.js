@@ -6,7 +6,7 @@ const { Area } = require("./area");
 const { Entity } = require("./entity");
 const { Inventory } = require("./inventory");
 const { Shape, CollisionEvent } = require("./collision");
-const { Building } = require("./building");
+const { Building, Buildings } = require("./building");
 
 
 /**
@@ -35,7 +35,7 @@ function Ship(player) {
     this.inventory;
 
     this.collider = [];
-    this.collisionPurpose = Entity.CollisionFlags.projectile;
+    this.collisionPurpose = flag.CollisionFlags.projectile;
     this.bounds = 0;
     this.rotatedColliderValid = false;
     this.noScan = true;
@@ -251,8 +251,8 @@ function Ship(player) {
             for (let i = 0; i < localArea.entities.length; i++) {
                 const e = localArea.entities[i];
                 if (e == this) continue;
-                if (!flag(e.collisionPurpose, Entity.CollisionFlags.player)) {
-                    if (flag(e.collisionPurpose, Entity.CollisionFlags.pickup)) {
+                if (!flag(e.collisionPurpose, flag.CollisionFlags.player)) {
+                    if (flag(e.collisionPurpose, flag.CollisionFlags.pickup)) {
                         let relativePos = this.position.result();
                         relativePos.x -= e.position.x;
                         relativePos.y -= e.position.y;

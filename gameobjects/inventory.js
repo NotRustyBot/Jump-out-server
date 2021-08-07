@@ -2,6 +2,7 @@ const {Area} = require("./area");
 const {Entity} = require("./entity");
 const {Vector} = require("./vector");
 const {ItemInfo, Items} = require("./items");
+const {flag} = require("./utility");
 const {Shape} = require("./collision");
 
 
@@ -275,7 +276,7 @@ exports.Inventory = Inventory;
     Entity.call(this, position.x, position.y, -1, level);
     this.item = item;
     this.bounds = 125;
-    this.collisionPurpose = Entity.CollisionFlags.pickup;
+    this.collisionPurpose = flag.CollisionFlags.pickup;
     this.rotatedCollider.push(new Shape().circle(0, 0, 125));
     this.rotatedColliderValid = true;
     this.noScan = true;

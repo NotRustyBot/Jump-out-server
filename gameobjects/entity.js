@@ -122,14 +122,6 @@ Entity.next_id = 0;
 Entity.create = [];
 Entity.remove = [];
 
-
-
-Entity.CollisionFlags = {
-    player: 1,
-    projectile: 2,
-    pickup: 4,
-}
-
 Entity.properties = [
     { canMine: true },
     { canMine: true },

@@ -1,6 +1,7 @@
 const {Vector} = require("./vector");
 const {CollisionEvent, Shape} = require("./collision");
-const {maxInteractionRange} = require("./utility");
+const {Area} = require("./area");
+const {maxInteractionRange, flag} = require("./utility");
 
 
 
@@ -46,7 +47,7 @@ const {maxInteractionRange} = require("./utility");
                 nearby.entities.forEach(e => {
 
                     let vec = this.velocity.result().mult(dt);
-                    if (e != this.shooter && flag(e.collisionPurpose, Entity.CollisionFlags.projectile)) {
+                    if (e != this.shooter && flag(e.collisionPurpose, flag.CollisionFlags.projectile)) {
                         let relativePos = this.position.result();
                         relativePos.x -= e.position.x;
                         relativePos.y -= e.position.y;
