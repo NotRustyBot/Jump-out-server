@@ -1,7 +1,7 @@
 const {Vector} = require("./vector");
 const {CollisionEvent, Shape} = require("./collision");
 const {Area} = require("./area");
-const {maxInteractionRange, flag} = require("./utility");
+const {maxInteractionRange, flag, LocalRay} = require("./utility");
 
 
 
@@ -33,53 +33,14 @@ const {maxInteractionRange, flag} = require("./utility");
                 Projectile.removed.push(this);
                 Projectile.list.delete(this.id);
             } else {
-                let nearby = Area.getLocalArea(this.position, this.level);
-                if (!nearby) {
+                let result = LocalRay(this.position, this.velocity.result().mult(dt), this.level, flag.CollisionFlags.projectile, [shooter]);
+                if (result == undefined) {
                     Projectile.removed.push(this);
                     Projectile.list.delete(this.id);
                     return;
                 }
-
-                /**
-                 * @type {CollisionResult[]}
-                 */
-                let hits = [];
-                nearby.entities.forEach(e => {
-
-                    let vec = this.velocity.result().mult(dt);
-                    if (e != this.shooter && flag(e.collisionPurpose, flag.CollisionFlags.projectile)) {
-                        let relativePos = this.position.result();
-                        relativePos.x -= e.position.x;
-                        relativePos.y -= e.position.y;
-                        if (relativePos.inbound(Math.abs(this.velocity.x) + Math.abs(this.velocity.y) + e.bounds / 2)) {
-                            let collisionShape = new Shape().line(relativePos.x, relativePos.y, relativePos.x + vec.x, relativePos.y + vec.y);
-                            let res;
-                            if (!e.rotatedColliderValid) {
-                                e.rotateCollider();
-                            }
-                            e.rotatedCollider.forEach(s => {
-                                res = collisionShape.checkCollision(s);
-                                if (res.result) {
-                                    res.entity = e;
-                                    res.relative = relativePos;
-                                    hits.push(res);
-                                }
-                            });
-                        }
-                    }
-                });
-
-                if (hits.length > 0) {
-                    let closest = maxInteractionRange;
-                    let hit = hits[0];
-                    hits.forEach(h => {
-                        let dist = (h.relative.sub(h.position)).length();
-                        if (dist < closest) {
-                            hit = h;
-                            closest = dist;
-                        }
-                    });
-
+                if(result.closest){
+                    let hit = result.closest;
                     if (hit.entity.damage) hit.entity.damage(this);
 
                     CollisionEvent.list.push(new CollisionEvent(this, hit.entity, hit, 1));
