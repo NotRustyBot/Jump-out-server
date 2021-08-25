@@ -34,7 +34,7 @@ function onConnection(connection) {
     p.open = true;
     p.send(Universe.gasBuffer);
 
-    console.log((new Date()) + "New connection, ID: " + p.id);
+    console.log((new Date()) + " New connection, ID: " + p.id);
 
     connection.on('message', message => {
         onMessage(message, p);
@@ -75,6 +75,7 @@ function update() {
 
     dt = (Date.now() - last) / 1000;
     last = Date.now();
+    dt *= 0.1;
 
     Player.players.forEach(p => {
         if (p.initialised) {

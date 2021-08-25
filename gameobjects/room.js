@@ -7,7 +7,7 @@ const {Entity} = require("./entity");
 const {ItemDrop, Item} = require("./inventory");
 const {Player} = require("./player");
 const {Projectile} = require("./projectile");
-const {maxInteractionRange, flag} = require("./utility");
+const {maxInteractionRange, flag, LocalRay} = require("./utility");
 
 
 
@@ -109,9 +109,14 @@ Room.stats = [
                 let target = undefined;
                 Player.players.forEach(p => {
                     let dist = p.ship.position.distance(this.position);
-                    if (dist < closest) {
-                        target = p.ship;
-                        closest = dist;
+                    let relative = this.position.result().sub(p.ship.position);
+                    if (dist < 5000) {
+                        let result = LocalRay(this.position, relative);
+                        if (result != undefined) {
+                            if(result.hits.includes(p.ship)){
+                                target = p.ship;
+                            }
+                        }
                     }
                 });
                 if (target != undefined) {
