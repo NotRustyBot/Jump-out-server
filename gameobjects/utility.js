@@ -15,6 +15,8 @@ flag.CollisionFlags = {
     player: 1,
     projectile: 2,
     pickup: 4,
+
+    any: 0
 }
 
 exports.flag = flag;

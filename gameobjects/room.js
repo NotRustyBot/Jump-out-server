@@ -5,8 +5,7 @@ const {Interactable} = require("./interactable");
 const {Shape} = require("./collision");
 const {Entity} = require("./entity");
 const {ItemDrop, Item} = require("./inventory");
-const {Player} = require("./player");
-const {Projectile} = require("./projectile");
+const {Guard} = require('./holoubci');
 const {maxInteractionRange, flag, LocalRay} = require("./utility");
 
 
@@ -85,51 +84,7 @@ Room.stats = [
     {
         hitbox: "room-0i.json", setup:/**@param {Room} room */ function (room) {
             let pos = room.toGlobal(new Vector(2000, -2000));
-            let guard = new Mobile(pos.x, pos.y, 20, room.level);
-            guard.collider.push(new Shape().circle(0, 0, 125));
-            guard.calculateBounds();
-            guard.collisionPurpose = flag.CollisionFlags.projectile;
-            guard.hull = 100;
-            guard.damage = function(projectile){
-                guard.hull -= projectile.stats.damage;
-                if (guard.hull <= 0) {
-                    guard.delete();
-                }
-            }
-            guard.init();
-            guard.control = function (dt) {
-                if (!this.ready) {
-                    this.startPos = this.position.result();
-                    this.cooldown = 0;
-                    this.projectileType = 1;
-                    this.ready = true;
-                }
 
-                let closest = 5000;
-                let target = undefined;
-                Player.players.forEach(p => {
-                    let dist = p.ship.position.distance(this.position);
-                    let relative = this.position.result().sub(p.ship.position);
-                    if (dist < 5000) {
-                        let result = LocalRay(this.position, relative);
-                        if (result != undefined) {
-                            if(result.hits.includes(p.ship)){
-                                target = p.ship;
-                            }
-                        }
-                    }
-                });
-                if (target != undefined) {
-                    this.cooldown -= dt;
-                    if (this.cooldown < 0) {
-                        this.cooldown = Projectile.stats[this.projectileType].cooldown / 1000;
-                        for (let index = 0; index < 5; index++) {
-                            Projectile.from(this, this.projectileType);
-                        }
-                    }
-                    this.rotation = target.position.result().sub(this.position).toAngle();
-                }
-            }
         }
     },
     { hitbox: "room-0t.json", },

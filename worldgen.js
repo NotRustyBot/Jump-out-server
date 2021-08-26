@@ -1,4 +1,4 @@
-const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level, Room, Interactable, flag } = require("./gameobjects.js");
+const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level, Room, Interactable, flag, Guard } = require("./gameobjects.js");
 const {serverHeaders, clientHeaders, Datagrams, Datagram, ActionId, AutoView, SmartActionData, ReplyData} = require("./datagram");
 const { createCanvas } = require('canvas');
 const fs = require('fs');
@@ -321,6 +321,7 @@ exports.gasBuffer = gasBuffer;
 let i = new ItemDrop(new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2 + 500), new Item(5, 1));
 i.init();
 
+let guard = new Guard(new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2 - 5000), 0);
 
 for (let index = 0; index < 0; index++) {
 	let m1 = new Mobile(Universe.size * Area.size / 2 + 2000, Universe.size * Area.size / 2, 20);
