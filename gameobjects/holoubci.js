@@ -3,6 +3,7 @@ const {Shape} = require('./collision');
 const {Projectile} = require('./projectile');
 const {Player} = require('./player');
 const { Raycast, flag } = require('./universe');
+const { Area } = require('./area');
 
 
 function Guard(position, level) {
@@ -23,6 +24,7 @@ function Guard(position, level) {
             this.startPos = this.position.result();
             this.cooldown = 0;
             this.projectileType = 1;
+            this.lastSeen = this.position.result();
             this.ready = true;
         }
 
@@ -35,6 +37,7 @@ function Guard(position, level) {
                 let result = Raycast(this.position, relative.mult(-1), this.level, flag.CollisionFlags.any, [this]);
                 if (result.closest != undefined && result.closest.entity == p.ship) {
                     target = p.ship;
+                    this.lastSeen = p.ship.position.result();
                 }
             }
         });
@@ -42,11 +45,16 @@ function Guard(position, level) {
             this.cooldown -= dt;
             if (this.cooldown < 0) {
                 this.cooldown = Projectile.stats[this.projectileType].cooldown / 1000;
-                for (let index = 0; index < 5; index++) {
+                for (let index = 0; index < 1; index++) {
                     Projectile.from(this, this.projectileType);
                 }
             }
             this.rotation = target.position.result().sub(this.position).toAngle();
+        }
+        let flydir = this.lastSeen.result().sub(this.position);
+        if (flydir.length() > 100) {
+            this.velocity = flydir.normalize(100);
+            Area.moveMe(this, dt);
         }
     }
 }

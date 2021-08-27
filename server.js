@@ -75,7 +75,7 @@ function update() {
 
     dt = (Date.now() - last) / 1000;
     last = Date.now();
-    //dt *= 0.1;
+    dt *= 0.1;
 
     Player.players.forEach(p => {
         if (p.initialised) {
