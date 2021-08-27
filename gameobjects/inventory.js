@@ -2,7 +2,7 @@ const {Area} = require("./area");
 const {Entity} = require("./entity");
 const {Vector} = require("./vector");
 const {ItemInfo, Items} = require("./items");
-const {flag} = require("./utility");
+const {flag} = require("./universe");
 const {Shape} = require("./collision");
 
 

@@ -1,5 +1,5 @@
 const {Entity} = require("./entity");
-const {isAvalible, flag} = require("./utility");
+const {isAvalible, flag} = require("./universe");
 const {Shape} = require("./collision");
 
 

@@ -12,9 +12,8 @@ const {Player} = require("./gameobjects/player");
 const {Projectile} = require("./gameobjects/projectile");
 const {Room} = require("./gameobjects/room");
 const {Ship, ShipType} = require("./gameobjects/ship");
-const {Universe} = require("./gameobjects/universe");
+const {Universe, flag} = require("./gameobjects/universe");
 const {Vector} = require("./gameobjects/vector");
-const {maxInteractionRange, flag} = require("./gameobjects/utility");
 const {Guard} = require("./gameobjects/holoubci");
 
 
@@ -37,6 +36,5 @@ exports.Action = Action
 exports.Level = Level
 exports.Room = Room
 exports.Interactable = Interactable
-exports.maxInteractionRange = maxInteractionRange
-exports.flag = flag
 exports.Guard = Guard
+exports.flag = flag

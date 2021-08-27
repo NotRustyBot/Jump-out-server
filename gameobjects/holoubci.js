@@ -1,8 +1,8 @@
 const {Mobile} = require('./mobile');
 const {Shape} = require('./collision');
 const {Projectile} = require('./projectile');
-const {flag, LocalRay} = require('./utility');
 const {Player} = require('./player');
+const { Raycast, flag } = require('./universe');
 
 
 function Guard(position, level) {
@@ -32,8 +32,8 @@ function Guard(position, level) {
             let dist = p.ship.position.distance(this.position);
             let relative = this.position.result().sub(p.ship.position);
             if (dist < 5000) {
-                let result = LocalRay(this.position, relative.mult(-1), this.level, flag.CollisionFlags.any, [this]);
-                if (result.closest.entity == p.ship) {
+                let result = Raycast(this.position, relative.mult(-1), this.level, flag.CollisionFlags.any, [this]);
+                if (result.closest != undefined && result.closest.entity == p.ship) {
                     target = p.ship;
                 }
             }

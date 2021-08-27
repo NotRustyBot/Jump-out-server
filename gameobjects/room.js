@@ -6,7 +6,7 @@ const {Shape} = require("./collision");
 const {Entity} = require("./entity");
 const {ItemDrop, Item} = require("./inventory");
 const {Guard} = require('./holoubci');
-const {maxInteractionRange, flag, LocalRay} = require("./utility");
+const {maxInteractionRange, flag, Raycast} = require("./universe");
 
 
 

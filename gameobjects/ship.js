@@ -1,7 +1,6 @@
-const { maxInteractionRange, flag } = require("./utility");
+const { maxInteractionRange, flag, Universe } = require("./universe");
 const { Action } = require("./action");
 const { Vector } = require("./vector");
-const { Universe } = require("./universe");
 const { Area } = require("./area");
 const { Entity } = require("./entity");
 const { Inventory } = require("./inventory");

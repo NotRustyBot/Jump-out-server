@@ -1,7 +1,7 @@
 const {Vector} = require("./vector");
 const {CollisionEvent, Shape} = require("./collision");
 const {Area} = require("./area");
-const {maxInteractionRange, flag, LocalRay} = require("./utility");
+const {maxInteractionRange, flag, Raycast} = require("./universe");
 
 
 
@@ -33,7 +33,7 @@ const {maxInteractionRange, flag, LocalRay} = require("./utility");
                 Projectile.removed.push(this);
                 Projectile.list.delete(this.id);
             } else {
-                let result = LocalRay(this.position, this.velocity.result().mult(dt), this.level, flag.CollisionFlags.projectile, [shooter]);
+                let result = Raycast(this.position, this.velocity.result().mult(dt), this.level, flag.CollisionFlags.projectile, [shooter]);
                 if (result == undefined) {
                     Projectile.removed.push(this);
                     Projectile.list.delete(this.id);

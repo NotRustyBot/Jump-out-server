@@ -1,6 +1,6 @@
 const {Vector} = require("./vector");
 const {Area} = require("./area");
-const {maxInteractionRange} = require("./utility");
+const {maxInteractionRange} = require("./universe");
 const {Shape} = require("./collision");
 const {Datagrams} = require("../datagram");
 const fs = require('fs');
