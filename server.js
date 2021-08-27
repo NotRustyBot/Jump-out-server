@@ -70,7 +70,7 @@ let last = Date.now();
 let mspt = 0;
 let msptavg = [];
 
-let deltaTimeFactor = 3;
+let deltaTimeFactor = 1;
 
 for (let i = 0; i < fps; i++) { msptavg[i] = 0; }
 function update() {
