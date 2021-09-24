@@ -4,6 +4,7 @@ const {Projectile} = require('./projectile');
 const {Player} = require('./player');
 const { Raycast, flag } = require('./universe');
 const { Area } = require('./area');
+const { Vector } = require('./vector');
 
 
 function Guard(position, level) {
@@ -55,6 +56,8 @@ function Guard(position, level) {
         if (flydir.length() > 100) {
             this.velocity = flydir.normalize(100);
             Area.moveMe(this, dt);
+        }else{
+            this.velocity = new Vector(0,0);
         }
     }
 }
