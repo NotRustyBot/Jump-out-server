@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/NotRustyBot/Jump-out-server#readme",
   "dependencies": {
-    "canvas": "^2.6.1",
+    "canvas": "^2.8.0",
     "ws": "^1.1.5"
   }
 }

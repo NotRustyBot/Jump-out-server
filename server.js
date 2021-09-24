@@ -70,12 +70,14 @@ let last = Date.now();
 let mspt = 0;
 let msptavg = [];
 
+let deltaTimeFactor = 1;
+
 for (let i = 0; i < fps; i++) { msptavg[i] = 0; }
 function update() {
 
     dt = (Date.now() - last) / 1000;
     last = Date.now();
-    //dt *= 0.1;
+    dt *= deltaTimeFactor;
 
     Player.players.forEach(p => {
         if (p.initialised) {
