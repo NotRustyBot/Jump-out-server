@@ -7,5 +7,5 @@ TO-DO:
 - @hh4 elipsa?
 
 
-^^ne
+^^ne,  
 P Ř E P I S U J E M
