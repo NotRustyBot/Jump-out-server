@@ -1,6 +1,5 @@
 const { Vector, ShipType, Shape, Ship, Player, Entity, CollisionEvent, Universe, Area, Item, ItemDrop, Inventory, Building, Mobile, Marker, Projectile, Action, Level, Room, Interactable, flag, Guard } = require("./gameobjects.js");
 const {serverHeaders, clientHeaders, Datagrams, Datagram, ActionId, AutoView, SmartActionData, ReplyData} = require("./datagram");
-const { createCanvas } = require('canvas');
 const fs = require('fs');
 
 
@@ -89,11 +88,6 @@ if (debugMap) {
 	perlin.gradients = obj.gradients;
 }
 
-const canvas = createCanvas(w, w);
-const context = canvas.getContext('2d');
-
-context.fillStyle = '#000';
-context.fillRect(0, 0, w, h);
 
 function distance(x1, y1, x2, y2) {
 	var a = x1 - x2;
@@ -294,26 +288,6 @@ if (!debugMap) {
 	let str = JSON.stringify(toSave);
 	fs.writeFileSync("perlin_data.json", str);
 }
-
-for (let x = 0; x < w; x += subres) {
-	for (let y = 0; y < h; y += subres) {
-
-		let level = gasMap[x][y];
-		context.fillStyle = "rgba(" + level + "," + level + "," + level + "," + 1 + ")";
-		context.fillRect(x * subres, y * subres, subres, subres);
-		view.setUint8(level);
-	}
-}
-
-
-for (let i = 0; i < Entity.list.length; i++) {
-	const e = Entity.list[i];
-	context.fillStyle = "rgba(255,0,0,1)";
-	context.fillRect(Math.floor(e.position.x / 400), Math.floor(e.position.y / 400), 1, 1);
-}
-
-const buffer = canvas.toBuffer('image/png')
-fs.writeFileSync('./minimap.png', buffer)
 
 exports.gasMap = gasMap;
 exports.gasBuffer = gasBuffer;
