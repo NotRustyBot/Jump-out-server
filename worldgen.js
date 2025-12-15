@@ -295,6 +295,15 @@ exports.gasBuffer = gasBuffer;
 let i = new ItemDrop(new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2 + 500), new Item(5, 1));
 i.init();
 
+
+for (let x = 0; x < w; x += subres) {
+	for (let y = 0; y < h; y += subres) {
+
+		let level = gasMap[x][y];
+		view.setUint8(level);
+	}
+}
+
 let guard = new Guard(new Vector(Universe.size * Area.size / 2, Universe.size * Area.size / 2 - 5000), 0);
 
 for (let index = 0; index < 0; index++) {
